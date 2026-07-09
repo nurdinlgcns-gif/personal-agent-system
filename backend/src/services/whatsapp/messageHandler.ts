@@ -131,7 +131,10 @@ export async function handleIncomingWhatsAppMessage(
   logger.wa("Agent request detected");
 
   try {
-    const result = await routeTask(text);
+    const result = await routeTask(text, {
+        source: "whatsapp",
+        senderId: senderNumber,
+      });
 
     return {
       shouldReply: true,

@@ -12,6 +12,11 @@ import {
   markTaskError,
 } from "../repositories/taskRepository";
 
+type RouteTaskOptions = {
+  source?: "manual" | "whatsapp";
+  senderId?: string;
+};
+
 function extractAgentName(rawMessage: string): string | null {
   const mentionMatch = rawMessage.match(/@([a-zA-Z-]+)/);
   return mentionMatch ? mentionMatch[1] : null;
@@ -21,9 +26,13 @@ function cleanUserMessage(rawMessage: string): string {
   return rawMessage.replace(/@[a-zA-Z-]+/, "").trim();
 }
 
-export async function routeTask(rawMessage: string): Promise<string> {
+export async function routeTask(
+  rawMessage: string,
+  options: RouteTaskOptions = {}
+): Promise<string> {
   const agentName = extractAgentName(rawMessage);
   const cleanMessage = cleanUserMessage(rawMessage);
+  const source = options.source || "manual";
 
   if (!agentName) {
     return "Agent tidak ditemukan. Coba gunakan @design-agent.";
@@ -38,13 +47,18 @@ export async function routeTask(rawMessage: string): Promise<string> {
   const task = await createTask({
     agentId: agent.id,
     inputText: cleanMessage,
-    source: "manual",
+    source,
   });
 
   try {
     await setAgentWorking(agent.id);
 
     logger.task(`Agent ${agent.name} mulai memproses task`);
+    logger.task(`Task source: ${source}`);
+
+    if (options.senderId) {
+      logger.task(`Sender ID: ${options.senderId}`);
+    }
 
     let result = "";
 
