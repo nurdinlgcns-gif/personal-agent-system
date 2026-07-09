@@ -20,6 +20,15 @@ export async function routeTask(rawMessage: string): Promise<string> {
     return `Agent "${agentName}" belum terdaftar di database.`;
   }
 
+  await prisma.agent.update({
+    where: {
+      id: agent.id,
+    },
+    data: {
+      status: "working",
+    },
+  });
+
   const task = await prisma.task.create({
     data: {
       agentId: agent.id,
@@ -31,6 +40,9 @@ export async function routeTask(rawMessage: string): Promise<string> {
 
   try {
     let result = "";
+    console.log(
+        `[TASK] Agent ${agent.name} mulai memproses task`
+      );
 
     switch (agentName) {
       case "design-agent":
@@ -42,6 +54,10 @@ export async function routeTask(rawMessage: string): Promise<string> {
         break;
     }
 
+    console.log(
+        `[TASK] Agent ${agent.name} selesai memproses task`
+      );
+
     await prisma.task.update({
       where: {
         id: task.id,
@@ -51,10 +67,23 @@ export async function routeTask(rawMessage: string): Promise<string> {
         status: "done",
       },
     });
+    
+    await prisma.agent.update({
+        where: {
+          id: agent.id,
+        },
+        data: {
+          status: "idle",
+        },
+    });
 
     return result;
   } catch (error) {
     console.error("Error saat routeTask:", error);
+    
+    console.log(
+        `[TASK] Agent ${agent.name} gagal memproses task`
+      );
 
     await prisma.task.update({
       where: {
@@ -66,6 +95,16 @@ export async function routeTask(rawMessage: string): Promise<string> {
       },
     });
 
+    await prisma.agent.update({
+        where: {
+          id: agent.id,
+        },
+        data: {
+          status: "error",
+        },
+      });
+
     return "Terjadi error saat memproses task.";
   }
+  
 }
