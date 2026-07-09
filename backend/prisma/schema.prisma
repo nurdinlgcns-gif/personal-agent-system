@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  waNumber  String?  @unique
+  role      String   @default("owner")
+  createdAt DateTime @default(now())
+
+  tasks     Task[]
+}
+
+model Agent {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  systemPrompt String
+  color        String?
+  status       String   @default("idle")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tasks        Task[]
+  memories     Memory[]
+  skills       Skill[]
+}
+
+model Task {
+  id         String   @id @default(uuid())
+  agentId    String
+  userId     String?
+  inputText  String
+  outputText String?
+  status     String   @default("pending")
+  source     String   @default("manual")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  agent      Agent    @relation(fields: [agentId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id])
+}
+
+model Memory {
+  id        String   @id @default(uuid())
+  agentId   String
+  content   String
+  type      String   @default("general")
+  createdAt DateTime @default(now())
+
+  agent     Agent    @relation(fields: [agentId], references: [id])
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  agentId     String
+  name        String
+  description String?
+  filePath    String?
+  content     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  agent       Agent    @relation(fields: [agentId], references: [id])
+}
