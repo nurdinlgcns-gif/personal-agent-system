@@ -1,48 +1,52 @@
 import { runDesignAgent } from "../agents/designAgent";
-import { prisma } from "../db/prisma";
+import { logger } from "../utils/logger";
+import {
+  findAgentByName,
+  setAgentError,
+  setAgentIdle,
+  setAgentWorking,
+} from "../repositories/agentRepository";
+import {
+  createTask,
+  markTaskDone,
+  markTaskError,
+} from "../repositories/taskRepository";
+
+function extractAgentName(rawMessage: string): string | null {
+  const mentionMatch = rawMessage.match(/@([a-zA-Z-]+)/);
+  return mentionMatch ? mentionMatch[1] : null;
+}
+
+function cleanUserMessage(rawMessage: string): string {
+  return rawMessage.replace(/@[a-zA-Z-]+/, "").trim();
+}
 
 export async function routeTask(rawMessage: string): Promise<string> {
-  const mentionMatch = rawMessage.match(/@([a-zA-Z-]+)/);
-  const agentName = mentionMatch ? mentionMatch[1] : null;
-  const cleanMessage = rawMessage.replace(/@[a-zA-Z-]+/, "").trim();
+  const agentName = extractAgentName(rawMessage);
+  const cleanMessage = cleanUserMessage(rawMessage);
 
   if (!agentName) {
     return "Agent tidak ditemukan. Coba gunakan @design-agent.";
   }
 
-  const agent = await prisma.agent.findUnique({
-    where: {
-      name: agentName,
-    },
-  });
+  const agent = await findAgentByName(agentName);
 
   if (!agent) {
     return `Agent "${agentName}" belum terdaftar di database.`;
   }
 
-  await prisma.agent.update({
-    where: {
-      id: agent.id,
-    },
-    data: {
-      status: "working",
-    },
-  });
-
-  const task = await prisma.task.create({
-    data: {
-      agentId: agent.id,
-      inputText: cleanMessage,
-      status: "in_progress",
-      source: "manual",
-    },
+  const task = await createTask({
+    agentId: agent.id,
+    inputText: cleanMessage,
+    source: "manual",
   });
 
   try {
+    await setAgentWorking(agent.id);
+
+    logger.task(`Agent ${agent.name} mulai memproses task`);
+
     let result = "";
-    console.log(
-        `[TASK] Agent ${agent.name} mulai memproses task`
-      );
 
     switch (agentName) {
       case "design-agent":
@@ -54,57 +58,26 @@ export async function routeTask(rawMessage: string): Promise<string> {
         break;
     }
 
-    console.log(
-        `[TASK] Agent ${agent.name} selesai memproses task`
-      );
+    await markTaskDone({
+      taskId: task.id,
+      outputText: result,
+    });
 
-    await prisma.task.update({
-      where: {
-        id: task.id,
-      },
-      data: {
-        outputText: result,
-        status: "done",
-      },
-    });
-    
-    await prisma.agent.update({
-        where: {
-          id: agent.id,
-        },
-        data: {
-          status: "idle",
-        },
-    });
+    await setAgentIdle(agent.id);
+
+    logger.task(`Agent ${agent.name} selesai memproses task`);
 
     return result;
   } catch (error) {
-    console.error("Error saat routeTask:", error);
-    
-    console.log(
-        `[TASK] Agent ${agent.name} gagal memproses task`
-      );
+    logger.error(`Agent ${agent.name} gagal memproses task`, error);
 
-    await prisma.task.update({
-      where: {
-        id: task.id,
-      },
-      data: {
-        status: "error",
-        outputText: "Terjadi error saat memproses task.",
-      },
+    await markTaskError({
+      taskId: task.id,
+      outputText: "Terjadi error saat memproses task.",
     });
 
-    await prisma.agent.update({
-        where: {
-          id: agent.id,
-        },
-        data: {
-          status: "error",
-        },
-      });
+    await setAgentError(agent.id);
 
     return "Terjadi error saat memproses task.";
   }
-  
 }
