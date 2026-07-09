@@ -1,45 +1,41 @@
 import fs from "fs";
 import path from "path";
-import { prisma } from "../db/prisma";
+import { findSkillByAgentAndName } from "../repositories/skillRepository";
+import { logger } from "../utils/logger";
 
 export async function loadSkillForAgent(
   agentName: string,
   skillName: string
 ): Promise<string> {
-  const agent = await prisma.agent.findUnique({
-    where: {
-      name: agentName,
-    },
-  });
-
-  if (!agent) {
-    return `Agent ${agentName} tidak ditemukan di database.`;
-  }
-
-  const skill = await prisma.skill.findFirst({
-    where: {
-      agentId: agent.id,
-      name: skillName,
-    },
-  });
+  const skill = await findSkillByAgentAndName(agentName, skillName);
 
   if (!skill) {
-    return `Skill ${skillName} belum terdaftar untuk agent ${agentName}.`;
+    const message = `Skill ${skillName} belum terdaftar untuk agent ${agentName}.`;
+    logger.skill(message);
+    return message;
   }
 
   if (!skill.filePath) {
-    return `Skill ${skillName} belum punya filePath.`;
+    const message = `Skill ${skillName} belum punya filePath.`;
+    logger.skill(message);
+    return message;
   }
 
-  const skillPath = path.resolve(process.cwd(), skill.filePath);
+  const absoluteSkillPath = path.resolve(process.cwd(), skill.filePath);
 
-  console.log("Membaca skill dari:", skillPath);
+  logger.skill(`Loading skill: ${skillName}`);
+  logger.skill(`Agent: ${agentName}`);
+  logger.skill(`Path: ${absoluteSkillPath}`);
 
   try {
-    const content = fs.readFileSync(skillPath, "utf-8");
+    const content = fs.readFileSync(absoluteSkillPath, "utf-8");
+
+    logger.skill(`Skill loaded successfully: ${skillName}`);
+
     return content.replace(/\r\n/g, "\n");
   } catch (error) {
-    console.error("Gagal membaca file skill:", error);
+    logger.error(`Failed to read skill file: ${skill.filePath}`, error);
+
     return `File skill tidak bisa dibaca: ${skill.filePath}`;
   }
 }
