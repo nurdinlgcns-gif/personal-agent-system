@@ -1,9 +1,11 @@
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import { routeTask } from "./orchestrator";
+import { startWhatsApp } from "./webhook/whatsapp";
+import { env, validateEnv } from "./config/env";
+import { logger } from "./utils/logger";
 
-dotenv.config();
+validateEnv();
 
 const app = express();
 
@@ -14,14 +16,16 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-const PORT = process.env.PORT || 3000;
+app.post("/tasks", async (req, res) => {
+  const { message } = req.body;
 
-app.listen(PORT, () => {
-  console.log(`Server jalan di port ${PORT}`);
+  const result = await routeTask(message);
+
+  res.json({ result });
 });
 
-app.post("/tasks", async (req, res) => {
-    const { message } = req.body;
-    const result = await routeTask(message);
-    res.json({ result });
-  });
+app.listen(env.PORT, () => {
+  logger.server(`Server jalan di port ${env.PORT}`);
+});
+
+startWhatsApp();

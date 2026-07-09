@@ -3,3 +3,5 @@ node_modules/
 dist/
 prisma/dev.db
 prisma/dev.db-journal
+
+auth_info/
