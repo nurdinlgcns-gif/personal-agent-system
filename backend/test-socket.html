@@ -86,7 +86,16 @@
               data.status
             );
           });
-    
+          
+          socket.on("task-event", (data) => {
+                console.log("Task event:", data);
+                addEvent(
+                "Task Event",
+                data,
+                data.status
+                );
+            });
+
           socket.on("disconnect", () => {
             console.log("Disconnected from WebSocket");
             statusEl.textContent = "Disconnected";
