@@ -23,6 +23,14 @@ export async function updateAgentStatus(
   });
 }
 
+export async function findAllAgents() {
+    return prisma.agent.findMany({
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+  }
+
 export async function setAgentWorking(agentId: string) {
   return updateAgentStatus(agentId, AGENT_STATUS.WORKING);
 }

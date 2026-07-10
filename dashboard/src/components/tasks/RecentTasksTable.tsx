@@ -1,10 +1,10 @@
-import type { TaskEventPayload } from "../../types/websocket";
+import type { TaskSnapshot } from "../../types/api";
 
 type RecentTasksTableProps = {
-  taskEvents: TaskEventPayload[];
+  tasks: TaskSnapshot[];
 };
 
-export function RecentTasksTable({ taskEvents }: RecentTasksTableProps) {
+export function RecentTasksTable({ tasks }: RecentTasksTableProps) {
   return (
     <section className="panel recent-tasks-panel">
       <div className="panel-header">
@@ -21,18 +21,18 @@ export function RecentTasksTable({ taskEvents }: RecentTasksTableProps) {
           <span>Created At</span>
         </div>
 
-        {taskEvents.length === 0 ? (
-          <p className="muted table-empty">No task events yet.</p>
+        {tasks.length === 0 ? (
+          <p className="muted table-empty">No recent tasks found.</p>
         ) : (
-          taskEvents.slice(0, 6).map((task, index) => (
-            <div key={`${task.timestamp}-${index}`} className="table-row">
-              <span>{task.taskId ? task.taskId.slice(0, 8) : "-"}</span>
+          tasks.slice(0, 8).map((task) => (
+            <div key={task.id} className="table-row">
+              <span title={task.id}>{task.id.slice(0, 8)}</span>
               <span>{task.agentName}</span>
-              <span>{task.source || "-"}</span>
+              <span>{task.source}</span>
               <span>
                 <b className={`task-status ${task.status}`}>{task.status}</b>
               </span>
-              <span>{new Date(task.timestamp).toLocaleTimeString()}</span>
+              <span>{new Date(task.createdAt).toLocaleTimeString()}</span>
             </div>
           ))
         )}

@@ -1,7 +1,11 @@
+import { useEffect, useCallback } from "react";
+
 import "./services/socket";
 import "./App.css";
 
 import { useAgentStore } from "./store/agentStore";
+import { fetchAgentsStatus, fetchRecentTasks } from "./services/api";
+
 import { Sidebar } from "./components/layout/Sidebar";
 import { TopHeader } from "./components/layout/TopHeader";
 import { MetricsGrid } from "./components/common/MetricsGrid";
@@ -17,26 +21,87 @@ function App() {
     connectionStatus,
     socketId,
     agentStatuses,
+    agents,
+    recentTasks,
     agentEvents,
     taskEvents,
+    isSnapshotLoading,
+    snapshotError,
+    setAgentsSnapshot,
+    setRecentTasksSnapshot,
+    setSnapshotLoading,
+    setSnapshotError,
   } = useAgentStore();
+
+  const loadSnapshot = useCallback(async () => {
+    try {
+      setSnapshotLoading(true);
+      setSnapshotError(null);
+
+      const [agentsData, tasksData] = await Promise.all([
+        fetchAgentsStatus(),
+        fetchRecentTasks(10),
+      ]);
+
+      setAgentsSnapshot(agentsData);
+      setRecentTasksSnapshot(tasksData);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to load dashboard snapshot";
+
+      setSnapshotError(message);
+    } finally {
+      setSnapshotLoading(false);
+    }
+  }, [
+    setAgentsSnapshot,
+    setRecentTasksSnapshot,
+    setSnapshotLoading,
+    setSnapshotError,
+  ]);
+
+  useEffect(() => {
+    loadSnapshot();
+  }, [loadSnapshot]);
+
+  useEffect(() => {
+    const hasDoneTaskEvent = taskEvents.some(
+      (event) => event.status === "done" || event.status === "error"
+    );
+
+    if (!hasDoneTaskEvent) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      loadSnapshot();
+    }, 500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [taskEvents, loadSnapshot]);
 
   const designAgentStatus = agentStatuses["design-agent"] || "idle";
 
-  const runningTaskCount = taskEvents.filter(
-    (event) => event.status === "in_progress"
+  const agentCount = agents.length || 3;
+
+  const runningTaskCount = recentTasks.filter(
+    (task) => task.status === "in_progress"
   ).length;
 
-  const completedTaskCount = taskEvents.filter(
-    (event) => event.status === "done"
+  const completedTaskCount = recentTasks.filter(
+    (task) => task.status === "done"
   ).length;
 
-  const errorTaskCount = taskEvents.filter(
-    (event) => event.status === "error"
+  const errorTaskCount = recentTasks.filter(
+    (task) => task.status === "error"
   ).length;
 
-  const whatsappTaskCount = taskEvents.filter(
-    (event) => event.source === "whatsapp"
+  const whatsappTaskCount = recentTasks.filter(
+    (task) => task.source === "whatsapp"
   ).length;
 
   return (
@@ -49,8 +114,20 @@ function App() {
           socketId={socketId}
         />
 
+        {snapshotError && (
+          <div className="snapshot-alert">
+            Snapshot error: {snapshotError}
+          </div>
+        )}
+
+        {isSnapshotLoading && (
+          <div className="snapshot-loading">
+            Loading dashboard snapshot...
+          </div>
+        )}
+
         <MetricsGrid
-          agentCount={3}
+          agentCount={agentCount}
           runningTaskCount={runningTaskCount}
           completedTaskCount={completedTaskCount}
           errorTaskCount={errorTaskCount}
@@ -58,7 +135,10 @@ function App() {
         />
 
         <section className="dashboard-grid-main">
-          <AgentStatusPanel agentStatuses={agentStatuses} />
+          <AgentStatusPanel
+            agents={agents}
+            agentStatuses={agentStatuses}
+          />
 
           <EventTimeline
             agentEvents={agentEvents}
@@ -69,7 +149,7 @@ function App() {
         </section>
 
         <section className="dashboard-grid-bottom">
-          <RecentTasksTable taskEvents={taskEvents} />
+          <RecentTasksTable tasks={recentTasks} />
 
           <div className="side-stack">
             <WhatsAppPanel />

@@ -143,6 +143,26 @@ button {
   overflow-x: hidden;
 }
 
+.snapshot-alert,
+.snapshot-loading {
+  margin-top: 14px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.snapshot-alert {
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.35);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.snapshot-loading {
+  color: #bfdbfe;
+  background: rgba(30, 64, 175, 0.25);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
 .top-header {
   width: 100%;
   background: rgba(15, 23, 42, 0.9);

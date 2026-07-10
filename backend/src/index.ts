@@ -7,6 +7,8 @@ import { startWhatsApp } from "./webhook/whatsapp";
 import { env, validateEnv } from "./config/env";
 import { logger } from "./utils/logger";
 import { initWebSocket } from "./websocket";
+import { findAllAgents } from "./repositories/agentRepository";
+import { findRecentTasks } from "./repositories/taskRepository";
 
 validateEnv();
 
@@ -57,6 +59,57 @@ app.post("/tasks", async (req, res) => {
   }
 });
 
+app.get("/agents/status", async (req, res) => {
+    try {
+      const agents = await findAllAgents();
+  
+      return res.json({
+        agents: agents.map((agent) => ({
+          id: agent.id,
+          name: agent.name,
+          status: agent.status,
+          color: agent.color,
+          createdAt: agent.createdAt,
+          updatedAt: agent.updatedAt,
+        })),
+      });
+    } catch (error) {
+      logger.error("Failed to fetch agent status", error);
+  
+      return res.status(500).json({
+        error: "Terjadi error saat mengambil status agent.",
+      });
+    }
+  });
+  
+  app.get("/tasks/recent", async (req, res) => {
+    try {
+      const rawLimit = Number(req.query.limit || 10);
+      const limit = Number.isNaN(rawLimit) ? 10 : rawLimit;
+  
+      const tasks = await findRecentTasks(limit);
+  
+      return res.json({
+        tasks: tasks.map((task) => ({
+          id: task.id,
+          agentName: task.agent.name,
+          inputText: task.inputText,
+          outputText: task.outputText,
+          status: task.status,
+          source: task.source,
+          createdAt: task.createdAt,
+          updatedAt: task.updatedAt,
+        })),
+      });
+    } catch (error) {
+      logger.error("Failed to fetch recent tasks", error);
+  
+      return res.status(500).json({
+        error: "Terjadi error saat mengambil recent tasks.",
+      });
+    }
+  });
+  
 const server = http.createServer(app);
 
 initWebSocket(server);

@@ -31,6 +31,22 @@ export async function markTaskDone(params: {
   });
 }
 
+export async function findRecentTasks(limit = 10) {
+    return prisma.task.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: limit,
+      include: {
+        agent: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
 export async function markTaskError(params: {
   taskId: string;
   outputText: string;
