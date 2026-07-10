@@ -1,0 +1,163 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #020617;
+  color: #e5e7eb;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.hero p {
+  margin: 8px 0 0;
+  color: #94a3b8;
+}
+
+.connection-badge {
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.connection-badge.connected {
+  background: #064e3b;
+  color: #bbf7d0;
+}
+
+.connection-badge.connecting {
+  background: #78350f;
+  color: #fde68a;
+}
+
+.connection-badge.disconnected {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 20px;
+  min-height: 180px;
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.label,
+.muted {
+  color: #94a3b8;
+}
+
+pre {
+  background: #020617;
+  border: 1px solid #1e293b;
+  padding: 12px;
+  border-radius: 10px;
+  overflow-x: auto;
+  color: #cbd5e1;
+}
+
+.agent-row,
+.event {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-left: 5px solid #64748b;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.agent-row span,
+.event span {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #1e293b;
+  color: #e5e7eb;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.agent-row.working,
+.event.working,
+.event.in_progress {
+  border-left-color: #f59e0b;
+}
+
+.agent-row.idle,
+.event.idle,
+.event.done {
+  border-left-color: #22c55e;
+}
+
+.agent-row.error,
+.event.error {
+  border-left-color: #ef4444;
+}
+
+.event small {
+  color: #94a3b8;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+@media (max-width: 900px) {
+  .grid,
+  .hero {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
