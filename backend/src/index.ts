@@ -1,9 +1,12 @@
 import express from "express";
 import cors from "cors";
+import http from "http";
+
 import { routeTask } from "./orchestrator";
 import { startWhatsApp } from "./webhook/whatsapp";
 import { env, validateEnv } from "./config/env";
 import { logger } from "./utils/logger";
+import { initWebSocket } from "./websocket";
 
 validateEnv();
 
@@ -33,7 +36,8 @@ app.post("/tasks", async (req, res) => {
 
     if (!message.includes("@")) {
       return res.status(400).json({
-        error: "Message harus menyertakan mention agent, contoh: @design-agent halo",
+        error:
+          "Message harus menyertakan mention agent, contoh: @design-agent halo",
       });
     }
 
@@ -53,7 +57,11 @@ app.post("/tasks", async (req, res) => {
   }
 });
 
-app.listen(env.PORT, () => {
+const server = http.createServer(app);
+
+initWebSocket(server);
+
+server.listen(env.PORT, () => {
   logger.server(`Server jalan di port ${env.PORT}`);
 });
 
