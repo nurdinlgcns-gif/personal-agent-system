@@ -11,6 +11,7 @@ import {
   markTaskDone,
   markTaskError,
 } from "../repositories/taskRepository";
+import { broadcastAgentStatus } from "../websocket";
 
 type RouteTaskOptions = {
   source?: "manual" | "whatsapp";
@@ -52,6 +53,7 @@ export async function routeTask(
 
   try {
     await setAgentWorking(agent.id);
+    broadcastAgentStatus(agent.name, "working");
 
     logger.task(`Agent ${agent.name} mulai memproses task`);
     logger.task(`Task source: ${source}`);
@@ -78,6 +80,7 @@ export async function routeTask(
     });
 
     await setAgentIdle(agent.id);
+    broadcastAgentStatus(agent.name, "idle");
 
     logger.task(`Agent ${agent.name} selesai memproses task`);
 
@@ -91,6 +94,7 @@ export async function routeTask(
     });
 
     await setAgentError(agent.id);
+    broadcastAgentStatus(agent.name, "error");
 
     return "Terjadi error saat memproses task.";
   }

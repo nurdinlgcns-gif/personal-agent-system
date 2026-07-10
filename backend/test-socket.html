@@ -1,0 +1,99 @@
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Socket Test - Personal Agent System</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+          }
+    
+          #events {
+            margin-top: 20px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            background: #f7f7f7;
+            min-height: 200px;
+          }
+    
+          .event {
+            padding: 8px;
+            margin-bottom: 8px;
+            background: white;
+            border-left: 4px solid #0078d4;
+          }
+    
+          .working {
+            border-left-color: orange;
+          }
+    
+          .idle {
+            border-left-color: green;
+          }
+    
+          .error {
+            border-left-color: red;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Socket.io Test</h1>
+        <p>Buka console browser dan lihat event realtime di bawah.</p>
+    
+        <h3>Connection Status:</h3>
+        <div id="status">Connecting...</div>
+    
+        <h3>Events:</h3>
+        <div id="events"></div>
+    
+        <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    
+        <script>
+          const socket = io("http://localhost:3000");
+    
+          const statusEl = document.getElementById("status");
+          const eventsEl = document.getElementById("events");
+    
+          function addEvent(title, data, className = "") {
+            const div = document.createElement("div");
+            div.className = `event ${className}`;
+            div.innerHTML = `
+              <strong>${title}</strong>
+              <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            eventsEl.prepend(div);
+          }
+    
+          socket.on("connect", () => {
+            console.log("Connected to WebSocket:", socket.id);
+            statusEl.textContent = "Connected: " + socket.id;
+            addEvent("Connected to WebSocket", {
+              socketId: socket.id,
+              timestamp: new Date().toISOString(),
+            });
+          });
+    
+          socket.on("connected", (data) => {
+            console.log("Server welcome event:", data);
+            addEvent("Server Welcome Event", data);
+          });
+    
+          socket.on("agent-status", (data) => {
+            console.log("Agent status event:", data);
+            addEvent(
+              "Agent Status Event",
+              data,
+              data.status
+            );
+          });
+    
+          socket.on("disconnect", () => {
+            console.log("Disconnected from WebSocket");
+            statusEl.textContent = "Disconnected";
+            addEvent("Disconnected", {
+              timestamp: new Date().toISOString(),
+            }, "error");
+          });
+        </script>
+      </body>
+    </html>
