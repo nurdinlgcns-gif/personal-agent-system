@@ -1,6 +1,16 @@
 import "./services/socket";
-import { useAgentStore } from "./store/agentStore";
 import "./App.css";
+
+import { useAgentStore } from "./store/agentStore";
+import { Sidebar } from "./components/layout/Sidebar";
+import { TopHeader } from "./components/layout/TopHeader";
+import { MetricsGrid } from "./components/common/MetricsGrid";
+import { AgentStatusPanel } from "./components/agents/AgentStatusPanel";
+import { EventTimeline } from "./components/events/EventTimeline";
+import { RecentTasksTable } from "./components/tasks/RecentTasksTable";
+import { AgentPreviewPanel } from "./components/preview/AgentPreviewPanel";
+import { WhatsAppPanel } from "./components/whatsapp/WhatsAppPanel";
+import { SkillLibraryPanel } from "./components/skills/SkillLibraryPanel";
 
 function App() {
   const {
@@ -9,89 +19,74 @@ function App() {
     agentStatuses,
     agentEvents,
     taskEvents,
-    clearEvents,
   } = useAgentStore();
 
+  const designAgentStatus = agentStatuses["design-agent"] || "idle";
+
+  const runningTaskCount = taskEvents.filter(
+    (event) => event.status === "in_progress"
+  ).length;
+
+  const completedTaskCount = taskEvents.filter(
+    (event) => event.status === "done"
+  ).length;
+
+  const errorTaskCount = taskEvents.filter(
+    (event) => event.status === "error"
+  ).length;
+
+  const whatsappTaskCount = taskEvents.filter(
+    (event) => event.source === "whatsapp"
+  ).length;
+
   return (
-    <main className="page">
-      <section className="hero">
-        <div>
-          <h1>Personal Multi-Agent Dashboard</h1>
-          <p>Realtime status monitor for WhatsApp-driven AI agents.</p>
-        </div>
+    <div className="dashboard-shell">
+      <Sidebar />
 
-        <div className={`connection-badge ${connectionStatus}`}>
-          {connectionStatus}
-        </div>
-      </section>
+      <main className="dashboard-main">
+        <TopHeader
+          connectionStatus={connectionStatus}
+          socketId={socketId}
+        />
 
-      <section className="grid">
-        <div className="card">
-          <h2>Connection</h2>
-          <p className="label">Socket ID</p>
-          <pre>{socketId || "-"}</pre>
-        </div>
+        <MetricsGrid
+          agentCount={3}
+          runningTaskCount={runningTaskCount}
+          completedTaskCount={completedTaskCount}
+          errorTaskCount={errorTaskCount}
+          whatsappTaskCount={whatsappTaskCount}
+        />
 
-        <div className="card">
-          <h2>Agent Status</h2>
+        <section className="dashboard-grid-main">
+          <AgentStatusPanel agentStatuses={agentStatuses} />
 
-          {Object.keys(agentStatuses).length === 0 ? (
-            <p className="muted">No agent status received yet.</p>
-          ) : (
-            Object.entries(agentStatuses).map(([agentName, status]) => (
-              <div key={agentName} className={`agent-row ${status}`}>
-                <strong>{agentName}</strong>
-                <span>{status}</span>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
+          <EventTimeline
+            agentEvents={agentEvents}
+            taskEvents={taskEvents}
+          />
 
-      <section className="grid">
-        <div className="card">
-          <div className="section-header">
-            <h2>Agent Events</h2>
-            <button onClick={clearEvents}>Clear</button>
+          <AgentPreviewPanel status={designAgentStatus} />
+        </section>
+
+        <section className="dashboard-grid-bottom">
+          <RecentTasksTable taskEvents={taskEvents} />
+
+          <div className="side-stack">
+            <WhatsAppPanel />
+            <SkillLibraryPanel />
+          </div>
+        </section>
+
+        <section className="manual-task-bar">
+          <div>
+            <strong>Manual Task Test</strong>
+            <p>@design-agent create an ad copy for running shoes</p>
           </div>
 
-          {agentEvents.length === 0 ? (
-            <p className="muted">No agent events yet.</p>
-          ) : (
-            agentEvents.map((event, index) => (
-              <div
-                key={`${event.timestamp}-${index}`}
-                className={`event ${event.status}`}
-              >
-                <strong>{event.agentName}</strong>
-                <span>{event.status}</span>
-                <small>{event.timestamp}</small>
-              </div>
-            ))
-          )}
-        </div>
-
-        <div className="card">
-          <h2>Task Events</h2>
-
-          {taskEvents.length === 0 ? (
-            <p className="muted">No task events yet.</p>
-          ) : (
-            taskEvents.map((event, index) => (
-              <div
-                key={`${event.timestamp}-${index}`}
-                className={`event ${event.status}`}
-              >
-                <strong>{event.agentName}</strong>
-                <span>{event.status}</span>
-                <small>source: {event.source || "-"}</small>
-                <small>{event.timestamp}</small>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-    </main>
+          <button>Send Task</button>
+        </section>
+      </main>
+    </div>
   );
 }
 
