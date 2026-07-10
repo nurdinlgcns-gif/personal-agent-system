@@ -1,6 +1,7 @@
 import type {
     AgentsStatusResponse,
     RecentTasksResponse,
+    ManualTaskResponse,
   } from "../types/api";
   
   const API_BASE_URL = "http://localhost:3000";
@@ -26,3 +27,26 @@ import type {
     const data: RecentTasksResponse = await response.json();
     return data.tasks;
   }
+  
+  export async function sendManualTask(message: string) {
+  const response = await fetch(`${API_BASE_URL}/tasks`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+
+    throw new Error(
+      `Failed to send manual task. HTTP ${response.status}: ${errorText}`
+    );
+  }
+
+  const data: ManualTaskResponse = await response.json();
+  return data;
+}

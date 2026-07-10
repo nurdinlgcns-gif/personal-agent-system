@@ -15,6 +15,7 @@ import { RecentTasksTable } from "./components/tasks/RecentTasksTable";
 import { AgentPreviewPanel } from "./components/preview/AgentPreviewPanel";
 import { WhatsAppPanel } from "./components/whatsapp/WhatsAppPanel";
 import { SkillLibraryPanel } from "./components/skills/SkillLibraryPanel";
+import { ManualTaskWidget } from "./components/manual/ManualTaskWidget";
 
 function App() {
   const {
@@ -157,14 +158,7 @@ function App() {
           </div>
         </section>
 
-        <section className="manual-task-bar">
-          <div>
-            <strong>Manual Task Test</strong>
-            <p>@design-agent create an ad copy for running shoes</p>
-          </div>
-
-          <button>Send Task</button>
-        </section>
+        <ManualTaskWidget onTaskSent={loadSnapshot} />
       </main>
     </div>
   );

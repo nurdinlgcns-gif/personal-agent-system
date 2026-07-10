@@ -25,3 +25,9 @@ export type AgentSnapshot = {
   export type RecentTasksResponse = {
     tasks: TaskSnapshot[];
   };
+  
+export type ManualTaskResponse = {
+
+    result: string;
+  
+  };

@@ -722,3 +722,149 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+.manual-task-widget {
+
+  margin-top: 14px;
+
+  background: rgba(15, 23, 42, 0.9);
+
+  border: 1px solid rgba(59, 130, 246, 0.22);
+
+  border-radius: 16px;
+
+  padding: 16px;
+
+}
+
+.manual-task-content {
+
+  display: grid;
+
+  gap: 12px;
+
+}
+
+.manual-task-content p {
+
+  margin: 6px 0 0;
+
+  color: #94a3b8;
+
+}
+
+.manual-task-form {
+
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr) 180px;
+
+  gap: 12px;
+
+}
+
+.manual-task-form input {
+
+  width: 100%;
+
+  min-width: 0;
+
+  background: rgba(2, 6, 23, 0.8);
+
+  border: 1px solid #1e293b;
+
+  border-radius: 12px;
+
+  padding: 12px 14px;
+
+  color: #e5e7eb;
+
+  outline: none;
+
+}
+
+.manual-task-form input:focus {
+
+  border-color: rgba(59, 130, 246, 0.75);
+
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+
+}
+
+.manual-task-form button {
+
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+
+  color: white;
+
+  border: 1px solid rgba(96, 165, 250, 0.35);
+
+  border-radius: 12px;
+
+  padding: 12px 14px;
+
+  font-weight: 700;
+
+}
+
+.manual-task-form button:disabled {
+
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+}
+
+.manual-task-error {
+
+  color: #fecaca;
+
+  background: rgba(127, 29, 29, 0.35);
+
+  border: 1px solid rgba(239, 68, 68, 0.35);
+
+  border-radius: 12px;
+
+  padding: 12px;
+
+  font-size: 14px;
+
+}
+
+.manual-task-result {
+
+  background: rgba(2, 6, 23, 0.75);
+
+  border: 1px solid rgba(34, 197, 94, 0.25);
+
+  border-radius: 12px;
+
+  padding: 12px;
+
+}
+
+.manual-task-result strong {
+
+  color: #bbf7d0;
+
+}
+
+.manual-task-result p {
+
+  margin-top: 8px;
+
+  white-space: pre-wrap;
+
+  color: #cbd5e1;
+
+}
+
+@media (max-width: 900px) {
+
+  .manual-task-form {
+
+    grid-template-columns: 1fr;
+
+  }
+
+}
