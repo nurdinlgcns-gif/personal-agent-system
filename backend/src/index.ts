@@ -13,15 +13,44 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+  res.json({
+    app: "personal-agent-system",
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.post("/tasks", async (req, res) => {
-  const { message } = req.body;
+  try {
+    const { message } = req.body;
 
-  const result = await routeTask(message);
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({
+        error: "Field 'message' wajib diisi dan harus berupa string.",
+      });
+    }
 
-  res.json({ result });
+    if (!message.includes("@")) {
+      return res.status(400).json({
+        error: "Message harus menyertakan mention agent, contoh: @design-agent halo",
+      });
+    }
+
+    const result = await routeTask(message, {
+      source: "manual",
+    });
+
+    return res.json({
+      result,
+    });
+  } catch (error) {
+    logger.error("Failed to process manual task request", error);
+
+    return res.status(500).json({
+      error: "Terjadi error saat memproses task.",
+    });
+  }
 });
 
 app.listen(env.PORT, () => {
