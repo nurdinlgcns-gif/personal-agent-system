@@ -23,7 +23,7 @@ import { RecentTasksTable } from "./components/tasks/RecentTasksTable";
 import { AgentPreviewPanel } from "./components/preview/AgentPreviewPanel";
 import { WhatsAppPanel } from "./components/whatsapp/WhatsAppPanel";
 import { SkillLibraryPanel } from "./components/skills/SkillLibraryPanel";
-import { ManualTaskWidget } from "./components/manual/ManualTaskWidget";
+import { FloatingTaskAssistant } from "./components/manual/FloatingTaskAssistant";
 
 function App() {
   const {
@@ -251,7 +251,11 @@ function App() {
           </div>
         </section>
 
-        <ManualTaskWidget onTaskSent={loadSnapshot} />
+        <FloatingTaskAssistant
+          onTaskSent={loadSnapshot}
+          agents={agents}
+          skills={skills}
+        />
       </main>
     </div>
   );
