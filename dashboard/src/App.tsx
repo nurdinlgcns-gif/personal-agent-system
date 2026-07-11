@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 
 import "./services/socket";
 import "./App.css";
@@ -14,7 +14,7 @@ import {
 import type { TaskSnapshot } from "./types/api";
 import type { TaskEventPayload } from "./types/websocket";
 
-import { Sidebar } from "./components/layout/Sidebar";
+import { Sidebar, type DashboardView } from "./components/layout/Sidebar";
 import { TopHeader } from "./components/layout/TopHeader";
 import { MetricsGrid } from "./components/common/MetricsGrid";
 import { AgentStatusPanel } from "./components/agents/AgentStatusPanel";
@@ -24,8 +24,11 @@ import { AgentPreviewPanel } from "./components/preview/AgentPreviewPanel";
 import { WhatsAppPanel } from "./components/whatsapp/WhatsAppPanel";
 import { SkillLibraryPanel } from "./components/skills/SkillLibraryPanel";
 import { FloatingTaskAssistant } from "./components/manual/FloatingTaskAssistant";
+import { OfficeView } from "./views/OfficeView";
 
 function App() {
+  const [activeView, setActiveView] = useState<DashboardView>("dashboard");
+
   const {
     connectionStatus,
     socketId,
@@ -237,7 +240,7 @@ function App() {
 
   return (
     <div className="dashboard-shell">
-      <Sidebar />
+      <Sidebar activeView={activeView} onViewChange={setActiveView} />
 
       <main className="dashboard-main">
         <TopHeader connectionStatus={connectionStatus} socketId={socketId} />
@@ -269,44 +272,56 @@ function App() {
           </div>
         )}
 
-        <MetricsGrid
-          agentCount={agentCount}
-          runningTaskCount={runningTaskCount}
-          completedTaskCount={completedTaskCount}
-          errorTaskCount={errorTaskCount}
-          whatsappTaskCount={whatsappTaskCount}
-        />
-
-        <section className="dashboard-grid-main">
-          <AgentStatusPanel agents={agents} agentStatuses={agentStatuses} />
-
-          <EventTimeline
-            agentEvents={agentEvents}
-            taskEvents={taskEvents}
-            onClearEvents={clearEvents}
-            isProcessing={isProcessing}
-          />
-
-          <AgentPreviewPanel status={designAgentStatus} />
-        </section>
-
-        <section className="dashboard-grid-bottom">
-          <RecentTasksTable
-            tasks={dashboardTasks}
-            onRefresh={refreshTasksAndSummary}
-            isRefreshing={isSilentRefreshing}
-          />
-
-          <div className="side-stack">
-            <WhatsAppPanel
-              lastWhatsAppTask={lastWhatsAppTask}
+        {activeView === "dashboard" ? (
+          <>
+            <MetricsGrid
+              agentCount={agentCount}
+              runningTaskCount={runningTaskCount}
+              completedTaskCount={completedTaskCount}
+              errorTaskCount={errorTaskCount}
               whatsappTaskCount={whatsappTaskCount}
-              isProcessing={isProcessing}
             />
 
-            <SkillLibraryPanel skills={skills} />
-          </div>
-        </section>
+            <section className="dashboard-grid-main">
+              <AgentStatusPanel agents={agents} agentStatuses={agentStatuses} />
+
+              <EventTimeline
+                agentEvents={agentEvents}
+                taskEvents={taskEvents}
+                onClearEvents={clearEvents}
+                isProcessing={isProcessing}
+              />
+
+              <AgentPreviewPanel status={designAgentStatus} />
+            </section>
+
+            <section className="dashboard-grid-bottom">
+              <RecentTasksTable
+                tasks={dashboardTasks}
+                onRefresh={refreshTasksAndSummary}
+                isRefreshing={isSilentRefreshing}
+              />
+
+              <div className="side-stack">
+                <WhatsAppPanel
+                  lastWhatsAppTask={lastWhatsAppTask}
+                  whatsappTaskCount={whatsappTaskCount}
+                  isProcessing={isProcessing}
+                />
+
+                <SkillLibraryPanel skills={skills} />
+              </div>
+            </section>
+          </>
+        ) : (
+          <OfficeView
+            agents={agents}
+            agentStatuses={agentStatuses}
+            recentTasks={dashboardTasks}
+            skills={skills}
+            isProcessing={isProcessing}
+          />
+        )}
 
         <FloatingTaskAssistant
           onTaskSent={refreshTasksAndSummary}
