@@ -1,6 +1,6 @@
 /* =========================
-   PHASE 8.1
-   AGENT OFFICE VISUAL WORKSPACE
+   PHASE 8.2 RESET
+   LIVING ISOMETRIC OFFICE SCENE
 ========================= */
 
 .office-view {
@@ -26,6 +26,7 @@
     margin: 0;
     color: var(--office-text-main, #f8fafc);
     font-size: 22px;
+    letter-spacing: -0.02em;
   }
   
   .office-hero p {
@@ -46,6 +47,7 @@
     background: rgba(37, 99, 235, 0.18);
     font-size: 12px;
     font-weight: 800;
+    white-space: nowrap;
   }
   
   .office-live-badge span {
@@ -68,504 +70,943 @@
     border-color: rgba(34, 197, 94, 0.3);
   }
   
-  .office-shell {
-    background:
-      radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 32%),
-      linear-gradient(180deg, rgba(20, 52, 90, 0.92), rgba(7, 25, 49, 0.96));
-    border: 1px solid rgba(174, 211, 255, 0.22);
+  /* =========================
+     SCENE SHELL
+  ========================= */
+  
+  .office-scene-shell {
     border-radius: 18px;
     overflow: hidden;
-    box-shadow: var(--office-shadow-card);
+    border: 1px solid rgba(174, 211, 255, 0.22);
+    background:
+      radial-gradient(circle at top left, rgba(124, 58, 237, 0.16), transparent 32%),
+      linear-gradient(180deg, rgba(9, 18, 38, 0.98), rgba(3, 8, 20, 0.98));
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.36),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045);
   }
   
-  .office-command-strip {
+  .office-scene-topbar {
     padding: 14px 16px;
     background:
-      linear-gradient(180deg, var(--office-card-header-top), var(--office-card-header-bottom));
-    border-bottom: 1px solid rgba(216, 236, 255, 0.24);
+      linear-gradient(180deg, rgba(91, 33, 182, 0.95), rgba(67, 30, 150, 0.95));
+    border-bottom: 1px solid rgba(216, 236, 255, 0.18);
     display: flex;
     justify-content: space-between;
     gap: 16px;
     align-items: center;
   }
   
-  .office-command-strip strong {
+  .office-scene-topbar strong {
     display: block;
     color: #ffffff;
     font-size: 15px;
   }
   
-  .office-command-strip span {
+  .office-scene-topbar span {
     display: block;
+    margin-top: 3px;
     color: rgba(237, 247, 255, 0.78);
     font-size: 12px;
-    margin-top: 3px;
   }
   
-  .office-summary-chips {
+  .office-scene-stats {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    justify-content: flex-end;
   }
   
-  .office-summary-chips span {
+  .office-scene-stats span {
     margin: 0;
     color: #ffffff;
-    border: 1px solid rgba(216, 236, 255, 0.2);
+    border: 1px solid rgba(216, 236, 255, 0.18);
     background: rgba(255, 255, 255, 0.12);
     border-radius: 999px;
     padding: 6px 9px;
-    font-weight: 700;
-  }
-  
-  .office-canvas {
-    position: relative;
-    min-height: 620px;
-    padding: 28px;
-    overflow: hidden;
-  }
-  
-  .office-grid-floor {
-    position: absolute;
-    inset: 24px;
-    border-radius: 18px;
-    pointer-events: none;
-    background:
-      linear-gradient(30deg, rgba(147, 197, 253, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(147, 197, 253, 0.08) 87.5%, rgba(147, 197, 253, 0.08)),
-      linear-gradient(150deg, rgba(147, 197, 253, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(147, 197, 253, 0.08) 87.5%, rgba(147, 197, 253, 0.08)),
-      linear-gradient(30deg, rgba(147, 197, 253, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(147, 197, 253, 0.08) 87.5%, rgba(147, 197, 253, 0.08)),
-      linear-gradient(150deg, rgba(147, 197, 253, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(147, 197, 253, 0.08) 87.5%, rgba(147, 197, 253, 0.08));
-    background-size: 82px 142px;
-    background-position:
-      0 0,
-      0 0,
-      41px 71px,
-      41px 71px;
-    opacity: 0.4;
-  }
-  
-  .office-zone {
-    position: relative;
-    z-index: 2;
-  }
-  
-  .office-zone-label {
-    display: inline-flex;
-    border-radius: 999px;
-    padding: 6px 10px;
-    margin-bottom: 10px;
-    color: #bfdbfe;
-    background: rgba(37, 99, 235, 0.18);
-    border: 1px solid rgba(96, 165, 250, 0.26);
-    font-size: 11px;
     font-weight: 800;
-  }
-  
-  .office-source-zone {
-    position: absolute;
-    left: 36px;
-    top: 36px;
-    width: 270px;
-    display: grid;
-    gap: 12px;
-  }
-  
-  .office-agent-zone {
-    position: absolute;
-    left: 330px;
-    top: 72px;
-    width: 390px;
-  }
-  
-  .office-resource-zone {
-    position: absolute;
-    right: 36px;
-    top: 36px;
-    width: 280px;
-    display: grid;
-    gap: 12px;
-  }
-  
-  .office-output-zone {
-    position: absolute;
-    right: 54px;
-    bottom: 46px;
-    width: 310px;
-    display: grid;
-    gap: 12px;
-  }
-  
-  .office-object,
-  .office-agent-desk {
-    background:
-      linear-gradient(180deg, rgba(12, 38, 70, 0.88), rgba(5, 22, 44, 0.9));
-    border: 1px solid rgba(147, 197, 253, 0.18);
-    border-radius: 16px;
-    padding: 13px;
-    box-shadow:
-      0 16px 34px rgba(0, 0, 0, 0.26),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  }
-  
-  .office-object {
-    display: grid;
-    grid-template-columns: 42px minmax(0, 1fr);
-    gap: 12px;
-    align-items: start;
-  }
-  
-  .office-object.active {
-    border-color: rgba(96, 165, 250, 0.4);
-    box-shadow:
-      0 18px 40px rgba(0, 0, 0, 0.28),
-      0 0 24px rgba(59, 130, 246, 0.16);
-  }
-  
-  .office-object-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 14px;
-    display: grid;
-    place-items: center;
-    background: rgba(37, 99, 235, 0.18);
-    border: 1px solid rgba(96, 165, 250, 0.22);
-  }
-  
-  .office-object strong,
-  .office-agent-title-row strong {
-    display: block;
-    color: var(--office-text-main, #f8fafc);
-    font-size: 13px;
-  }
-  
-  .office-object p,
-  .office-agent-body p {
-    margin: 5px 0 0;
-    color: var(--office-text-soft, #cbd5e1);
-    font-size: 11.5px;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  .office-object small {
-    display: block;
-    margin-top: 7px;
-    color: var(--office-text-muted, #94a3b8);
-    font-size: 10.5px;
-  }
-  
-  .office-agent-grid {
-    display: grid;
-    gap: 12px;
-  }
-  
-  .office-agent-desk {
-    position: relative;
-    overflow: hidden;
-    min-height: 142px;
-    display: grid;
-    grid-template-columns: 52px minmax(0, 1fr);
-    gap: 13px;
-  }
-  
-  .office-agent-desk::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    opacity: 0.09;
-    pointer-events: none;
-    background:
-      radial-gradient(circle at top right, rgba(96, 165, 250, 0.9), transparent 38%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
-  }
-  
-  .office-agent-desk.idle {
-    border-color: rgba(34, 197, 94, 0.34);
-  }
-  
-  .office-agent-desk.working {
-    border-color: rgba(245, 158, 11, 0.52);
-    box-shadow:
-      0 18px 42px rgba(0, 0, 0, 0.3),
-      0 0 26px rgba(245, 158, 11, 0.16);
-  }
-  
-  .office-agent-desk.error {
-    border-color: rgba(239, 68, 68, 0.52);
-  }
-  
-  .office-agent-avatar {
-    position: relative;
-    z-index: 1;
-    width: 52px;
-    height: 52px;
-    border-radius: 17px;
-    display: grid;
-    place-items: center;
-    background: rgba(37, 99, 235, 0.18);
-    border: 1px solid rgba(96, 165, 250, 0.22);
-  }
-  
-  .office-agent-avatar span {
-    color: #bfdbfe;
-    font-size: 14px;
-    font-weight: 900;
-    letter-spacing: 0.5px;
-  }
-  
-  .office-agent-body {
-    position: relative;
-    z-index: 1;
-    min-width: 0;
-    display: grid;
-    gap: 8px;
-  }
-  
-  .office-agent-title-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    align-items: flex-start;
-  }
-  
-  .office-status-pill {
-    flex: 0 0 auto;
-    border-radius: 999px;
-    padding: 4px 8px;
-    font-size: 9.5px;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-  
-  .office-status-pill.idle {
-    color: #bbf7d0;
-    background: rgba(34, 197, 94, 0.18);
-  }
-  
-  .office-status-pill.working {
-    color: #fed7aa;
-    background: rgba(245, 158, 11, 0.2);
-  }
-  
-  .office-status-pill.error {
-    color: #fecaca;
-    background: rgba(239, 68, 68, 0.2);
-  }
-  
-  .office-agent-task {
-    background: rgba(2, 6, 23, 0.24);
-    border: 1px solid rgba(147, 197, 253, 0.12);
-    border-radius: 10px;
-    padding: 8px;
-  }
-  
-  .office-agent-task small {
-    color: var(--office-text-muted, #94a3b8);
-    font-size: 10px;
-  }
-  
-  .office-agent-task span {
-    display: block;
-    margin-top: 4px;
-    color: var(--office-text-soft, #cbd5e1);
     font-size: 11px;
-    line-height: 1.35;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
   
-  .office-agent-footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
+  /* =========================
+     ISOMETRIC SCENE
+  ========================= */
+  
+  .office-scene {
+    position: relative;
+    height: min(720px, calc(100vh - 210px));
+    min-height: 620px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 42%, rgba(147, 51, 234, 0.16), transparent 26%),
+      radial-gradient(circle at 20% 80%, rgba(34, 211, 238, 0.1), transparent 22%),
+      #020617;
   }
   
-  .office-agent-footer small {
-    color: var(--office-text-muted, #94a3b8);
-    font-size: 10px;
-  }
-  
-  .office-desk-glow {
-    position: absolute;
-    right: -16px;
-    bottom: -18px;
-    width: 90px;
-    height: 60px;
-    border-radius: 50%;
-    filter: blur(10px);
-    background: rgba(59, 130, 246, 0.18);
-  }
-  
-  .office-agent-desk.idle .office-desk-glow {
-    background: rgba(34, 197, 94, 0.18);
-  }
-  
-  .office-agent-desk.working .office-desk-glow {
-    background: rgba(245, 158, 11, 0.25);
-    animation: officeGlowPulse 1.5s ease-in-out infinite;
-  }
-  
-  .office-agent-desk.error .office-desk-glow {
-    background: rgba(239, 68, 68, 0.25);
-  }
-  
-  .office-flow-lines {
+  .office-scene-bg {
     position: absolute;
     inset: 0;
-    z-index: 1;
-    pointer-events: none;
+    opacity: 0.42;
+    background:
+      linear-gradient(30deg, rgba(99, 102, 241, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(99, 102, 241, 0.08) 87.5%, rgba(99, 102, 241, 0.08)),
+      linear-gradient(150deg, rgba(99, 102, 241, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(99, 102, 241, 0.08) 87.5%, rgba(99, 102, 241, 0.08)),
+      linear-gradient(30deg, rgba(99, 102, 241, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(99, 102, 241, 0.08) 87.5%, rgba(99, 102, 241, 0.08)),
+      linear-gradient(150deg, rgba(99, 102, 241, 0.08) 12%, transparent 12.5%, transparent 87%, rgba(99, 102, 241, 0.08) 87.5%, rgba(99, 102, 241, 0.08));
+    background-size: 92px 158px;
+    background-position:
+      0 0,
+      0 0,
+      46px 79px,
+      46px 79px;
   }
   
-  .office-flow-line {
-    fill: none;
-    stroke: rgba(96, 165, 250, 0.45);
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-dasharray: 8 12;
-    animation: officeFlowDash 2.8s linear infinite;
+  /* =========================
+     FLOATING LABELS
+  ========================= */
+  
+  .office-floating-label,
+  .office-source-card,
+  .office-resource-card,
+  .office-active-task,
+  .office-help-bar {
+    backdrop-filter: blur(14px);
   }
   
-  .agent-office-active .office-flow-line {
-    stroke: rgba(245, 158, 11, 0.65);
+  .office-floating-label {
+    position: absolute;
+    z-index: 8;
+    min-width: 148px;
+    max-width: 210px;
+    padding: 9px 11px;
+    border-radius: 12px;
+    background: rgba(8, 15, 32, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
   }
   
-  @keyframes officeFlowDash {
-    to {
-      stroke-dashoffset: -80;
+  .office-floating-label strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 12px;
+    line-height: 1.25;
+  }
+  
+  .office-floating-label small {
+    display: block;
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 10.5px;
+    line-height: 1.35;
+  }
+  
+  .dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    margin-right: 6px;
+    background: currentColor;
+    box-shadow: 0 0 12px currentColor;
+  }
+  
+  .dot.green {
+    color: #22c55e;
+  }
+  
+  .dot.blue {
+    color: #60a5fa;
+  }
+  
+  .dot.purple {
+    color: #a78bfa;
+  }
+  
+  .dot.pink {
+    color: #ec4899;
+  }
+  
+  .dot.yellow {
+    color: #facc15;
+  }
+  
+  .dot.cyan {
+    color: #22d3ee;
+  }
+  
+  /* =========================
+     ROOMS
+  ========================= */
+  
+  .office-room {
+    position: absolute;
+    z-index: 4;
+    width: 240px;
+    height: 170px;
+    transform: rotateX(0deg) rotateZ(0deg);
+  }
+  
+  .room-floor {
+    position: absolute;
+    inset: 28px 12px 8px;
+    border-radius: 12px;
+    transform: skewX(-28deg) rotate(-2deg);
+    background:
+      linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.78));
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow:
+      0 22px 40px rgba(0, 0, 0, 0.36),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  .room-back-wall,
+  .room-side-wall {
+    position: absolute;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+  }
+  
+  .room-back-wall {
+    left: 38px;
+    top: 6px;
+    width: 136px;
+    height: 52px;
+    transform: skewX(-28deg);
+  }
+  
+  .room-side-wall {
+    right: 20px;
+    top: 26px;
+    width: 54px;
+    height: 96px;
+    transform: skewY(-35deg);
+  }
+  
+  .room-neon-strip {
+    position: absolute;
+    left: 42px;
+    right: 34px;
+    bottom: 18px;
+    height: 4px;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 18px currentColor;
+    opacity: 0.85;
+  }
+  
+  .room-plant {
+    position: absolute;
+    width: 18px;
+    height: 28px;
+    border-radius: 999px 999px 4px 4px;
+    background: linear-gradient(180deg, #22c55e, #14532d);
+    opacity: 0.78;
+  }
+  
+  .plant-left {
+    left: 18px;
+    bottom: 28px;
+  }
+  
+  .plant-right {
+    right: 18px;
+    bottom: 36px;
+  }
+  
+  /* =========================
+     DESK / AGENT OBJECTS
+  ========================= */
+  
+  .agent-desk {
+    position: absolute;
+    left: 72px;
+    top: 76px;
+    width: 92px;
+    height: 54px;
+    z-index: 5;
+  }
+  
+  .desk-surface {
+    position: absolute;
+    inset: 12px 0 0;
+    border-radius: 8px;
+    transform: skewX(-24deg);
+    background: linear-gradient(180deg, #9a6a45, #4b2c1d);
+    box-shadow: 0 12px 22px rgba(0, 0, 0, 0.34);
+  }
+  
+  .desk-monitor {
+    position: absolute;
+    top: 0;
+    width: 28px;
+    height: 22px;
+    border-radius: 5px;
+    background: linear-gradient(180deg, #111827, #020617);
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.28);
+  }
+  
+  .monitor-main {
+    left: 22px;
+  }
+  
+  .monitor-side {
+    right: 18px;
+    transform: rotate(5deg);
+  }
+  
+  .desk-keyboard {
+    position: absolute;
+    left: 35px;
+    top: 31px;
+    width: 34px;
+    height: 8px;
+    border-radius: 3px;
+    background: #cbd5e1;
+    opacity: 0.72;
+  }
+  
+  .desk-chair {
+    position: absolute;
+    left: 38px;
+    top: 48px;
+    width: 22px;
+    height: 22px;
+    border-radius: 8px;
+    background: #1e293b;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+  }
+  
+  .agent-avatar-iso {
+    position: absolute;
+    left: 118px;
+    top: 102px;
+    z-index: 6;
+    width: 28px;
+    height: 34px;
+    border-radius: 12px 12px 8px 8px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, #dbeafe, #2563eb);
+    box-shadow: 0 0 18px rgba(96, 165, 250, 0.32);
+  }
+  
+  .agent-avatar-iso span {
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+  }
+  
+  /* =========================
+     ROOM POSITIONS
+  ========================= */
+  
+  .room-design {
+    left: 7%;
+    top: 42%;
+    color: #22d3ee;
+  }
+  
+  .room-research {
+    left: 26%;
+    top: 64%;
+    color: #a78bfa;
+  }
+  
+  .room-code {
+    right: 7%;
+    top: 42%;
+    color: #818cf8;
+  }
+  
+  .room-writer {
+    left: 42%;
+    top: 9%;
+    color: #a78bfa;
+  }
+  
+  .room-image {
+    right: 7%;
+    top: 9%;
+    color: #ec4899;
+  }
+  
+  .room-qa {
+    right: 29%;
+    top: 66%;
+    color: #facc15;
+  }
+  
+  .room-label {
+    top: -8px;
+    left: 0;
+  }
+  
+  .room-design .room-label {
+    top: -34px;
+    left: -22px;
+  }
+  
+  .room-research .room-label {
+    top: -26px;
+    left: -14px;
+  }
+  
+  .room-code .room-label {
+    top: -28px;
+    right: -8px;
+    left: auto;
+  }
+  
+  .room-writer .room-label {
+    top: -34px;
+    left: -8px;
+  }
+  
+  .room-image .room-label {
+    top: -30px;
+    left: -4px;
+  }
+  
+  .room-qa .room-label {
+    top: -28px;
+    left: -18px;
+  }
+  
+  /* =========================
+     ROOM STATES
+  ========================= */
+  
+  .office-room.planned {
+    opacity: 0.34;
+    filter: grayscale(0.2);
+  }
+  
+  .office-room.idle.registered .room-neon-strip {
+    opacity: 0.72;
+  }
+  
+  .office-room.working.registered .room-neon-strip {
+    opacity: 1;
+    animation: roomWorkingPulse 1.35s ease-in-out infinite;
+  }
+  
+  .office-room.working.registered .agent-avatar-iso {
+    animation: avatarWorking 1.2s ease-in-out infinite;
+    box-shadow:
+      0 0 24px currentColor,
+      0 0 34px rgba(245, 158, 11, 0.32);
+  }
+  
+  .office-room.error.registered {
+    color: #ef4444;
+  }
+  
+  .office-room.error.registered .room-neon-strip {
+    animation: roomErrorBlink 1s steps(2, start) infinite;
+  }
+  
+  @keyframes roomWorkingPulse {
+    0%,
+    100% {
+      box-shadow: 0 0 14px currentColor;
+    }
+  
+    50% {
+      box-shadow: 0 0 30px currentColor;
     }
   }
   
-  @keyframes officeGlowPulse {
+  @keyframes avatarWorking {
     0%,
     100% {
-      opacity: 0.55;
-      transform: scale(0.96);
+      transform: translateY(0);
+    }
+  
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+  
+  @keyframes roomErrorBlink {
+    0%,
+    100% {
+      opacity: 0.45;
     }
   
     50% {
       opacity: 1;
-      transform: scale(1.08);
     }
   }
   
-  /* M365 Light support */
-  :root[data-theme="m365-light"] .office-hero,
-  :root[data-theme="m365-light"] .office-shell {
+  /* =========================
+     CENTRAL SERVER ROOM
+  ========================= */
+  
+  .office-server-core {
+    position: absolute;
+    z-index: 6;
+    left: 50%;
+    top: 47%;
+    width: 190px;
+    height: 150px;
+    transform: translate(-50%, -50%);
+  }
+  
+  .server-glass {
+    position: absolute;
+    inset: 8px;
+    border-radius: 18px;
+    transform: skewX(-22deg);
+    background:
+      linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.78));
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    box-shadow:
+      0 24px 48px rgba(0, 0, 0, 0.42),
+      0 0 38px rgba(168, 85, 247, 0.14);
+  }
+  
+  .server-rack {
+    position: absolute;
+    top: 42px;
+    width: 34px;
+    height: 70px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #111827, #020617);
+    border: 1px solid rgba(96, 165, 250, 0.24);
+    box-shadow: inset 0 0 14px rgba(96, 165, 250, 0.2);
+  }
+  
+  .rack-one {
+    left: 54px;
+  }
+  
+  .rack-two {
+    left: 88px;
+  }
+  
+  .rack-three {
+    left: 122px;
+  }
+  
+  .server-core-light {
+    position: absolute;
+    left: 50%;
+    top: 62%;
+    width: 78px;
+    height: 8px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: #a855f7;
+    box-shadow: 0 0 28px #a855f7;
+  }
+  
+  .label-server {
+    left: 20px;
+    top: -42px;
+  }
+  
+  /* =========================
+     SOURCE / RESOURCE CARDS
+  ========================= */
+  
+  .office-source-card,
+  .office-resource-card,
+  .office-active-task {
+    position: absolute;
+    z-index: 9;
+    min-width: 160px;
+    max-width: 230px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(8, 15, 32, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+  }
+  
+  .office-source-card strong,
+  .office-resource-card strong,
+  .office-active-task strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 12px;
+    line-height: 1.25;
+  }
+  
+  .office-source-card small,
+  .office-resource-card small,
+  .office-active-task small {
+    display: block;
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 10.5px;
+    line-height: 1.35;
+  }
+  
+  .source-whatsapp {
+    left: 4%;
+    top: 33%;
+  }
+  
+  .source-manual {
+    left: 10%;
+    bottom: 18%;
+  }
+  
+  .resource-skill {
+    right: 4%;
+    top: 32%;
+  }
+  
+  .resource-output {
+    right: 7%;
+    bottom: 19%;
+  }
+  
+  .office-active-task {
+    left: 50%;
+    top: 22%;
+    transform: translateX(-50%);
+    border-color: rgba(96, 165, 250, 0.28);
+    animation: taskFloatScene 2.2s ease-in-out infinite;
+  }
+  
+  .office-active-task.in_progress {
+    border-color: rgba(245, 158, 11, 0.46);
+    box-shadow:
+      0 16px 38px rgba(0, 0, 0, 0.28),
+      0 0 26px rgba(245, 158, 11, 0.2);
+  }
+  
+  .office-active-task.done {
+    border-color: rgba(34, 197, 94, 0.42);
+  }
+  
+  .office-active-task.error {
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+  
+  .office-active-task span {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 4px 7px;
+    color: #bfdbfe;
+    background: rgba(37, 99, 235, 0.18);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  
+  @keyframes taskFloatScene {
+    0%,
+    100% {
+      transform: translateX(-50%) translateY(0);
+    }
+  
+    50% {
+      transform: translateX(-50%) translateY(-6px);
+    }
+  }
+  
+  /* =========================
+     HELP BAR
+  ========================= */
+  
+  .office-help-bar {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    z-index: 12;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 18px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    background: rgba(8, 15, 32, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+  }
+  
+  .office-help-bar span {
+    color: #94a3b8;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  
+  /* =========================
+     PROCESSING SCENE
+  ========================= */
+  
+  .office-scene.is-processing .office-server-core {
+    animation: serverProcessing 1.6s ease-in-out infinite;
+  }
+  
+  .office-scene.is-processing .server-core-light {
+    background: #f59e0b;
+    box-shadow: 0 0 34px #f59e0b;
+  }
+  
+  @keyframes serverProcessing {
+    0%,
+    100% {
+      filter: brightness(1);
+    }
+  
+    50% {
+      filter: brightness(1.18);
+    }
+  }
+  
+  /* =========================
+     M365 LIGHT SUPPORT
+  ========================= */
+  
+  :root[data-theme="m365-light"] .office-scene-shell,
+  :root[data-theme="m365-light"] .office-hero {
     background: #ffffff;
     border-color: rgba(15, 23, 42, 0.08);
     box-shadow: var(--office-shadow-card);
   }
   
+  :root[data-theme="m365-light"] .office-scene {
+    background:
+      radial-gradient(circle at 50% 42%, rgba(96, 165, 250, 0.2), transparent 26%),
+      #eef2f7;
+  }
+  
   :root[data-theme="m365-light"] .office-hero h1,
-  :root[data-theme="m365-light"] .office-command-strip strong,
-  :root[data-theme="m365-light"] .office-object strong,
-  :root[data-theme="m365-light"] .office-agent-title-row strong {
+  :root[data-theme="m365-light"] .office-scene-topbar strong {
     color: #111827;
   }
   
   :root[data-theme="m365-light"] .office-hero p,
-  :root[data-theme="m365-light"] .office-object p,
-  :root[data-theme="m365-light"] .office-agent-body p {
+  :root[data-theme="m365-light"] .office-scene-topbar span {
     color: #64748b;
   }
   
-  :root[data-theme="m365-light"] .office-command-strip {
+  :root[data-theme="m365-light"] .office-scene-topbar {
     background: linear-gradient(180deg, #ffffff, #f3f6fb);
     border-bottom-color: rgba(15, 23, 42, 0.08);
   }
   
-  :root[data-theme="m365-light"] .office-command-strip span {
-    color: #64748b;
-  }
-  
-  :root[data-theme="m365-light"] .office-summary-chips span {
+  :root[data-theme="m365-light"] .office-scene-stats span {
     color: #2563eb;
     background: #eff6ff;
     border-color: rgba(37, 99, 235, 0.14);
   }
   
-  :root[data-theme="m365-light"] .office-object,
-  :root[data-theme="m365-light"] .office-agent-desk {
-    background: #ffffff;
+  :root[data-theme="m365-light"] .office-floating-label,
+  :root[data-theme="m365-light"] .office-source-card,
+  :root[data-theme="m365-light"] .office-resource-card,
+  :root[data-theme="m365-light"] .office-active-task,
+  :root[data-theme="m365-light"] .office-help-bar {
+    background: rgba(255, 255, 255, 0.88);
     border-color: rgba(15, 23, 42, 0.08);
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.1);
   }
   
-  :root[data-theme="m365-light"] .office-object-icon,
-  :root[data-theme="m365-light"] .office-agent-avatar {
-    background: #eff6ff;
-    border-color: rgba(37, 99, 235, 0.14);
+  :root[data-theme="m365-light"] .office-floating-label strong,
+  :root[data-theme="m365-light"] .office-source-card strong,
+  :root[data-theme="m365-light"] .office-resource-card strong,
+  :root[data-theme="m365-light"] .office-active-task strong {
+    color: #111827;
   }
   
-  :root[data-theme="m365-light"] .office-agent-avatar span {
-    color: #1d4ed8;
-  }
-  
-  :root[data-theme="m365-light"] .office-agent-task {
-    background: #f8fafc;
-    border-color: rgba(15, 23, 42, 0.08);
-  }
-  
-  :root[data-theme="m365-light"] .office-agent-task span,
-  :root[data-theme="m365-light"] .office-agent-footer small,
-  :root[data-theme="m365-light"] .office-object small {
+  :root[data-theme="m365-light"] .office-floating-label small,
+  :root[data-theme="m365-light"] .office-source-card small,
+  :root[data-theme="m365-light"] .office-resource-card small,
+  :root[data-theme="m365-light"] .office-active-task small,
+  :root[data-theme="m365-light"] .office-help-bar span {
     color: #64748b;
   }
   
-  /* Responsive */
+  /* =========================
+     RESPONSIVE
+  ========================= */
+  
   @media (max-width: 1200px) {
-    .office-canvas {
+    .office-scene {
+      height: auto;
       min-height: auto;
+      padding: 18px;
       display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
     }
   
-    .office-source-zone,
-    .office-agent-zone,
-    .office-resource-zone,
-    .office-output-zone {
+    .office-scene-bg,
+    .office-server-core,
+    .office-help-bar {
+      display: none;
+    }
+  
+    .office-room,
+    .office-source-card,
+    .office-resource-card,
+    .office-active-task {
       position: relative;
       left: auto;
       right: auto;
       top: auto;
       bottom: auto;
+      transform: none;
       width: auto;
+      max-width: none;
+      min-width: 0;
     }
   
-    .office-flow-lines,
-    .office-grid-floor {
-      display: none;
+    .office-room {
+      height: 170px;
     }
   
-    .office-agent-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .office-active-task {
+      grid-column: 1 / -1;
     }
   }
   
   @media (max-width: 700px) {
     .office-hero,
-    .office-command-strip {
+    .office-scene-topbar {
       flex-direction: column;
       align-items: flex-start;
     }
   
-    .office-canvas {
-      padding: 16px;
-    }
-  
-    .office-agent-grid {
+    .office-scene {
       grid-template-columns: 1fr;
+      padding: 14px;
     }
   
-    .office-agent-desk {
-      grid-template-columns: 48px minmax(0, 1fr);
+    .office-room {
+      height: 168px;
     }
   
     .office-summary-chips {
-      width: 100%;
+      justify-content: flex-start;
     }
+  }
+  
+  @media (max-width: 420px) {
+    .office-hero h1 {
+      font-size: 18px;
+    }
+  
+    .office-hero p {
+      font-size: 12px;
+    }
+  
+    .office-scene-topbar {
+      padding: 12px;
+    }
+  }
+  
+  
+/* =========================
+
+   PHASE 8.2.1
+
+   OFFICE VIEW COMPACT MODE
+
+========================= */
+
+.office-view-compact {
+    margin-top: 14px;  
+}
+
+.office-view-compact .office-scene-shell {
+
+  margin-top: 0;
+
+}
+
+/* =========================
+   PHASE 8.3.1
+   REAL AGENT ONLY OFFICE MAPPING
+========================= */
+
+.office-empty-agents {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    z-index: 12;
+    transform: translate(-50%, -50%);
+    min-width: 260px;
+    max-width: 360px;
+    padding: 16px;
+    border-radius: 16px;
+    text-align: center;
+    background: rgba(8, 15, 32, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(14px);
+  }
+  
+  .office-empty-agents strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 14px;
+  }
+  
+  .office-empty-agents small {
+    display: block;
+    margin-top: 6px;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  
+  /* If only one real agent exists, make the scene feel intentional */
+  .single-agent-scene .room-design {
+    left: 11%;
+    top: 40%;
+  }
+  
+  .single-agent-scene .office-server-core {
+    left: 50%;
+    top: 48%;
+  }
+  
+  .single-agent-scene .source-whatsapp {
+    left: 5%;
+    top: 28%;
+  }
+  
+  .single-agent-scene .source-manual {
+    left: 12%;
+    bottom: 17%;
+  }
+  
+  .single-agent-scene .resource-skill {
+    right: 7%;
+    top: 32%;
+  }
+  
+  .single-agent-scene .resource-output {
+    right: 8%;
+    bottom: 18%;
+  }
+  
+  .single-agent-scene .office-active-task {
+    top: 24%;
+  }
+  
+  /* Hide future-agent visual artifacts because only real DB agents should show */
+  .office-room.planned {
+    display: none;
+  }
+  
+  /* M365 Light support */
+  :root[data-theme="m365-light"] .office-empty-agents {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+  }
+  
+  :root[data-theme="m365-light"] .office-empty-agents strong {
+    color: #111827;
+  }
+  
+  :root[data-theme="m365-light"] .office-empty-agents small {
+    color: #64748b;
   }

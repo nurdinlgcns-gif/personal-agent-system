@@ -1,0 +1,229 @@
+/* =========================
+   PHASE 8.4
+   OFFICE SCENE ELEMENT ACCURACY & CLEAN POLISH
+========================= */
+
+/* Topbar status clarity */
+.office-scene-stats span {
+    min-height: 26px;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  /* More accurate source/resource states */
+  .office-source-card.source-active,
+  .office-resource-card.resource-active {
+    border-color: rgba(245, 158, 11, 0.46);
+    box-shadow:
+      0 16px 38px rgba(0, 0, 0, 0.28),
+      0 0 28px rgba(245, 158, 11, 0.18);
+    animation: officeElementPulse 1.6s ease-in-out infinite;
+  }
+  
+  .office-source-card.source-active .dot,
+  .office-resource-card.resource-active .dot {
+    color: #f59e0b;
+  }
+  
+  .office-resource-card.resource-ready:not(.resource-active) {
+    border-color: rgba(167, 139, 250, 0.28);
+  }
+  
+  /* Output board states */
+  .office-resource-card.resource-output.done {
+    border-color: rgba(34, 197, 94, 0.42);
+    box-shadow:
+      0 16px 38px rgba(0, 0, 0, 0.26),
+      0 0 24px rgba(34, 197, 94, 0.12);
+  }
+  
+  .office-resource-card.resource-output.error {
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow:
+      0 16px 38px rgba(0, 0, 0, 0.26),
+      0 0 24px rgba(239, 68, 68, 0.14);
+  }
+  
+  .office-resource-card.resource-output.in_progress {
+    border-color: rgba(245, 158, 11, 0.46);
+  }
+  
+  /* Active room visual */
+  .office-room.active-room .room-floor {
+    border-color: rgba(245, 158, 11, 0.34);
+    box-shadow:
+      0 22px 44px rgba(0, 0, 0, 0.38),
+      0 0 32px rgba(245, 158, 11, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  
+  .office-room.active-room .room-neon-strip {
+    animation: officeElementPulse 1.35s ease-in-out infinite;
+  }
+  
+  .office-room.active-room .office-floating-label {
+    border-color: rgba(245, 158, 11, 0.36);
+    box-shadow:
+      0 14px 34px rgba(0, 0, 0, 0.28),
+      0 0 22px rgba(245, 158, 11, 0.16);
+  }
+  
+  /* Latest task badge refinement */
+  .office-active-task {
+    min-width: 170px;
+  }
+  
+  .office-active-task.done {
+    border-color: rgba(34, 197, 94, 0.42);
+  }
+  
+  .office-active-task.error {
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+  
+  .office-active-task.in_progress {
+    border-color: rgba(245, 158, 11, 0.5);
+  }
+  
+  /* Better mini task card */
+  .mini-task-card {
+    position: absolute;
+    z-index: 10;
+    right: 12px;
+    bottom: 10px;
+    width: 112px;
+    padding: 7px 8px;
+    border-radius: 10px;
+    background: rgba(8, 15, 32, 0.86);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
+  }
+  
+  .mini-task-card strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 10.5px;
+    line-height: 1.25;
+  }
+  
+  .mini-task-card small {
+    display: block;
+    margin-top: 3px;
+    color: #94a3b8;
+    font-size: 9.5px;
+  }
+  
+  .mini-task-card.in_progress {
+    border-color: rgba(245, 158, 11, 0.42);
+  }
+  
+  .mini-task-card.done {
+    border-color: rgba(34, 197, 94, 0.38);
+  }
+  
+  .mini-task-card.error {
+    border-color: rgba(239, 68, 68, 0.46);
+  }
+  
+  /* Scene-level status tint */
+  .office-scene.office-latest-in_progress::after,
+  .office-scene.office-latest-working::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 26%, rgba(245, 158, 11, 0.12), transparent 24%);
+  }
+  
+  .office-scene.office-latest-done::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 26%, rgba(34, 197, 94, 0.09), transparent 24%);
+  }
+  
+  .office-scene.office-latest-error::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 26%, rgba(239, 68, 68, 0.12), transparent 24%);
+  }
+  
+  /* Text trimming for overlay cards */
+  .office-source-card small,
+  .office-resource-card small,
+  .office-floating-label small {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Empty state tighter */
+  .office-empty-agents {
+    z-index: 20;
+  }
+  
+  /* Animation */
+  @keyframes officeElementPulse {
+    0%,
+    100% {
+      transform: translateY(0);
+      filter: brightness(1);
+    }
+  
+    50% {
+      transform: translateY(-3px);
+      filter: brightness(1.14);
+    }
+  }
+  
+  /* M365 Light polish */
+  :root[data-theme="m365-light"] .office-source-card.source-active,
+  :root[data-theme="m365-light"] .office-resource-card.resource-active {
+    box-shadow:
+      0 16px 38px rgba(15, 23, 42, 0.12),
+      0 0 24px rgba(245, 158, 11, 0.12);
+  }
+  
+  :root[data-theme="m365-light"] .mini-task-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  }
+  
+  :root[data-theme="m365-light"] .mini-task-card strong {
+    color: #111827;
+  }
+  
+  :root[data-theme="m365-light"] .mini-task-card small {
+    color: #64748b;
+  }
+  
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .mini-task-card {
+      right: 10px;
+      bottom: 10px;
+    }
+  }
+  
+  @media (max-width: 700px) {
+    .mini-task-card {
+      position: relative;
+      right: auto;
+      bottom: auto;
+      width: 100%;
+      margin-top: 8px;
+    }
+  
+    .office-active-task {
+      min-width: 0;
+    }
+  }
