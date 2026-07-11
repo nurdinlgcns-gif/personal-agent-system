@@ -1,0 +1,503 @@
+/* =========================
+   PHASE 7.10.2
+   M365 LIGHT THEME
+   Microsoft 365 / Copilot inspired light workspace
+========================= */
+
+:root[data-theme="m365-light"] {
+  color-scheme: light;
+
+  --office-bg-0: #f5f5f5;
+  --office-bg-1: #fafafa;
+  --office-bg-2: #ffffff;
+
+  --office-ribbon-top: #ffffff;
+  --office-ribbon-mid: #eef2ff;
+  --office-ribbon-bottom: #e7ecff;
+
+  --office-card-header-top: #ffffff;
+  --office-card-header-bottom: #f5f7fb;
+
+  --office-surface-1: #ffffff;
+  --office-surface-2: #f8fafc;
+  --office-surface-3: #f1f5f9;
+
+  --office-border-soft: rgba(15, 23, 42, 0.1);
+  --office-border-strong: rgba(99, 102, 241, 0.24);
+
+  --office-text-main: #1f2937;
+  --office-text-soft: #475569;
+  --office-text-muted: #64748b;
+
+  --office-blue-50: #eff6ff;
+  --office-blue-100: #dbeafe;
+  --office-blue-200: #bfdbfe;
+  --office-blue-300: #93c5fd;
+  --office-blue-400: #60a5fa;
+  --office-blue-500: #3b82f6;
+  --office-blue-600: #2563eb;
+  --office-blue-700: #1d4ed8;
+
+  --office-green: #16a34a;
+  --office-orange: #d97706;
+  --office-red: #dc2626;
+  --office-cyan: #0891b2;
+
+  --office-shadow-soft:
+    0 14px 36px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+  --office-shadow-card:
+    0 8px 24px rgba(15, 23, 42, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Global light base */
+:root[data-theme="m365-light"] body {
+  background:
+    radial-gradient(circle at top left, rgba(147, 197, 253, 0.3), transparent 28%),
+    radial-gradient(circle at top right, rgba(199, 210, 254, 0.35), transparent 34%),
+    linear-gradient(180deg, #fafafa, #f3f4f6);
+  color: var(--office-text-main);
+}
+
+:root[data-theme="m365-light"] .dashboard-shell {
+  background: #f5f5f5;
+}
+
+/* Sidebar light */
+:root[data-theme="m365-light"] .sidebar {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(244, 246, 250, 0.95));
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 8px 0 28px rgba(15, 23, 42, 0.04);
+}
+
+:root[data-theme="m365-light"] .logo-mark {
+  background: linear-gradient(180deg, #ffffff, #e8efff);
+  color: #2563eb;
+  border-color: rgba(37, 99, 235, 0.28);
+  box-shadow:
+    0 10px 24px rgba(37, 99, 235, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme="m365-light"] .sidebar-item {
+  color: #475569;
+}
+
+:root[data-theme="m365-light"] .sidebar-item.active,
+:root[data-theme="m365-light"] .sidebar-item:hover {
+  background: #ffffff;
+  color: #1d4ed8;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+:root[data-theme="m365-light"] .system-health-mini,
+:root[data-theme="m365-light"] .version-box {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: var(--office-shadow-card);
+}
+
+:root[data-theme="m365-light"] .system-health-mini p,
+:root[data-theme="m365-light"] .version-box small {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .version-box strong {
+  color: #1f2937;
+}
+
+/* Top header light */
+:root[data-theme="m365-light"] .top-header {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: var(--office-shadow-soft);
+}
+
+:root[data-theme="m365-light"] .top-header h1 {
+  color: #111827;
+}
+
+:root[data-theme="m365-light"] .top-header p {
+  color: #64748b;
+}
+
+/* Pills / chips */
+:root[data-theme="m365-light"] .status-badge,
+:root[data-theme="m365-light"] .socket-chip,
+:root[data-theme="m365-light"] .time-card,
+:root[data-theme="m365-light"] .theme-switcher,
+:root[data-theme="m365-light"] .connected-chip,
+:root[data-theme="m365-light"] .loaded-chip,
+:root[data-theme="m365-light"] .live-badge,
+:root[data-theme="m365-light"] .soon-badge {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.1);
+  color: #1f2937;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+:root[data-theme="m365-light"] .theme-switcher span {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .theme-switcher select {
+  color: #1d4ed8;
+}
+
+:root[data-theme="m365-light"] .time-card small {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .status-badge.connected,
+:root[data-theme="m365-light"] .connected-chip,
+:root[data-theme="m365-light"] .loaded-chip,
+:root[data-theme="m365-light"] .live-badge {
+  color: #047857;
+  background: #ecfdf5;
+  border-color: rgba(16, 185, 129, 0.24);
+}
+
+:root[data-theme="m365-light"] .status-badge.connecting {
+  color: #92400e;
+  background: #fffbeb;
+  border-color: rgba(245, 158, 11, 0.24);
+}
+
+:root[data-theme="m365-light"] .status-badge.disconnected {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: rgba(239, 68, 68, 0.22);
+}
+
+/* Metric cards light */
+:root[data-theme="m365-light"] .metric-card {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: var(--office-shadow-card);
+}
+
+:root[data-theme="m365-light"] .metric-card::before {
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.045), transparent 45%);
+}
+
+:root[data-theme="m365-light"] .metric-icon {
+  background: #eff6ff;
+  border-color: rgba(37, 99, 235, 0.14);
+  color: #2563eb;
+}
+
+:root[data-theme="m365-light"] .metric-card p,
+:root[data-theme="m365-light"] .metric-card small {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .metric-card strong {
+  color: #111827;
+}
+
+/* Main panels light */
+:root[data-theme="m365-light"] .panel {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: var(--office-shadow-card);
+}
+
+:root[data-theme="m365-light"] .panel-header {
+  background:
+    linear-gradient(180deg, #ffffff, #f3f6fb);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+:root[data-theme="m365-light"] .panel-header h2 {
+  color: #111827;
+  text-shadow: none;
+}
+
+:root[data-theme="m365-light"] .panel-subtitle {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .panel-header button {
+  background: #ffffff;
+  color: #2563eb;
+  border-color: rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+:root[data-theme="m365-light"] .panel-header button:hover {
+  background: #eff6ff;
+}
+
+/* Agent cards light */
+:root[data-theme="m365-light"] .agent-panel .agent-card {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+}
+
+:root[data-theme="m365-light"] .agent-panel .agent-card::before {
+  background:
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 38%),
+    linear-gradient(180deg, rgba(37, 99, 235, 0.03), transparent);
+  opacity: 1;
+}
+
+:root[data-theme="m365-light"] .agent-panel .agent-avatar {
+  background: #eff6ff;
+  border-color: rgba(37, 99, 235, 0.18);
+}
+
+:root[data-theme="m365-light"] .agent-panel .agent-avatar span {
+  color: #1d4ed8;
+}
+
+:root[data-theme="m365-light"] .agent-panel .agent-main-info strong {
+  color: #111827;
+}
+
+:root[data-theme="m365-light"] .agent-panel .agent-main-info p,
+:root[data-theme="m365-light"] .agent-panel .agent-state-row small,
+:root[data-theme="m365-light"] .agent-panel .agent-meta-row span {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .agent-panel .agent-state-row span {
+  color: #1f2937;
+}
+
+:root[data-theme="m365-light"] .agent-panel .agent-activity-track {
+  background: #eef2f7;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .agent-panel .agent-meta-row {
+  border-top-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .agent-panel .agent-meta-row strong {
+  color: #2563eb;
+}
+
+/* Timeline light */
+:root[data-theme="m365-light"] .timeline-item {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .timeline-item strong {
+  color: #111827;
+}
+
+:root[data-theme="m365-light"] .timeline-item p,
+:root[data-theme="m365-light"] .timeline-time {
+  color: #64748b;
+}
+
+/* Table light */
+:root[data-theme="m365-light"] .table-row {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .table-head {
+  background: #f8fafc;
+  color: #475569;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .table-row span {
+  color: #334155;
+}
+
+/* WhatsApp and Skill panels light */
+:root[data-theme="m365-light"] .info-list div,
+:root[data-theme="m365-light"] .skill-card,
+:root[data-theme="m365-light"] .skill-meta {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .info-list small,
+:root[data-theme="m365-light"] .skill-card small,
+:root[data-theme="m365-light"] .skill-meta p {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .info-list p,
+:root[data-theme="m365-light"] .skill-card strong,
+:root[data-theme="m365-light"] .skill-meta strong {
+  color: #1f2937;
+}
+
+:root[data-theme="m365-light"] .skill-path-meta code {
+  background: #ffffff;
+  border-color: rgba(37, 99, 235, 0.14);
+  color: #1d4ed8;
+}
+
+/* Preview light */
+:root[data-theme="m365-light"] .preview-panel {
+  background:
+    radial-gradient(circle at center 44%, rgba(96, 165, 250, 0.16), transparent 34%),
+    #ffffff;
+}
+
+:root[data-theme="m365-light"] .preview-panel h3 {
+  color: #111827;
+}
+
+:root[data-theme="m365-light"] .preview-panel p {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .robot-glow {
+  background: rgba(96, 165, 250, 0.18);
+  border-color: rgba(37, 99, 235, 0.28);
+}
+
+:root[data-theme="m365-light"] .robot-head {
+  background:
+    linear-gradient(180deg, #ffffff, #dbeafe 55%, #60a5fa);
+  box-shadow:
+    0 0 32px rgba(59, 130, 246, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme="m365-light"] .robot-body {
+  background:
+    linear-gradient(180deg, #eff6ff, #93c5fd 58%, #2563eb);
+}
+
+/* Floating assistant light */
+:root[data-theme="m365-light"] .floating-task-button {
+  background:
+    radial-gradient(circle at top left, #ffffff, transparent 34%),
+    linear-gradient(180deg, #7cb8ff, #2563eb);
+  border-color: rgba(37, 99, 235, 0.32);
+  box-shadow:
+    0 0 30px rgba(37, 99, 235, 0.28),
+    0 16px 36px rgba(15, 23, 42, 0.18);
+}
+
+:root[data-theme="m365-light"] .floating-task-panel {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.1);
+  box-shadow:
+    0 24px 80px rgba(15, 23, 42, 0.2),
+    0 0 30px rgba(37, 99, 235, 0.08);
+}
+
+:root[data-theme="m365-light"] .floating-task-header {
+  background:
+    linear-gradient(180deg, #ffffff, #f3f6fb);
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .floating-task-title strong {
+  color: #111827;
+}
+
+:root[data-theme="m365-light"] .floating-task-title p,
+:root[data-theme="m365-light"] .floating-task-status {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .floating-task-avatar {
+  background: #eff6ff;
+  border-color: rgba(37, 99, 235, 0.18);
+}
+
+:root[data-theme="m365-light"] .floating-task-input-area,
+:root[data-theme="m365-light"] .floating-task-suggestions,
+:root[data-theme="m365-light"] .floating-task-status {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .chat-bubble {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.08);
+  color: #1f2937;
+}
+
+:root[data-theme="m365-light"] .chat-message.user .chat-bubble {
+  background: linear-gradient(180deg, #60a5fa, #2563eb);
+  color: #ffffff;
+  border-color: rgba(37, 99, 235, 0.22);
+}
+
+:root[data-theme="m365-light"] .chat-message.assistant .chat-bubble,
+:root[data-theme="m365-light"] .chat-message.system .chat-bubble {
+  background: #f8fafc;
+  color: #1f2937;
+}
+
+:root[data-theme="m365-light"] .chat-bubble small {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .chat-message.user .chat-bubble small {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+:root[data-theme="m365-light"] .floating-task-input-area textarea {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #1f2937;
+}
+
+:root[data-theme="m365-light"] .floating-task-clear {
+  background: #f8fafc;
+  color: #334155;
+  border-color: rgba(15, 23, 42, 0.1);
+}
+
+:root[data-theme="m365-light"] .floating-task-send {
+  background: linear-gradient(180deg, #60a5fa, #2563eb);
+  border-color: rgba(37, 99, 235, 0.25);
+}
+
+/* Loading / alert light */
+:root[data-theme="m365-light"] .snapshot-loading {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-color: rgba(37, 99, 235, 0.16);
+}
+
+:root[data-theme="m365-light"] .snapshot-alert {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: rgba(239, 68, 68, 0.18);
+}
+
+:root[data-theme="m365-light"] .silent-refresh-indicator {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-color: rgba(37, 99, 235, 0.16);
+}
+
+/* Scrollbar light */
+:root[data-theme="m365-light"] .recent-tasks-panel .table::-webkit-scrollbar-thumb,
+:root[data-theme="m365-light"] .timeline-list::-webkit-scrollbar-thumb,
+:root[data-theme="m365-light"] .floating-task-messages::-webkit-scrollbar-thumb {
+  background: rgba(37, 99, 235, 0.26);
+}
+
+/* Mobile light header/sidebar */
+@media (max-width: 700px) {
+  :root[data-theme="m365-light"] .sidebar {
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom-color: rgba(15, 23, 42, 0.08);
+  }
+
+  :root[data-theme="m365-light"] .top-header {
+    background: rgba(255, 255, 255, 0.95);
+  }
+}

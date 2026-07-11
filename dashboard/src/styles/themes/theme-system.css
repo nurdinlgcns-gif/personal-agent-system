@@ -1,0 +1,264 @@
+/* =========================
+   PHASE 7.10.1
+   THEME SWITCHER SYSTEM
+========================= */
+
+.theme-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 6px 9px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(7, 25, 49, 0.65));
+  border: 1px solid rgba(174, 211, 255, 0.25);
+  color: var(--office-text-main);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.theme-switcher span {
+  color: rgba(237, 247, 255, 0.78);
+  font-size: 12px;
+}
+
+.theme-switcher select {
+  border: none;
+  outline: none;
+  color: #ffffff;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.theme-switcher select option {
+  color: #0f172a;
+  background: #ffffff;
+}
+
+/* =========================
+   THEME: OFFICE BLUE
+   Default theme uses Office 2007 Blue Reborn styles above.
+========================= */
+
+:root[data-theme="office-blue"] {
+  color-scheme: dark;
+}
+
+/* =========================
+   THEME: FLUENT DARK
+========================= */
+
+:root[data-theme="fluent-dark"] {
+  --office-bg-0: #020617;
+  --office-bg-1: #0f172a;
+  --office-bg-2: #111827;
+
+  --office-ribbon-top: #64748b;
+  --office-ribbon-mid: #334155;
+  --office-ribbon-bottom: #1e293b;
+
+  --office-card-header-top: rgba(51, 65, 85, 0.95);
+  --office-card-header-bottom: rgba(15, 23, 42, 0.95);
+
+  --office-surface-1: rgba(15, 23, 42, 0.94);
+  --office-surface-2: rgba(17, 24, 39, 0.94);
+  --office-surface-3: rgba(30, 41, 59, 0.9);
+
+  --office-border-soft: rgba(148, 163, 184, 0.18);
+  --office-border-strong: rgba(148, 163, 184, 0.32);
+
+  --office-text-main: #f8fafc;
+  --office-text-soft: #cbd5e1;
+  --office-text-muted: #94a3b8;
+}
+
+:root[data-theme="fluent-dark"] body {
+  background:
+    radial-gradient(circle at top right, rgba(100, 116, 139, 0.18), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(30, 41, 59, 0.28), transparent 34%),
+    #020617;
+}
+
+:root[data-theme="fluent-dark"] .top-header,
+:root[data-theme="fluent-dark"] .panel,
+:root[data-theme="fluent-dark"] .metric-card,
+:root[data-theme="fluent-dark"] .sidebar,
+:root[data-theme="fluent-dark"] .floating-task-panel {
+  background:
+    linear-gradient(180deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.96));
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+:root[data-theme="fluent-dark"] .panel-header,
+:root[data-theme="fluent-dark"] .floating-task-header {
+  background:
+    linear-gradient(180deg, rgba(51, 65, 85, 0.96), rgba(15, 23, 42, 0.96));
+  border-bottom-color: rgba(148, 163, 184, 0.22);
+}
+
+:root[data-theme="fluent-dark"] .logo-mark,
+:root[data-theme="fluent-dark"] .floating-task-button,
+:root[data-theme="fluent-dark"] .floating-task-send {
+  background:
+    linear-gradient(180deg, #64748b, #1e293b);
+  border-color: rgba(203, 213, 225, 0.3);
+  box-shadow:
+    0 0 30px rgba(100, 116, 139, 0.35),
+    0 18px 42px rgba(0, 0, 0, 0.46);
+}
+
+/* =========================
+   THEME: COPILOT DARK
+========================= */
+
+:root[data-theme="copilot-dark"] {
+  --office-bg-0: #080b1a;
+  --office-bg-1: #11102a;
+  --office-bg-2: #171335;
+
+  --office-ribbon-top: #a78bfa;
+  --office-ribbon-mid: #7c3aed;
+  --office-ribbon-bottom: #4c1d95;
+
+  --office-card-header-top: rgba(124, 58, 237, 0.92);
+  --office-card-header-bottom: rgba(76, 29, 149, 0.95);
+
+  --office-surface-1: rgba(20, 18, 50, 0.94);
+  --office-surface-2: rgba(27, 24, 68, 0.94);
+  --office-surface-3: rgba(45, 36, 96, 0.9);
+
+  --office-border-soft: rgba(196, 181, 253, 0.22);
+  --office-border-strong: rgba(167, 139, 250, 0.38);
+
+  --office-text-main: #fbfaff;
+  --office-text-soft: #ddd6fe;
+  --office-text-muted: #b8a9dd;
+}
+
+:root[data-theme="copilot-dark"] body {
+  background:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.26), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.16), transparent 36%),
+    #080b1a;
+}
+
+:root[data-theme="copilot-dark"] .top-header,
+:root[data-theme="copilot-dark"] .panel,
+:root[data-theme="copilot-dark"] .metric-card,
+:root[data-theme="copilot-dark"] .sidebar,
+:root[data-theme="copilot-dark"] .floating-task-panel {
+  background:
+    linear-gradient(180deg, rgba(27, 24, 68, 0.94), rgba(10, 12, 30, 0.96));
+  border-color: rgba(196, 181, 253, 0.2);
+}
+
+:root[data-theme="copilot-dark"] .panel-header,
+:root[data-theme="copilot-dark"] .floating-task-header {
+  background:
+    linear-gradient(180deg, rgba(124, 58, 237, 0.9), rgba(76, 29, 149, 0.95));
+  border-bottom-color: rgba(221, 214, 254, 0.26);
+}
+
+:root[data-theme="copilot-dark"] .logo-mark,
+:root[data-theme="copilot-dark"] .floating-task-button,
+:root[data-theme="copilot-dark"] .floating-task-send {
+  background:
+    linear-gradient(180deg, #a78bfa, #4c1d95);
+  border-color: rgba(221, 214, 254, 0.38);
+  box-shadow:
+    0 0 36px rgba(124, 58, 237, 0.52),
+    0 18px 42px rgba(0, 0, 0, 0.46);
+}
+
+:root[data-theme="copilot-dark"] .robot-glow {
+  background: rgba(167, 139, 250, 0.2);
+  border-color: rgba(167, 139, 250, 0.45);
+}
+
+/* =========================
+   THEME: OFFICE SILVER
+========================= */
+
+:root[data-theme="office-silver"] {
+  --office-bg-0: #0b1220;
+  --office-bg-1: #162033;
+  --office-bg-2: #233148;
+
+  --office-ribbon-top: #e5e7eb;
+  --office-ribbon-mid: #94a3b8;
+  --office-ribbon-bottom: #475569;
+
+  --office-card-header-top: rgba(226, 232, 240, 0.72);
+  --office-card-header-bottom: rgba(71, 85, 105, 0.94);
+
+  --office-surface-1: rgba(26, 36, 54, 0.94);
+  --office-surface-2: rgba(35, 49, 72, 0.94);
+  --office-surface-3: rgba(51, 65, 85, 0.92);
+
+  --office-border-soft: rgba(226, 232, 240, 0.2);
+  --office-border-strong: rgba(203, 213, 225, 0.34);
+
+  --office-text-main: #f8fafc;
+  --office-text-soft: #dbe4ef;
+  --office-text-muted: #aebdd0;
+}
+
+:root[data-theme="office-silver"] body {
+  background:
+    radial-gradient(circle at top left, rgba(226, 232, 240, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(148, 163, 184, 0.18), transparent 34%),
+    #0b1220;
+}
+
+:root[data-theme="office-silver"] .top-header,
+:root[data-theme="office-silver"] .panel,
+:root[data-theme="office-silver"] .metric-card,
+:root[data-theme="office-silver"] .sidebar,
+:root[data-theme="office-silver"] .floating-task-panel {
+  background:
+    linear-gradient(180deg, rgba(51, 65, 85, 0.94), rgba(15, 23, 42, 0.96));
+  border-color: rgba(226, 232, 240, 0.18);
+}
+
+:root[data-theme="office-silver"] .panel-header,
+:root[data-theme="office-silver"] .floating-task-header {
+  background:
+    linear-gradient(180deg, rgba(203, 213, 225, 0.38), rgba(71, 85, 105, 0.95));
+  border-bottom-color: rgba(226, 232, 240, 0.22);
+}
+
+:root[data-theme="office-silver"] .panel-header h2,
+:root[data-theme="office-silver"] .floating-task-title strong {
+  color: #ffffff;
+}
+
+:root[data-theme="office-silver"] .logo-mark,
+:root[data-theme="office-silver"] .floating-task-button,
+:root[data-theme="office-silver"] .floating-task-send {
+  background:
+    linear-gradient(180deg, #e5e7eb, #475569);
+  border-color: rgba(226, 232, 240, 0.38);
+  color: #0f172a;
+  box-shadow:
+    0 0 30px rgba(203, 213, 225, 0.28),
+    0 18px 42px rgba(0, 0, 0, 0.46);
+}
+
+
+/* =========================
+   THEME RESPONSIVE POLISH
+========================= */
+
+@media (max-width: 700px) {
+  .theme-switcher {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .theme-switcher select {
+    max-width: 160px;
+  }
+}
