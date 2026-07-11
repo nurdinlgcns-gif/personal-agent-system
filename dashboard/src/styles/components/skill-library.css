@@ -1,0 +1,137 @@
+/* =========================
+   PHASE 7.8.3
+   SKILL LIBRARY CARD POLISH
+========================= */
+
+.skill-panel {
+  overflow: hidden;
+}
+
+.skill-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  min-width: 0;
+}
+
+.skill-card {
+  min-width: 0;
+  overflow: hidden;
+  display: grid;
+  gap: 12px;
+  background: rgba(2, 6, 23, 0.78);
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 13px;
+}
+
+.skill-card-top {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.skill-card-top > div {
+  min-width: 0;
+}
+
+.skill-card small,
+.skill-meta p {
+  display: block;
+  margin: 0 0 5px;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.skill-card strong {
+  display: block;
+  min-width: 0;
+  color: #e5e7eb;
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.skill-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.skill-meta {
+  min-width: 0;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(30, 41, 59, 0.88);
+  border-radius: 10px;
+  padding: 9px;
+}
+
+.skill-path-meta {
+  padding: 9px;
+}
+
+.skill-path-meta code {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #bfdbfe;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 8px;
+  padding: 7px 8px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.loaded-chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* Kalau skill card berada di sidebar kanan, jangan paksa 2 kolom terlalu sempit */
+.side-stack .skill-list {
+  grid-template-columns: 1fr;
+}
+
+/* Tablet / desktop besar: kalau panel cukup luas, skill bisa 2 kolom */
+@media (min-width: 1201px) {
+  .dashboard-grid-bottom .recent-tasks-panel + .side-stack .skill-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Compact tablet: tetap aman */
+@media (min-width: 701px) and (max-width: 1200px) {
+  .skill-list {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile kecil: meta jadi 1 kolom biar tidak sempit */
+@media (max-width: 520px) {
+  .skill-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .skill-path-meta code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
