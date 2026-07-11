@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import type { AgentStatusPayload, TaskEventPayload } from "../types/websocket";
-import type { AgentSnapshot, TaskSnapshot, SkillSnapshot,DashboardSummary, } from "../types/api";
+import type {
+  AgentSnapshot,
+  TaskSnapshot,
+  SkillSnapshot,
+  DashboardSummary,
+} from "../types/api";
 
 type AgentState = {
   connectionStatus: "connected" | "disconnected" | "connecting";
@@ -9,29 +14,31 @@ type AgentState = {
   agentStatuses: Record<string, string>;
   agents: AgentSnapshot[];
   recentTasks: TaskSnapshot[];
-
-  agentEvents: AgentStatusPayload[];
-  taskEvents: TaskEventPayload[];
-  
   skills: SkillSnapshot[];
   dashboardSummary: DashboardSummary | null;
 
-  isSnapshotLoading: boolean;
+  agentEvents: AgentStatusPayload[];
+  taskEvents: TaskEventPayload[];
+
+  isInitialLoading: boolean;
+  isSilentRefreshing: boolean;
   snapshotError: string | null;
 
   setConnected: (socketId: string) => void;
   setDisconnected: () => void;
 
   setAgentsSnapshot: (agents: AgentSnapshot[]) => void;
-  setSkillsSnapshot: (skills: SkillSnapshot[]) => void;
   setRecentTasksSnapshot: (tasks: TaskSnapshot[]) => void;
+  setSkillsSnapshot: (skills: SkillSnapshot[]) => void;
   setDashboardSummary: (summary: DashboardSummary) => void;
-  setSnapshotLoading: (loading: boolean) => void;
+
+  setInitialLoading: (loading: boolean) => void;
+  setSilentRefreshing: (refreshing: boolean) => void;
   setSnapshotError: (error: string | null) => void;
 
   updateAgentStatus: (payload: AgentStatusPayload) => void;
   addTaskEvent: (payload: TaskEventPayload) => void;
-  
+
   clearEvents: () => void;
 };
 
@@ -43,11 +50,13 @@ export const useAgentStore = create<AgentState>((set) => ({
   agents: [],
   recentTasks: [],
   skills: [],
+  dashboardSummary: null,
+
   agentEvents: [],
   taskEvents: [],
 
-  isSnapshotLoading: false,
-  dashboardSummary: null,
+  isInitialLoading: false,
+  isSilentRefreshing: false,
   snapshotError: null,
 
   setConnected: (socketId) =>
@@ -63,10 +72,12 @@ export const useAgentStore = create<AgentState>((set) => ({
     }),
 
   setAgentsSnapshot: (agents) =>
-    set(() => {
+    set((state) => {
       const mappedStatuses = agents.reduce<Record<string, string>>(
         (accumulator, agent) => {
-          accumulator[agent.name] = agent.status;
+          accumulator[agent.name] =
+            state.agentStatuses[agent.name] || agent.status;
+
           return accumulator;
         },
         {}
@@ -74,7 +85,10 @@ export const useAgentStore = create<AgentState>((set) => ({
 
       return {
         agents,
-        agentStatuses: mappedStatuses,
+        agentStatuses: {
+          ...mappedStatuses,
+          ...state.agentStatuses,
+        },
       };
     }),
 
@@ -83,9 +97,24 @@ export const useAgentStore = create<AgentState>((set) => ({
       recentTasks: tasks,
     }),
 
-  setSnapshotLoading: (loading) =>
+  setSkillsSnapshot: (skills) =>
     set({
-      isSnapshotLoading: loading,
+      skills,
+    }),
+
+  setDashboardSummary: (summary) =>
+    set({
+      dashboardSummary: summary,
+    }),
+
+  setInitialLoading: (loading) =>
+    set({
+      isInitialLoading: loading,
+    }),
+
+  setSilentRefreshing: (refreshing) =>
+    set({
+      isSilentRefreshing: refreshing,
     }),
 
   setSnapshotError: (error) =>
@@ -111,28 +140,18 @@ export const useAgentStore = create<AgentState>((set) => ({
           [payload.agentName]: payload.status,
         },
         agents: updatedAgents,
-        agentEvents: [payload, ...state.agentEvents].slice(0, 20),
+        agentEvents: [payload, ...state.agentEvents].slice(0, 40),
       };
     }),
 
   addTaskEvent: (payload) =>
     set((state) => ({
-      taskEvents: [payload, ...state.taskEvents].slice(0, 20),
+      taskEvents: [payload, ...state.taskEvents].slice(0, 40),
     })),
 
   clearEvents: () =>
     set({
       agentEvents: [],
       taskEvents: [],
-    }),
-  
-    setSkillsSnapshot: (skills) =>
-    set({
-      skills,
-    }),
-
-  setDashboardSummary: (summary) =>
-    set({
-      dashboardSummary: summary,
     }),
 }));

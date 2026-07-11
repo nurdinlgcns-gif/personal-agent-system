@@ -1267,3 +1267,1507 @@ button {
     bottom: 18px;
   }
 }
+/* =========================
+   STABILITY / ANTI FLICKER
+========================= */
+
+.dashboard-main,
+.panel,
+.metric-card,
+.agent-card,
+.timeline-item,
+.table-row,
+.info-list div,
+.skill-card,
+.preview-panel {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.panel,
+.metric-card,
+.agent-card,
+.timeline-item,
+.table-row,
+.preview-panel,
+.whatsapp-panel,
+.skill-panel {
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background-color 0.22s ease,
+    color 0.18s ease;
+}
+
+.metric-card,
+.panel {
+  min-height: 0;
+}
+
+.metrics-grid {
+  align-items: stretch;
+}
+
+.metric-card {
+  min-height: 104px;
+}
+
+.agent-card {
+  min-height: 160px;
+}
+
+.timeline-panel {
+  min-height: 260px;
+}
+
+.timeline-list {
+  min-height: 190px;
+}
+
+.recent-tasks-panel {
+  min-height: 320px;
+}
+
+.whatsapp-panel,
+.skill-panel {
+  min-height: 220px;
+}
+
+.snapshot-loading {
+  animation: none;
+}
+
+.silent-refresh-indicator {
+  position: fixed;
+  right: 108px;
+  bottom: 42px;
+  z-index: 58;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #bfdbfe;
+  background: rgba(30, 64, 175, 0.32);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  font-size: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.agent-card.working .activity-line {
+  animation: activityFlow 1.4s linear infinite;
+}
+
+@keyframes activityFlow {
+  0% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.35;
+  }
+}
+
+/* Prevent content updates from shifting panels too aggressively */
+.agent-info,
+.timeline-item div,
+.table-row span,
+.info-list div,
+.skill-card {
+  min-width: 0;
+}
+
+/* Keep row height stable */
+.table-row {
+  min-height: 42px;
+}
+
+/* Make live updates feel smooth, not blinking */
+.agent-status-badge,
+.task-status,
+.status-badge,
+.connected-chip,
+.loaded-chip,
+.live-badge {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* =========================
+   PHASE 7.7.2
+   FLOATING FIX + RESPONSIVE POLISH
+========================= */
+
+/* Important:
+   Do NOT transform large layout containers.
+   transform on parent can break position: fixed children.
+*/
+.dashboard-shell,
+.dashboard-main {
+  transform: none !important;
+  backface-visibility: visible !important;
+}
+
+/* Keep anti-flicker only on card-level elements */
+.panel,
+.metric-card,
+.agent-card,
+.timeline-item,
+.table-row,
+.info-list div,
+.skill-card,
+.preview-panel {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Floating assistant must always stay above dashboard */
+.floating-task-button {
+  position: fixed !important;
+  right: 28px;
+  bottom: 28px;
+  z-index: 9999;
+}
+
+.floating-task-panel {
+  position: fixed !important;
+  right: 28px;
+  bottom: 104px;
+  z-index: 9998;
+}
+
+/* Prevent main dashboard from stealing horizontal space */
+.dashboard-shell {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.dashboard-main {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Better desktop spacing */
+.dashboard-grid-main,
+.dashboard-grid-bottom,
+.metrics-grid {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Smooth cards without layout jump */
+.panel,
+.metric-card,
+.agent-card {
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background-color 0.22s ease;
+}
+
+.agent-card,
+.metric-card,
+.panel {
+  will-change: auto;
+}
+
+/* Better text wrapping */
+.agent-info strong,
+.skill-meta strong,
+.info-list strong,
+.info-list p,
+.skill-card strong,
+.manual-task-result p {
+  overflow-wrap: anywhere;
+}
+
+/* Table text should not break layout */
+.table-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================
+   TABLET LAYOUT
+========================= */
+
+@media (max-width: 1400px) {
+  .dashboard-main {
+    padding: 18px 24px 28px 18px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .dashboard-grid-main {
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
+  }
+
+  .preview-panel {
+    grid-column: 1 / -1;
+  }
+
+  .dashboard-grid-bottom {
+    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+  }
+
+  .agent-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* =========================
+   SMALL TABLET / LARGE MOBILE
+========================= */
+
+@media (max-width: 1100px) {
+  .dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+
+  /* Make sidebar a professional top navigation on tablet/mobile */
+  .sidebar {
+    min-height: auto;
+    height: auto;
+    position: sticky;
+    top: 0;
+    z-index: 80;
+    padding: 12px 16px;
+    border-right: none;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.22);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    background: rgba(3, 7, 18, 0.96);
+    backdrop-filter: blur(14px);
+  }
+
+  .sidebar-logo {
+    height: auto;
+  }
+
+  .sidebar-nav {
+    margin-top: 0;
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .sidebar-nav::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.35);
+    border-radius: 999px;
+  }
+
+  .sidebar-item {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 9px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .sidebar-footer {
+    display: none;
+  }
+
+  .dashboard-main {
+    padding: 16px;
+  }
+
+  .top-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-grid-main,
+  .dashboard-grid-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .preview-panel {
+    grid-column: auto;
+  }
+}
+
+/* =========================
+   MOBILE LAYOUT
+========================= */
+
+@media (max-width: 700px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .dashboard-main {
+    padding: 12px;
+  }
+
+  .sidebar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .sidebar-logo {
+    display: none;
+  }
+
+  .sidebar-nav {
+    width: 100%;
+  }
+
+  .sidebar-item {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .top-header {
+    border-radius: 14px;
+    padding: 14px;
+  }
+
+  .top-header h1 {
+    font-size: 18px;
+  }
+
+  .top-header p {
+    font-size: 12px;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .status-badge,
+  .socket-chip,
+  .time-card {
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .metric-card {
+    grid-template-columns: 38px minmax(0, 1fr);
+    min-height: 96px;
+  }
+
+  .mini-sparkline {
+    display: none;
+  }
+
+  .metric-card strong {
+    font-size: 22px;
+  }
+
+  .panel {
+    padding: 14px;
+    border-radius: 14px;
+    min-height: auto;
+  }
+
+  .panel-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .panel-header h2 {
+    font-size: 15px;
+  }
+
+  .panel-header button {
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+
+  .agent-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-card {
+    min-height: 128px;
+  }
+
+  .agent-avatar {
+    flex: 0 0 48px;
+    width: 48px;
+    height: 64px;
+    font-size: 24px;
+  }
+
+  .timeline-item {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .timeline-time {
+    font-size: 11px;
+  }
+
+  .timeline-item p {
+    font-size: 12px;
+  }
+
+  .robot-preview {
+    height: 140px;
+  }
+
+  .robot-glow {
+    width: 140px;
+  }
+
+  .robot-head {
+    width: 74px;
+    height: 56px;
+  }
+
+  .robot-body {
+    width: 70px;
+    height: 50px;
+    top: 92px;
+  }
+
+  /* Recent task table becomes mobile cards */
+  .table {
+    gap: 10px;
+  }
+
+  .table-head {
+    display: none;
+  }
+
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 12px;
+  }
+
+  .table-row span {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    font-size: 12px;
+  }
+
+  .table-row span:nth-child(1)::before {
+    content: "Task ID: ";
+    color: #94a3b8;
+  }
+
+  .table-row span:nth-child(2)::before {
+    content: "Agent: ";
+    color: #94a3b8;
+  }
+
+  .table-row span:nth-child(3)::before {
+    content: "Source: ";
+    color: #94a3b8;
+  }
+
+  .table-row span:nth-child(4)::before {
+    content: "Status: ";
+    color: #94a3b8;
+  }
+
+  .table-row span:nth-child(5)::before {
+    content: "Input: ";
+    color: #94a3b8;
+  }
+
+  .table-row span:nth-child(6)::before {
+    content: "Created: ";
+    color: #94a3b8;
+  }
+
+  .info-list div,
+  .skill-card {
+    padding: 10px;
+  }
+
+  /* Floating assistant mobile */
+  .floating-task-button {
+    right: 18px;
+    bottom: 18px;
+    width: 58px;
+    height: 58px;
+  }
+
+  .floating-task-icon {
+    font-size: 26px;
+  }
+
+  .floating-task-panel {
+    left: 12px;
+    right: 12px;
+    bottom: 88px;
+    width: auto;
+    height: min(620px, calc(100vh - 112px));
+    max-height: calc(100vh - 112px);
+    border-radius: 18px;
+  }
+
+  .floating-task-header {
+    padding: 14px;
+  }
+
+  .floating-task-title strong {
+    font-size: 14px;
+  }
+
+  .floating-task-title p {
+    font-size: 11px;
+  }
+
+  .floating-task-messages {
+    padding: 12px;
+  }
+
+  .chat-bubble {
+    max-width: 92%;
+    padding: 10px 11px;
+  }
+
+  .chat-bubble p {
+    font-size: 12px;
+  }
+
+  .floating-task-suggestions {
+    padding: 10px 12px;
+  }
+
+  .floating-task-input-area {
+    padding: 12px;
+  }
+
+  .floating-task-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* =========================
+   VERY SMALL MOBILE
+========================= */
+
+@media (max-width: 420px) {
+  .dashboard-main {
+    padding: 10px;
+  }
+
+  .top-header h1 {
+    font-size: 16px;
+  }
+
+  .metric-card {
+    padding: 13px;
+  }
+
+  .metric-card strong {
+    font-size: 20px;
+  }
+
+  .floating-task-panel {
+    left: 8px;
+    right: 8px;
+    bottom: 82px;
+    height: min(600px, calc(100vh - 100px));
+  }
+
+  .floating-task-button {
+    right: 14px;
+    bottom: 14px;
+  }
+}
+
+/* =========================
+
+   PHASE 7.7.3
+
+   CONTENT DENSITY / CARD GRID POLISH
+
+========================= */
+
+
+
+/* Make main cards more compact and professional on desktop */
+
+@media (min-width: 1201px) {
+
+  .dashboard-grid-main {
+
+    grid-template-columns:
+
+      minmax(520px, 1.35fr)
+
+      minmax(360px, 0.85fr)
+
+      minmax(360px, 0.9fr);
+
+    gap: 16px;
+
+  }
+
+
+
+  .dashboard-grid-bottom {
+
+    grid-template-columns:
+
+      minmax(620px, 1.45fr)
+
+      minmax(380px, 0.95fr);
+
+    gap: 16px;
+
+  }
+
+
+
+  .agent-grid {
+
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  }
+
+
+
+  .side-stack {
+
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    gap: 16px;
+
+  }
+
+}
+
+
+
+/* Tablet: keep content efficient with 2 columns */
+
+@media (min-width: 701px) and (max-width: 1200px) {
+
+  .metrics-grid {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  }
+
+
+
+  .dashboard-grid-main {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  }
+
+
+
+  .agent-panel {
+
+    grid-column: 1 / -1;
+
+  }
+
+
+
+  .agent-grid {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  }
+
+
+
+  .preview-panel {
+
+    grid-column: auto;
+
+  }
+
+
+
+  .dashboard-grid-bottom {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+
+  .side-stack {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+
+  }
+
+}
+
+
+
+/* Make information panels use space better */
+
+@media (min-width: 901px) {
+
+  .whatsapp-panel .info-list {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  }
+
+
+
+  .whatsapp-panel .info-list div:nth-child(3),
+
+  .whatsapp-panel .info-list div:nth-child(4) {
+
+    grid-column: span 2;
+
+  }
+
+
+
+  .skill-list {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  }
+
+}
+
+
+
+/* Recent Tasks table should not make dashboard too tall */
+
+.recent-tasks-panel {
+
+  max-height: 460px;
+
+  overflow: hidden;
+
+}
+
+
+
+.recent-tasks-panel .table {
+
+  max-height: 390px;
+
+  overflow-y: auto;
+
+  padding-right: 4px;
+
+}
+
+
+
+.recent-tasks-panel .table::-webkit-scrollbar {
+
+  width: 6px;
+
+}
+
+
+
+.recent-tasks-panel .table::-webkit-scrollbar-thumb {
+
+  background: rgba(59, 130, 246, 0.35);
+
+  border-radius: 999px;
+
+}
+
+
+
+/* Event timeline should be readable but not too long */
+
+.timeline-panel {
+
+  max-height: 360px;
+
+  overflow: hidden;
+
+}
+
+
+
+.timeline-list {
+
+  max-height: 290px;
+
+  overflow-y: auto;
+
+  padding-right: 4px;
+
+}
+
+
+
+.timeline-list::-webkit-scrollbar {
+
+  width: 6px;
+
+}
+
+
+
+.timeline-list::-webkit-scrollbar-thumb {
+
+  background: rgba(59, 130, 246, 0.35);
+
+  border-radius: 999px;
+
+}
+
+
+
+/* Agent cards a bit more compact */
+
+.agent-card {
+
+  min-height: 138px;
+
+}
+
+
+
+.agent-avatar {
+
+  height: 62px;
+
+}
+
+
+
+.agent-info {
+
+  gap: 6px;
+
+}
+
+
+
+/* Compact panel spacing */
+
+.panel {
+
+  padding: 15px;
+
+}
+
+
+
+.panel-header {
+
+  margin-bottom: 12px;
+
+}
+
+
+
+/* Skill cards more compact */
+
+.skill-card {
+
+  gap: 8px;
+
+}
+
+
+
+/* WhatsApp panel content compact */
+
+.info-list {
+
+  gap: 10px;
+
+}
+
+
+
+/* Mobile stays single-column and readable */
+
+@media (max-width: 700px) {
+
+  .recent-tasks-panel,
+
+  .timeline-panel {
+
+    max-height: none;
+
+    overflow: visible;
+
+  }
+
+
+
+  .recent-tasks-panel .table,
+
+  .timeline-list {
+
+    max-height: none;
+
+    overflow: visible;
+
+  }
+
+
+
+  .whatsapp-panel .info-list,
+
+  .skill-list {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+
+  .side-stack {
+
+    grid-template-columns: 1fr;
+
+  }
+
+}
+
+
+/* =========================
+
+   PHASE 7.7.3B
+
+   COMPACT MOBILE / TABLET 2-COLUMN OVERRIDE
+
+========================= */
+
+
+
+/* Compact mobile / large phone / small tablet */
+
+@media (min-width: 480px) and (max-width: 700px) {
+
+  .dashboard-main {
+
+    padding: 12px;
+
+  }
+
+
+
+  /* Metrics jadi 2 kolom */
+
+  .metrics-grid {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 10px;
+
+  }
+
+
+
+  .metric-card {
+
+    min-height: 92px;
+
+    padding: 13px;
+
+    grid-template-columns: 34px minmax(0, 1fr);
+
+  }
+
+
+
+  .metric-icon {
+
+    width: 34px;
+
+    height: 34px;
+
+  }
+
+
+
+  .metric-card strong {
+
+    font-size: 20px;
+
+  }
+
+
+
+  .metric-card p,
+
+  .metric-card small {
+
+    font-size: 11px;
+
+  }
+
+
+
+  /* Main panels jadi 2 kolom */
+
+  .dashboard-grid-main {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 12px;
+
+  }
+
+
+
+  /* Agent panel tetap full width biar agent card bisa 2 kolom di dalam */
+
+  .agent-panel {
+
+    grid-column: 1 / -1;
+
+  }
+
+
+
+  .agent-grid {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 10px;
+
+  }
+
+
+
+  .agent-card {
+
+    min-height: 118px;
+
+    padding: 12px;
+
+    gap: 10px;
+
+  }
+
+
+
+  .agent-avatar {
+
+    flex: 0 0 42px;
+
+    width: 42px;
+
+    height: 56px;
+
+    font-size: 22px;
+
+  }
+
+
+
+  .agent-info {
+
+    gap: 5px;
+
+  }
+
+
+
+  .agent-info strong {
+
+    font-size: 13px;
+
+  }
+
+
+
+  .agent-info small {
+
+    font-size: 10px;
+
+  }
+
+
+
+  .activity-line {
+
+    font-size: 11px;
+
+  }
+
+
+
+  /* Timeline dan preview berdampingan */
+
+  .timeline-panel,
+
+  .preview-panel {
+
+    grid-column: auto;
+
+  }
+
+
+
+  .timeline-panel {
+
+    min-height: 260px;
+
+  }
+
+
+
+  .timeline-list {
+
+    min-height: 190px;
+
+    max-height: 220px;
+
+    overflow-y: auto;
+
+  }
+
+
+
+  .timeline-item {
+
+    grid-template-columns: 58px minmax(0, 1fr);
+
+    gap: 8px;
+
+  }
+
+
+
+  .timeline-time {
+
+    font-size: 10px;
+
+  }
+
+
+
+  .timeline-item strong {
+
+    font-size: 12px;
+
+  }
+
+
+
+  .timeline-item p {
+
+    font-size: 11px;
+
+  }
+
+
+
+  /* Preview lebih compact */
+
+  .robot-preview {
+
+    height: 130px;
+
+  }
+
+
+
+  .robot-glow {
+
+    width: 130px;
+
+    height: 50px;
+
+  }
+
+
+
+  .robot-head {
+
+    width: 68px;
+
+    height: 52px;
+
+  }
+
+
+
+  .robot-body {
+
+    width: 64px;
+
+    height: 46px;
+
+    top: 86px;
+
+  }
+
+
+
+  .preview-panel h3 {
+
+    font-size: 15px;
+
+    margin: 8px 0;
+
+  }
+
+
+
+  .preview-panel p {
+
+    font-size: 12px;
+
+  }
+
+
+
+  /* Bottom area tetap 1 kolom, tapi isi side-stack jadi 2 kolom */
+
+  .dashboard-grid-bottom {
+
+    grid-template-columns: 1fr !important;
+
+    gap: 12px;
+
+  }
+
+
+
+  .side-stack {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 12px;
+
+  }
+
+
+
+  /* WhatsApp panel info jadi 2 kolom */
+
+  .whatsapp-panel .info-list {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  }
+
+
+
+  .whatsapp-panel .info-list div:nth-child(3),
+
+  .whatsapp-panel .info-list div:nth-child(4) {
+
+    grid-column: span 2;
+
+  }
+
+
+
+  /* Skill cards jadi 2 kolom kalau lebih dari 1 skill */
+
+  .skill-list {
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  }
+
+
+
+  /* Recent Tasks jadi card grid 2 kolom */
+
+  .recent-tasks-panel .table {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+
+  }
+
+
+
+  .recent-tasks-panel .table-head {
+
+    display: none;
+
+  }
+
+
+
+  .recent-tasks-panel .table-row {
+
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    gap: 6px;
+
+    padding: 12px;
+
+    min-height: 150px;
+
+  }
+
+
+
+  .recent-tasks-panel .table-row span {
+
+    white-space: normal;
+
+    overflow: visible;
+
+    text-overflow: unset;
+
+    font-size: 11px;
+
+  }
+
+
+
+  .recent-tasks-panel .table-row span:nth-child(1)::before {
+
+    content: "Task ID: ";
+
+    color: #94a3b8;
+
+  }
+
+
+
+  .recent-tasks-panel .table-row span:nth-child(2)::before {
+
+    content: "Agent: ";
+
+    color: #94a3b8;
+
+  }
+
+
+
+  .recent-tasks-panel .table-row span:nth-child(3)::before {
+
+    content: "Source: ";
+
+    color: #94a3b8;
+
+  }
+
+
+
+  .recent-tasks-panel .table-row span:nth-child(4)::before {
+
+    content: "Status: ";
+
+    color: #94a3b8;
+
+  }
+
+
+
+  .recent-tasks-panel .table-row span:nth-child(5)::before {
+
+    content: "Input: ";
+
+    color: #94a3b8;
+
+  }
+
+
+
+  .recent-tasks-panel .table-row span:nth-child(6)::before {
+
+    content: "Created: ";
+
+    color: #94a3b8;
+
+  }
+
+
+
+  /* Floating assistant tetap nyaman */
+
+  .floating-task-panel {
+
+    left: 16px;
+
+    right: 16px;
+
+    bottom: 90px;
+
+    width: auto;
+
+    height: min(620px, calc(100vh - 112px));
+
+  }
+
+}
+
+
+
+/* Very small phones stay single-column for readability */
+
+@media (max-width: 479px) {
+
+  .metrics-grid,
+
+  .dashboard-grid-main,
+
+  .dashboard-grid-bottom,
+
+  .agent-grid,
+
+  .side-stack,
+
+  .whatsapp-panel .info-list,
+
+  .skill-list {
+
+    grid-template-columns: 1fr !important;
+
+  }
+
+
+
+  .recent-tasks-panel .table {
+
+    grid-template-columns: 1fr !important;
+
+  }
+
+}

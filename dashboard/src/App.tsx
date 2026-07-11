@@ -39,20 +39,22 @@ function App() {
     agentEvents,
     taskEvents,
 
-    isSnapshotLoading,
+    isInitialLoading,
+    isSilentRefreshing,
     snapshotError,
 
     setAgentsSnapshot,
     setRecentTasksSnapshot,
     setSkillsSnapshot,
     setDashboardSummary,
-    setSnapshotLoading,
+    setInitialLoading,
+    setSilentRefreshing,
     setSnapshotError,
   } = useAgentStore();
 
-  const loadSnapshot = useCallback(async () => {
+  const loadInitialSnapshot = useCallback(async () => {
     try {
-      setSnapshotLoading(true);
+      setInitialLoading(true);
       setSnapshotError(null);
 
       const [agentsData, tasksData, skillsData, summaryData] =
@@ -75,21 +77,54 @@ function App() {
 
       setSnapshotError(message);
     } finally {
-      setSnapshotLoading(false);
+      setInitialLoading(false);
     }
   }, [
     setAgentsSnapshot,
     setRecentTasksSnapshot,
     setSkillsSnapshot,
     setDashboardSummary,
-    setSnapshotLoading,
+    setInitialLoading,
+    setSnapshotError,
+  ]);
+
+  const refreshTasksAndSummary = useCallback(async () => {
+    try {
+      setSilentRefreshing(true);
+      setSnapshotError(null);
+
+      const [tasksData, summaryData] = await Promise.all([
+        fetchRecentTasks(10),
+        fetchDashboardSummary(),
+      ]);
+
+      setRecentTasksSnapshot(tasksData);
+      setDashboardSummary(summaryData);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to refresh dashboard data";
+
+      setSnapshotError(message);
+    } finally {
+      setSilentRefreshing(false);
+    }
+  }, [
+    setRecentTasksSnapshot,
+    setDashboardSummary,
+    setSilentRefreshing,
     setSnapshotError,
   ]);
 
   useEffect(() => {
-    loadSnapshot();
-  }, [loadSnapshot]);
+    loadInitialSnapshot();
+  }, [loadInitialSnapshot]);
 
+  /**
+   * Saat task selesai/error, refresh hanya data task + summary.
+   * Jangan reload agents/skills supaya UI shell tidak flicker.
+   */
   useEffect(() => {
     const latestTaskEvent = taskEvents[0];
 
@@ -97,29 +132,28 @@ function App() {
       return;
     }
 
-    const shouldRefreshSnapshot =
+    const shouldRefresh =
       latestTaskEvent.status === "done" || latestTaskEvent.status === "error";
 
-    if (!shouldRefreshSnapshot) {
+    if (!shouldRefresh) {
       return;
     }
 
-    const firstTimeout = window.setTimeout(() => {
-      loadSnapshot();
-    }, 300);
-
-    const secondTimeout = window.setTimeout(() => {
-      loadSnapshot();
-    }, 1000);
+    const refreshTimeout = window.setTimeout(() => {
+      refreshTasksAndSummary();
+    }, 350);
 
     return () => {
-      window.clearTimeout(firstTimeout);
-      window.clearTimeout(secondTimeout);
+      window.clearTimeout(refreshTimeout);
     };
-  }, [taskEvents, loadSnapshot]);
+  }, [taskEvents, refreshTasksAndSummary]);
 
   const designAgentStatus = agentStatuses["design-agent"] || "idle";
 
+  /**
+   * taskEvents disimpan newest-first.
+   * Untuk taskId yang sama, event pertama adalah status terbaru.
+   */
   const latestTaskEventById = taskEvents.reduce<Record<string, TaskEventPayload>>(
     (accumulator, event) => {
       if (!event.taskId) {
@@ -177,15 +211,14 @@ function App() {
     )
     .slice(0, 10);
 
+  const realtimeRunningTaskCount = Object.values(latestTaskEventById).filter(
+    (event) => event.status === "in_progress"
+  ).length;
+
   const agentCount = agents.length || 3;
 
-  /**
-   * Metrics utama sekarang dari database summary.
-   * Jadi nilainya total dari semua DB, bukan cuma recent 10 tasks.
-   */
   const runningTaskCount =
-    dashboardSummary?.runningTasks ??
-    dashboardTasks.filter((task) => task.status === "in_progress").length;
+    realtimeRunningTaskCount || dashboardSummary?.runningTasks || 0;
 
   const completedTaskCount =
     dashboardSummary?.completedTasks ??
@@ -216,9 +249,15 @@ function App() {
           </div>
         )}
 
-        {isSnapshotLoading && (
+        {isInitialLoading && (
           <div className="snapshot-loading">
             Loading dashboard snapshot...
+          </div>
+        )}
+
+        {isSilentRefreshing && (
+          <div className="silent-refresh-indicator">
+            Syncing latest data...
           </div>
         )}
 
@@ -250,13 +289,12 @@ function App() {
             <SkillLibraryPanel skills={skills} />
           </div>
         </section>
-
-        <FloatingTaskAssistant
-          onTaskSent={loadSnapshot}
+      </main>
+      <FloatingTaskAssistant
+          onTaskSent={refreshTasksAndSummary}
           agents={agents}
           skills={skills}
         />
-      </main>
     </div>
   );
 }
