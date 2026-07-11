@@ -18,6 +18,7 @@ export function RecentTasksTable({ tasks }: RecentTasksTableProps) {
           <span>Agent</span>
           <span>Source</span>
           <span>Status</span>
+          <span>Input</span>
           <span>Created At</span>
         </div>
 
@@ -25,13 +26,14 @@ export function RecentTasksTable({ tasks }: RecentTasksTableProps) {
           <p className="muted table-empty">No recent tasks found.</p>
         ) : (
           tasks.slice(0, 8).map((task) => (
-            <div key={task.id} className="table-row">
+            <div key={task.id} className="table-row task-table-row">
               <span title={task.id}>{task.id.slice(0, 8)}</span>
               <span>{task.agentName}</span>
               <span>{task.source}</span>
               <span>
                 <b className={`task-status ${task.status}`}>{task.status}</b>
               </span>
+              <span title={task.inputText}>{task.inputText}</span>
               <span>{new Date(task.createdAt).toLocaleTimeString()}</span>
             </div>
           ))

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { AgentStatusPayload, TaskEventPayload } from "../types/websocket";
-import type { AgentSnapshot, TaskSnapshot } from "../types/api";
+import type { AgentSnapshot, TaskSnapshot, SkillSnapshot,DashboardSummary, } from "../types/api";
 
 type AgentState = {
   connectionStatus: "connected" | "disconnected" | "connecting";
@@ -12,6 +12,9 @@ type AgentState = {
 
   agentEvents: AgentStatusPayload[];
   taskEvents: TaskEventPayload[];
+  
+  skills: SkillSnapshot[];
+  dashboardSummary: DashboardSummary | null;
 
   isSnapshotLoading: boolean;
   snapshotError: string | null;
@@ -20,13 +23,15 @@ type AgentState = {
   setDisconnected: () => void;
 
   setAgentsSnapshot: (agents: AgentSnapshot[]) => void;
+  setSkillsSnapshot: (skills: SkillSnapshot[]) => void;
   setRecentTasksSnapshot: (tasks: TaskSnapshot[]) => void;
+  setDashboardSummary: (summary: DashboardSummary) => void;
   setSnapshotLoading: (loading: boolean) => void;
   setSnapshotError: (error: string | null) => void;
 
   updateAgentStatus: (payload: AgentStatusPayload) => void;
   addTaskEvent: (payload: TaskEventPayload) => void;
-
+  
   clearEvents: () => void;
 };
 
@@ -37,11 +42,12 @@ export const useAgentStore = create<AgentState>((set) => ({
   agentStatuses: {},
   agents: [],
   recentTasks: [],
-
+  skills: [],
   agentEvents: [],
   taskEvents: [],
 
   isSnapshotLoading: false,
+  dashboardSummary: null,
   snapshotError: null,
 
   setConnected: (socketId) =>
@@ -118,5 +124,15 @@ export const useAgentStore = create<AgentState>((set) => ({
     set({
       agentEvents: [],
       taskEvents: [],
+    }),
+  
+    setSkillsSnapshot: (skills) =>
+    set({
+      skills,
+    }),
+
+  setDashboardSummary: (summary) =>
+    set({
+      dashboardSummary: summary,
     }),
 }));

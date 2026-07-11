@@ -8,7 +8,8 @@ import { env, validateEnv } from "./config/env";
 import { logger } from "./utils/logger";
 import { initWebSocket } from "./websocket";
 import { findAllAgents } from "./repositories/agentRepository";
-import { findRecentTasks } from "./repositories/taskRepository";
+import { findRecentTasks,getTaskSummary } from "./repositories/taskRepository";
+import { findAllSkills } from "./repositories/skillRepository";
 
 validateEnv();
 
@@ -109,6 +110,46 @@ app.get("/agents/status", async (req, res) => {
       });
     }
   });
+
+  app.get("/skills", async (req, res) => {
+    try {
+      const skills = await findAllSkills();
+  
+      return res.json({
+        skills: skills.map((skill) => ({
+          id: skill.id,
+          name: skill.name,
+          description: skill.description,
+          filePath: skill.filePath,
+          agentName: skill.agent.name,
+          createdAt: skill.createdAt,
+          updatedAt: skill.updatedAt,
+        })),
+      });
+    } catch (error) {
+      logger.error("Failed to fetch skills", error);
+  
+      return res.status(500).json({
+        error: "Terjadi error saat mengambil skills.",
+      });
+    }
+  });
+
+  app.get("/dashboard/summary", async (req, res) => {
+    try {
+      const summary = await getTaskSummary();
+  
+      return res.json({
+        summary,
+      });
+    } catch (error) {
+      logger.error("Failed to fetch dashboard summary", error);
+  
+      return res.status(500).json({
+        error: "Terjadi error saat mengambil dashboard summary.",
+      });
+    }
+  });
   
 const server = http.createServer(app);
 
@@ -117,5 +158,7 @@ initWebSocket(server);
 server.listen(env.PORT, () => {
   logger.server(`Server jalan di port ${env.PORT}`);
 });
+
+
 
 startWhatsApp();

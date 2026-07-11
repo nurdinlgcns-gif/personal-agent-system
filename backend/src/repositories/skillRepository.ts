@@ -26,3 +26,18 @@ export async function findSkillsByAgentName(agentName: string) {
     },
   });
 }
+
+export async function findAllSkills() {
+  return prisma.skill.findMany({
+    orderBy: {
+      createdAt: "asc",
+    },
+    include: {
+      agent: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+}

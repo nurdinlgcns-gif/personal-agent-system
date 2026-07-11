@@ -1,27 +1,46 @@
-export function WhatsAppPanel() {
-    return (
-      <section className="panel whatsapp-panel">
-        <div className="panel-header">
-          <h2>WhatsApp Integration</h2>
-          <span className="connected-chip">Connected</span>
+import type { TaskSnapshot } from "../../types/api";
+
+type WhatsAppPanelProps = {
+  lastWhatsAppTask?: TaskSnapshot;
+  whatsappTaskCount: number;
+};
+
+export function WhatsAppPanel({
+  lastWhatsAppTask,
+  whatsappTaskCount,
+}: WhatsAppPanelProps) {
+  return (
+    <section className="panel whatsapp-panel">
+      <div className="panel-header">
+        <h2>WhatsApp Integration</h2>
+        <span className="connected-chip">Connected</span>
+      </div>
+
+      <div className="info-list">
+        <div>
+          <small>Allowed Sender</small>
+          <strong>Configured in .env</strong>
         </div>
-  
-        <div className="info-list">
-          <div>
-            <small>Allowed Sender</small>
-            <strong>Configured in .env</strong>
-          </div>
-  
-          <div>
-            <small>Last Incoming Message</small>
-            <p>@design-agent ...</p>
-          </div>
-  
-          <div>
-            <small>Last Reply Sent</small>
-            <p>Agent response delivered to WhatsApp.</p>
-          </div>
+
+        <div>
+          <small>WhatsApp Requests</small>
+          <strong>{whatsappTaskCount} recent tasks</strong>
         </div>
-      </section>
-    );
-  }
+
+        <div>
+          <small>Last Incoming Message</small>
+          <p>{lastWhatsAppTask?.inputText || "No WhatsApp task yet."}</p>
+        </div>
+
+        <div>
+          <small>Last Reply Sent</small>
+          <p>
+            {lastWhatsAppTask?.outputText
+              ? lastWhatsAppTask.outputText.slice(0, 120) + "..."
+              : "No reply recorded yet."}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}

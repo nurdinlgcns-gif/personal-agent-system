@@ -2,6 +2,8 @@ import type {
     AgentsStatusResponse,
     RecentTasksResponse,
     ManualTaskResponse,
+    SkillsResponse,
+    DashboardSummaryResponse,
   } from "../types/api";
   
   const API_BASE_URL = "http://localhost:3000";
@@ -49,4 +51,34 @@ import type {
 
   const data: ManualTaskResponse = await response.json();
   return data;
-}
+  }
+
+  export async function fetchSkills() {
+    const response = await fetch(`${API_BASE_URL}/skills`);
+  
+    if (!response.ok) {
+      const errorText = await response.text();
+  
+      throw new Error(
+        `Failed to fetch skills. HTTP ${response.status}: ${errorText}`
+      );
+    }
+  
+    const data: SkillsResponse = await response.json();
+    return data.skills;
+  }
+
+  export async function fetchDashboardSummary() {
+    const response = await fetch(`${API_BASE_URL}/dashboard/summary`);
+  
+    if (!response.ok) {
+      const errorText = await response.text();
+  
+      throw new Error(
+        `Failed to fetch dashboard summary. HTTP ${response.status}: ${errorText}`
+      );
+    }
+  
+    const data: DashboardSummaryResponse = await response.json();
+    return data.summary;
+  }

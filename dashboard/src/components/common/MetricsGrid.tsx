@@ -32,6 +32,7 @@ type MetricsGridProps = {
         />
   
         <MetricCard
+
           title="Completed Tasks"
           value={completedTaskCount}
           subtitle="Realtime session"

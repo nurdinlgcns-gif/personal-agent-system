@@ -61,3 +61,55 @@ export async function markTaskError(params: {
     },
   });
 }
+
+export async function getTaskSummary() {
+  const [
+    totalTasks,
+    runningTasks,
+    completedTasks,
+    errorTasks,
+    whatsappRequests,
+    manualRequests,
+  ] = await Promise.all([
+    prisma.task.count(),
+
+    prisma.task.count({
+      where: {
+        status: "in_progress",
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        status: "done",
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        status: "error",
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        source: "whatsapp",
+      },
+    }),
+
+    prisma.task.count({
+      where: {
+        source: "manual",
+      },
+    }),
+  ]);
+
+  return {
+    totalTasks,
+    runningTasks,
+    completedTasks,
+    errorTasks,
+    whatsappRequests,
+    manualRequests,
+  };
+}

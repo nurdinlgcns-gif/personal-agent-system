@@ -586,13 +586,18 @@ button {
 
 .table-row {
   display: grid;
-  grid-template-columns: 0.8fr 1fr 0.8fr 0.8fr 1fr;
+  grid-template-columns: 0.7fr 1fr 0.7fr 0.8fr minmax(180px, 1.4fr) 0.8fr;
   gap: 10px;
   background: rgba(2, 6, 23, 0.75);
   border: 1px solid #1e293b;
   border-radius: 10px;
   padding: 10px;
   font-size: 12px;
+}
+
+.skill-list {
+  display: grid;
+  gap: 12px;
 }
 
 .table-row span {
