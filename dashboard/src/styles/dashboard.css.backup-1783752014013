@@ -374,7 +374,8 @@ button {
   margin: 0;
 }
 
-.panel-header button {
+.panel-header button,
+.manual-task-bar button {
   background: rgba(37, 99, 235, 0.25);
   color: #bfdbfe;
   border: 1px solid rgba(59, 130, 246, 0.4);
@@ -652,6 +653,23 @@ button {
   word-break: break-word;
 }
 
+.manual-task-bar {
+  margin-top: 14px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  border-radius: 16px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  align-items: center;
+  gap: 12px;
+}
+
+.manual-task-bar p {
+  margin: 6px 0 0;
+  color: #94a3b8;
+}
+
 /* =========================
    RESPONSIVE
 ========================= */
@@ -701,12 +719,158 @@ button {
     grid-template-columns: 1fr;
   }
 
-.table-row {
+  .manual-task-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .table-row {
     grid-template-columns: 1fr;
   }
 }
 
+.manual-task-widget {
+
+  margin-top: 14px;
+
+  background: rgba(15, 23, 42, 0.9);
+
+  border: 1px solid rgba(59, 130, 246, 0.22);
+
+  border-radius: 16px;
+
+  padding: 16px;
+
+}
+
+.manual-task-content {
+
+  display: grid;
+
+  gap: 12px;
+
+}
+
+.manual-task-content p {
+
+  margin: 6px 0 0;
+
+  color: #94a3b8;
+
+}
+
+.manual-task-form {
+
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr) 180px;
+
+  gap: 12px;
+
+}
+
+.manual-task-form input {
+
+  width: 100%;
+
+  min-width: 0;
+
+  background: rgba(2, 6, 23, 0.8);
+
+  border: 1px solid #1e293b;
+
+  border-radius: 12px;
+
+  padding: 12px 14px;
+
+  color: #e5e7eb;
+
+  outline: none;
+
+}
+
+.manual-task-form input:focus {
+
+  border-color: rgba(59, 130, 246, 0.75);
+
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+
+}
+
+.manual-task-form button {
+
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+
+  color: white;
+
+  border: 1px solid rgba(96, 165, 250, 0.35);
+
+  border-radius: 12px;
+
+  padding: 12px 14px;
+
+  font-weight: 700;
+
+}
+
+.manual-task-form button:disabled {
+
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+}
+
+.manual-task-error {
+
+  color: #fecaca;
+
+  background: rgba(127, 29, 29, 0.35);
+
+  border: 1px solid rgba(239, 68, 68, 0.35);
+
+  border-radius: 12px;
+
+  padding: 12px;
+
+  font-size: 14px;
+
+}
+
+.manual-task-result {
+
+  background: rgba(2, 6, 23, 0.75);
+
+  border: 1px solid rgba(34, 197, 94, 0.25);
+
+  border-radius: 12px;
+
+  padding: 12px;
+
+}
+
+.manual-task-result strong {
+
+  color: #bbf7d0;
+
+}
+
+.manual-task-result p {
+
+  margin-top: 8px;
+
+  white-space: pre-wrap;
+
+  color: #cbd5e1;
+
+}
+
 @media (max-width: 900px) {
+
+  .manual-task-form {
+
+    grid-template-columns: 1fr;
+
+  }
 
 }
 
@@ -1083,6 +1247,12 @@ button {
   cursor: not-allowed;
 }
 
+/* Hide old manual task bar if previous CSS still exists */
+.manual-task-bar,
+.manual-task-widget {
+  display: none;
+}
+
 @media (max-width: 700px) {
   .floating-task-panel {
     right: 12px;
@@ -1312,6 +1482,10 @@ button {
 .info-list strong,
 .info-list p,
 .skill-card strong,
+.manual-task-result p {
+  overflow-wrap: anywhere;
+}
+
 /* Table text should not break layout */
 .table-row span {
   min-width: 0;
@@ -1742,6 +1916,7 @@ button {
 ========================= */
 
 
+
 /* Make main cards more compact and professional on desktop */
 
 @media (min-width: 1201px) {
@@ -1761,6 +1936,7 @@ button {
   }
 
 
+
   .dashboard-grid-bottom {
 
     grid-template-columns:
@@ -1774,11 +1950,13 @@ button {
   }
 
 
+
   .agent-grid {
 
     grid-template-columns: repeat(3, minmax(0, 1fr));
 
   }
+
 
 
   .side-stack {
@@ -1792,6 +1970,7 @@ button {
   }
 
 }
+
 
 
 /* Tablet: keep content efficient with 2 columns */
@@ -1805,11 +1984,13 @@ button {
   }
 
 
+
   .dashboard-grid-main {
 
     grid-template-columns: repeat(2, minmax(0, 1fr));
 
   }
+
 
 
   .agent-panel {
@@ -1819,11 +2000,13 @@ button {
   }
 
 
+
   .agent-grid {
 
     grid-template-columns: repeat(2, minmax(0, 1fr));
 
   }
+
 
 
   .preview-panel {
@@ -1833,11 +2016,13 @@ button {
   }
 
 
+
   .dashboard-grid-bottom {
 
     grid-template-columns: 1fr;
 
   }
+
 
 
   .side-stack {
@@ -1853,6 +2038,7 @@ button {
 }
 
 
+
 /* Make information panels use space better */
 
 @media (min-width: 901px) {
@@ -1864,6 +2050,7 @@ button {
   }
 
 
+
   .whatsapp-panel .info-list div:nth-child(3),
 
   .whatsapp-panel .info-list div:nth-child(4) {
@@ -1873,6 +2060,7 @@ button {
   }
 
 
+
   .skill-list {
 
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1880,6 +2068,7 @@ button {
   }
 
 }
+
 
 
 /* Recent Tasks table should not make dashboard too tall */
@@ -1893,6 +2082,7 @@ button {
 }
 
 
+
 .recent-tasks-panel .table {
 
   max-height: 390px;
@@ -1904,11 +2094,13 @@ button {
 }
 
 
+
 .recent-tasks-panel .table::-webkit-scrollbar {
 
   width: 6px;
 
 }
+
 
 
 .recent-tasks-panel .table::-webkit-scrollbar-thumb {
@@ -1918,6 +2110,7 @@ button {
   border-radius: 999px;
 
 }
+
 
 
 /* Event timeline should be readable but not too long */
@@ -1931,6 +2124,7 @@ button {
 }
 
 
+
 .timeline-list {
 
   max-height: 290px;
@@ -1942,11 +2136,13 @@ button {
 }
 
 
+
 .timeline-list::-webkit-scrollbar {
 
   width: 6px;
 
 }
+
 
 
 .timeline-list::-webkit-scrollbar-thumb {
@@ -1958,6 +2154,7 @@ button {
 }
 
 
+
 /* Agent cards a bit more compact */
 
 .agent-card {
@@ -1967,6 +2164,7 @@ button {
 }
 
 
+
 .agent-avatar {
 
   height: 62px;
@@ -1974,11 +2172,13 @@ button {
 }
 
 
+
 .agent-info {
 
   gap: 6px;
 
 }
+
 
 
 /* Compact panel spacing */
@@ -1990,11 +2190,13 @@ button {
 }
 
 
+
 .panel-header {
 
   margin-bottom: 12px;
 
 }
+
 
 
 /* Skill cards more compact */
@@ -2006,6 +2208,7 @@ button {
 }
 
 
+
 /* WhatsApp panel content compact */
 
 .info-list {
@@ -2013,6 +2216,7 @@ button {
   gap: 10px;
 
 }
+
 
 
 /* Mobile stays single-column and readable */
@@ -2030,6 +2234,7 @@ button {
   }
 
 
+
   .recent-tasks-panel .table,
 
   .timeline-list {
@@ -2041,6 +2246,7 @@ button {
   }
 
 
+
   .whatsapp-panel .info-list,
 
   .skill-list {
@@ -2048,6 +2254,7 @@ button {
     grid-template-columns: 1fr;
 
   }
+
 
 
   .side-stack {
@@ -2068,6 +2275,7 @@ button {
 ========================= */
 
 
+
 /* Compact mobile / large phone / small tablet */
 
 @media (min-width: 480px) and (max-width: 700px) {
@@ -2077,6 +2285,7 @@ button {
     padding: 12px;
 
   }
+
 
 
   /* Metrics jadi 2 kolom */
@@ -2090,6 +2299,7 @@ button {
   }
 
 
+
   .metric-card {
 
     min-height: 92px;
@@ -2101,6 +2311,7 @@ button {
   }
 
 
+
   .metric-icon {
 
     width: 34px;
@@ -2110,11 +2321,13 @@ button {
   }
 
 
+
   .metric-card strong {
 
     font-size: 20px;
 
   }
+
 
 
   .metric-card p,
@@ -2124,6 +2337,7 @@ button {
     font-size: 11px;
 
   }
+
 
 
   /* Main panels jadi 2 kolom */
@@ -2137,6 +2351,7 @@ button {
   }
 
 
+
   /* Agent panel tetap full width biar agent card bisa 2 kolom di dalam */
 
   .agent-panel {
@@ -2144,6 +2359,7 @@ button {
     grid-column: 1 / -1;
 
   }
+
 
 
   .agent-grid {
@@ -2155,6 +2371,7 @@ button {
   }
 
 
+
   .agent-card {
 
     min-height: 118px;
@@ -2164,6 +2381,7 @@ button {
     gap: 10px;
 
   }
+
 
 
   .agent-avatar {
@@ -2179,11 +2397,13 @@ button {
   }
 
 
+
   .agent-info {
 
     gap: 5px;
 
   }
+
 
 
   .agent-info strong {
@@ -2193,6 +2413,7 @@ button {
   }
 
 
+
   .agent-info small {
 
     font-size: 10px;
@@ -2200,11 +2421,13 @@ button {
   }
 
 
+
   .activity-line {
 
     font-size: 11px;
 
   }
+
 
 
   /* Timeline dan preview berdampingan */
@@ -2218,11 +2441,13 @@ button {
   }
 
 
+
   .timeline-panel {
 
     min-height: 260px;
 
   }
+
 
 
   .timeline-list {
@@ -2236,6 +2461,7 @@ button {
   }
 
 
+
   .timeline-item {
 
     grid-template-columns: 58px minmax(0, 1fr);
@@ -2245,11 +2471,13 @@ button {
   }
 
 
+
   .timeline-time {
 
     font-size: 10px;
 
   }
+
 
 
   .timeline-item strong {
@@ -2259,11 +2487,13 @@ button {
   }
 
 
+
   .timeline-item p {
 
     font-size: 11px;
 
   }
+
 
 
   /* Preview lebih compact */
@@ -2275,6 +2505,7 @@ button {
   }
 
 
+
   .robot-glow {
 
     width: 130px;
@@ -2284,6 +2515,7 @@ button {
   }
 
 
+
   .robot-head {
 
     width: 68px;
@@ -2291,6 +2523,7 @@ button {
     height: 52px;
 
   }
+
 
 
   .robot-body {
@@ -2304,6 +2537,7 @@ button {
   }
 
 
+
   .preview-panel h3 {
 
     font-size: 15px;
@@ -2313,11 +2547,13 @@ button {
   }
 
 
+
   .preview-panel p {
 
     font-size: 12px;
 
   }
+
 
 
   /* Bottom area tetap 1 kolom, tapi isi side-stack jadi 2 kolom */
@@ -2331,6 +2567,7 @@ button {
   }
 
 
+
   .side-stack {
 
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -2338,6 +2575,7 @@ button {
     gap: 12px;
 
   }
+
 
 
   /* WhatsApp panel info jadi 2 kolom */
@@ -2349,6 +2587,7 @@ button {
   }
 
 
+
   .whatsapp-panel .info-list div:nth-child(3),
 
   .whatsapp-panel .info-list div:nth-child(4) {
@@ -2358,6 +2597,7 @@ button {
   }
 
 
+
   /* Skill cards jadi 2 kolom kalau lebih dari 1 skill */
 
   .skill-list {
@@ -2365,6 +2605,7 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 
   }
+
 
 
   /* Recent Tasks jadi card grid 2 kolom */
@@ -2380,11 +2621,13 @@ button {
   }
 
 
+
   .recent-tasks-panel .table-head {
 
     display: none;
 
   }
+
 
 
   .recent-tasks-panel .table-row {
@@ -2402,6 +2645,7 @@ button {
   }
 
 
+
   .recent-tasks-panel .table-row span {
 
     white-space: normal;
@@ -2415,6 +2659,7 @@ button {
   }
 
 
+
   .recent-tasks-panel .table-row span:nth-child(1)::before {
 
     content: "Task ID: ";
@@ -2422,6 +2667,7 @@ button {
     color: #94a3b8;
 
   }
+
 
 
   .recent-tasks-panel .table-row span:nth-child(2)::before {
@@ -2433,6 +2679,7 @@ button {
   }
 
 
+
   .recent-tasks-panel .table-row span:nth-child(3)::before {
 
     content: "Source: ";
@@ -2440,6 +2687,7 @@ button {
     color: #94a3b8;
 
   }
+
 
 
   .recent-tasks-panel .table-row span:nth-child(4)::before {
@@ -2451,6 +2699,7 @@ button {
   }
 
 
+
   .recent-tasks-panel .table-row span:nth-child(5)::before {
 
     content: "Input: ";
@@ -2460,6 +2709,7 @@ button {
   }
 
 
+
   .recent-tasks-panel .table-row span:nth-child(6)::before {
 
     content: "Created: ";
@@ -2467,6 +2717,7 @@ button {
     color: #94a3b8;
 
   }
+
 
 
   /* Floating assistant tetap nyaman */
@@ -2486,6 +2737,7 @@ button {
   }
 
 }
+
 
 
 /* Very small phones stay single-column for readability */
@@ -2511,148 +2763,11 @@ button {
   }
 
 
+
   .recent-tasks-panel .table {
 
     grid-template-columns: 1fr !important;
 
   }
 
-}
-
-/* =========================
-   PHASE 7.8.3
-   SKILL LIBRARY CARD POLISH
-========================= */
-
-.skill-panel {
-  overflow: hidden;
-}
-
-.skill-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  min-width: 0;
-}
-
-.skill-card {
-  min-width: 0;
-  overflow: hidden;
-  display: grid;
-  gap: 12px;
-  background: rgba(2, 6, 23, 0.78);
-  border: 1px solid #1e293b;
-  border-radius: 14px;
-  padding: 13px;
-}
-
-.skill-card-top {
-  min-width: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.skill-card-top > div {
-  min-width: 0;
-}
-
-.skill-card small,
-.skill-meta p {
-  display: block;
-  margin: 0 0 5px;
-  color: #94a3b8;
-  font-size: 11px;
-}
-
-.skill-card strong {
-  display: block;
-  min-width: 0;
-  color: #e5e7eb;
-  font-size: 12px;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.skill-meta-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.skill-meta {
-  min-width: 0;
-  overflow: hidden;
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(30, 41, 59, 0.88);
-  border-radius: 10px;
-  padding: 9px;
-}
-
-.skill-path-meta {
-  padding: 9px;
-}
-
-.skill-path-meta code {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #bfdbfe;
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  border-radius: 8px;
-  padding: 7px 8px;
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-.loaded-chip {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
-
-/* Kalau skill card berada di sidebar kanan, jangan paksa 2 kolom terlalu sempit */
-.side-stack .skill-list {
-  grid-template-columns: 1fr;
-}
-
-/* Tablet / desktop besar: kalau panel cukup luas, skill bisa 2 kolom */
-@media (min-width: 1201px) {
-  .dashboard-grid-bottom .recent-tasks-panel + .side-stack .skill-list {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Compact tablet: tetap aman */
-@media (min-width: 701px) and (max-width: 1200px) {
-  .skill-list {
-    grid-template-columns: 1fr;
-  }
-
-  .skill-meta-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* Mobile kecil: meta jadi 1 kolom biar tidak sempit */
-@media (max-width: 520px) {
-  .skill-meta-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .skill-card-top {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .skill-path-meta code {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
 }

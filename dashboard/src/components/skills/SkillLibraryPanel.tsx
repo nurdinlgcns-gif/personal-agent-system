@@ -17,14 +17,26 @@ export function SkillLibraryPanel({ skills }: SkillLibraryPanelProps) {
       ) : (
         <div className="skill-list">
           {skills.map((skill) => (
-            <div key={skill.id} className="skill-card">
-              <small>Loaded Skill</small>
-              <strong>{skill.name}</strong>
-              <span className="loaded-chip">Loaded</span>
+            <article key={skill.id} className="skill-card">
+              <div className="skill-card-top">
+                <div>
+                  <small>Loaded Skill</small>
+                  <strong>{skill.name}</strong>
+                </div>
 
-              <div className="skill-meta">
-                <p>Assigned Agent</p>
-                <strong>{skill.agentName}</strong>
+                <span className="loaded-chip">Loaded</span>
+              </div>
+
+              <div className="skill-meta-grid">
+                <div className="skill-meta">
+                  <p>Assigned Agent</p>
+                  <strong>{skill.agentName}</strong>
+                </div>
+
+                <div className="skill-meta">
+                  <p>Type</p>
+                  <strong>file-based</strong>
+                </div>
               </div>
 
               <div className="skill-meta">
@@ -32,11 +44,11 @@ export function SkillLibraryPanel({ skills }: SkillLibraryPanelProps) {
                 <strong>{skill.description || "-"}</strong>
               </div>
 
-              <div className="skill-meta">
+              <div className="skill-meta skill-path-meta">
                 <p>Path</p>
-                <strong>{skill.filePath || "-"}</strong>
+                <code title={skill.filePath || "-"}>{skill.filePath || "-"}</code>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
