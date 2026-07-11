@@ -2,14 +2,30 @@ import type { TaskSnapshot } from "../../types/api";
 
 type RecentTasksTableProps = {
   tasks: TaskSnapshot[];
+  onRefresh: () => Promise<void>;
+  isRefreshing: boolean;
 };
 
-export function RecentTasksTable({ tasks }: RecentTasksTableProps) {
+export function RecentTasksTable({
+  tasks,
+  onRefresh,
+  isRefreshing,
+}: RecentTasksTableProps) {
   return (
     <section className="panel recent-tasks-panel">
       <div className="panel-header">
-        <h2>Recent Tasks</h2>
-        <button>View All Tasks</button>
+        <div>
+          <h2>Recent Tasks</h2>
+          <p className="panel-subtitle">Latest persisted task history</p>
+        </div>
+
+        <div className="panel-header-actions">
+          {isRefreshing && <span className="sync-chip">Syncing</span>}
+
+          <button onClick={onRefresh} disabled={isRefreshing}>
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
       </div>
 
       <div className="table">
@@ -23,7 +39,11 @@ export function RecentTasksTable({ tasks }: RecentTasksTableProps) {
         </div>
 
         {tasks.length === 0 ? (
-          <p className="muted table-empty">No recent tasks found.</p>
+          <div className="empty-state table-empty-state">
+            <div className="empty-state-icon">▦</div>
+            <strong>No recent tasks found</strong>
+            <p>Tasks from WhatsApp, Postman, or Floating Assistant will appear here.</p>
+          </div>
         ) : (
           tasks.slice(0, 8).map((task) => (
             <div key={task.id} className="table-row task-table-row">

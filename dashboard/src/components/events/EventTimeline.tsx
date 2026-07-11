@@ -1,4 +1,7 @@
-import type { AgentStatusPayload, TaskEventPayload } from "../../types/websocket";
+import type {
+  AgentStatusPayload,
+  TaskEventPayload,
+} from "../../types/websocket";
 
 type CombinedEvent =
   | {
@@ -19,11 +22,15 @@ type CombinedEvent =
 type EventTimelineProps = {
   agentEvents: AgentStatusPayload[];
   taskEvents: TaskEventPayload[];
+  onClearEvents: () => void;
+  isProcessing: boolean;
 };
 
 export function EventTimeline({
   agentEvents,
   taskEvents,
+  onClearEvents,
+  isProcessing,
 }: EventTimelineProps) {
   const combinedEvents: CombinedEvent[] = [
     ...agentEvents.map((event) => ({
@@ -50,13 +57,29 @@ export function EventTimeline({
   return (
     <section className="panel timeline-panel">
       <div className="panel-header">
-        <h2>Realtime Event Timeline</h2>
-        <span className="live-badge">Live</span>
+        <div>
+          <h2>Realtime Event Timeline</h2>
+          <p className="panel-subtitle">
+            {isProcessing ? "Live processing active" : "Live WebSocket events"}
+          </p>
+        </div>
+
+        <div className="panel-header-actions">
+          <span className={`live-badge ${isProcessing ? "processing" : ""}`}>
+            {isProcessing ? "Processing" : "Live"}
+          </span>
+
+          <button onClick={onClearEvents}>Clear</button>
+        </div>
       </div>
 
       <div className="timeline-list">
         {combinedEvents.length === 0 ? (
-          <p className="muted">No realtime events yet.</p>
+          <div className="empty-state">
+            <div className="empty-state-icon">◇</div>
+            <strong>No realtime events yet</strong>
+            <p>Send a command from WhatsApp or Floating Assistant to see live events here.</p>
+          </div>
         ) : (
           combinedEvents.map((event, index) => (
             <div

@@ -50,6 +50,7 @@ function App() {
     setInitialLoading,
     setSilentRefreshing,
     setSnapshotError,
+    clearEvents,
   } = useAgentStore();
 
   const loadInitialSnapshot = useCallback(async () => {
@@ -121,10 +122,6 @@ function App() {
     loadInitialSnapshot();
   }, [loadInitialSnapshot]);
 
-  /**
-   * Saat task selesai/error, refresh hanya data task + summary.
-   * Jangan reload agents/skills supaya UI shell tidak flicker.
-   */
   useEffect(() => {
     const latestTaskEvent = taskEvents[0];
 
@@ -150,10 +147,6 @@ function App() {
 
   const designAgentStatus = agentStatuses["design-agent"] || "idle";
 
-  /**
-   * taskEvents disimpan newest-first.
-   * Untuk taskId yang sama, event pertama adalah status terbaru.
-   */
   const latestTaskEventById = taskEvents.reduce<Record<string, TaskEventPayload>>(
     (accumulator, event) => {
       if (!event.taskId) {
@@ -215,6 +208,12 @@ function App() {
     (event) => event.status === "in_progress"
   ).length;
 
+  const hasWorkingAgent = Object.values(agentStatuses).some(
+    (status) => status === "working"
+  );
+
+  const isProcessing = realtimeRunningTaskCount > 0 || hasWorkingAgent;
+
   const agentCount = agents.length || 3;
 
   const runningTaskCount =
@@ -250,14 +249,23 @@ function App() {
         )}
 
         {isInitialLoading && (
-          <div className="snapshot-loading">
+          <div className="dashboard-loading-banner">
+            <span className="loading-spinner" />
             Loading dashboard snapshot...
           </div>
         )}
 
         {isSilentRefreshing && (
           <div className="silent-refresh-indicator">
+            <span className="loading-dot" />
             Syncing latest data...
+          </div>
+        )}
+
+        {isProcessing && (
+          <div className="processing-banner">
+            <span className="processing-dot" />
+            Agent task is currently processing...
           </div>
         )}
 
@@ -272,29 +280,40 @@ function App() {
         <section className="dashboard-grid-main">
           <AgentStatusPanel agents={agents} agentStatuses={agentStatuses} />
 
-          <EventTimeline agentEvents={agentEvents} taskEvents={taskEvents} />
+          <EventTimeline
+            agentEvents={agentEvents}
+            taskEvents={taskEvents}
+            onClearEvents={clearEvents}
+            isProcessing={isProcessing}
+          />
 
           <AgentPreviewPanel status={designAgentStatus} />
         </section>
 
         <section className="dashboard-grid-bottom">
-          <RecentTasksTable tasks={dashboardTasks} />
+          <RecentTasksTable
+            tasks={dashboardTasks}
+            onRefresh={refreshTasksAndSummary}
+            isRefreshing={isSilentRefreshing}
+          />
 
           <div className="side-stack">
             <WhatsAppPanel
               lastWhatsAppTask={lastWhatsAppTask}
               whatsappTaskCount={whatsappTaskCount}
+              isProcessing={isProcessing}
             />
 
             <SkillLibraryPanel skills={skills} />
           </div>
         </section>
-      </main>
-      <FloatingTaskAssistant
+
+        <FloatingTaskAssistant
           onTaskSent={refreshTasksAndSummary}
           agents={agents}
           skills={skills}
         />
+      </main>
     </div>
   );
 }
