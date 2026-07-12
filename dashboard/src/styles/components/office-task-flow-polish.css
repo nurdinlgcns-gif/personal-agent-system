@@ -1,0 +1,455 @@
+/* =========================
+   PHASE 8.9
+   OFFICE SCENE TASK FLOW POLISH
+   Source -> Agent -> Skill -> Output visual feedback
+========================= */
+
+/* =========================
+   SOURCE FLOW FOCUS
+========================= */
+
+.office-source-card.source-active {
+    animation: sourceFlowPulse 1.45s ease-in-out infinite;
+  }
+  
+  .office-source-card.source-active::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 16px;
+    pointer-events: none;
+    border: 1px solid currentColor;
+    opacity: 0.22;
+    filter: blur(1px);
+    animation: sourceRingPulse 1.45s ease-in-out infinite;
+  }
+  
+  .source-whatsapp.source-active {
+    color: #22c55e;
+  }
+  
+  .source-manual.source-active {
+    color: #60a5fa;
+  }
+  
+  @keyframes sourceFlowPulse {
+    0%,
+    100% {
+      transform: translateY(0);
+      filter: brightness(1);
+    }
+  
+    50% {
+      transform: translateY(-4px);
+      filter: brightness(1.16);
+    }
+  }
+  
+  @keyframes sourceRingPulse {
+    0%,
+    100% {
+      opacity: 0.16;
+      transform: scale(0.98);
+    }
+  
+    50% {
+      opacity: 0.36;
+      transform: scale(1.04);
+    }
+  }
+  
+  /* =========================
+     ACTIVE TASK BUBBLE POLISH
+  ========================= */
+  
+  .office-active-task {
+    overflow: visible;
+  }
+  
+  .office-active-task::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: -14px;
+    height: 20px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: currentColor;
+    opacity: 0.12;
+    filter: blur(14px);
+  }
+  
+  .office-active-task.in_progress {
+    color: #f59e0b;
+    animation: activeTaskProcessing 1.2s ease-in-out infinite;
+  }
+  
+  .office-active-task.done {
+    color: #22c55e;
+  }
+  
+  .office-active-task.error {
+    color: #ef4444;
+    animation: activeTaskErrorPulse 1.1s ease-in-out infinite;
+  }
+  
+  @keyframes activeTaskProcessing {
+    0%,
+    100% {
+      transform: translateX(-50%) translateY(0);
+    }
+  
+    50% {
+      transform: translateX(-50%) translateY(-6px);
+    }
+  }
+  
+  @keyframes activeTaskErrorPulse {
+    0%,
+    100% {
+      filter: brightness(1);
+    }
+  
+    50% {
+      filter: brightness(1.22);
+    }
+  }
+  
+  /* Kalau position map override sudah bikin transform none, tetap support */
+  .office-position-map-active .office-active-task.in_progress {
+    animation: activeTaskProcessingNoTranslate 1.2s ease-in-out infinite;
+  }
+  
+  @keyframes activeTaskProcessingNoTranslate {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+  
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  
+  /* =========================
+     AGENT ROOM FLOW FOCUS
+  ========================= */
+  
+  .office-room.working.registered,
+  .office-room.active-room {
+    filter: brightness(1.08);
+  }
+  
+  .office-room.working.registered::after,
+  .office-room.active-room::after {
+    content: "";
+    position: absolute;
+    left: 44px;
+    right: 34px;
+    bottom: 22px;
+    height: 18px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: #f59e0b;
+    opacity: 0.18;
+    filter: blur(14px);
+    animation: agentDeskFlowGlow 1.35s ease-in-out infinite;
+  }
+  
+  @keyframes agentDeskFlowGlow {
+    0%,
+    100% {
+      opacity: 0.12;
+      transform: scale(0.96);
+    }
+  
+    50% {
+      opacity: 0.32;
+      transform: scale(1.08);
+    }
+  }
+  
+  .office-room.working .desk-keyboard,
+  .office-room.active-room .desk-keyboard {
+    background: #fbbf24;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.7);
+    animation: keyboardWorkingBlink 0.9s ease-in-out infinite;
+  }
+  
+  @keyframes keyboardWorkingBlink {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+  
+    50% {
+      opacity: 1;
+    }
+  }
+  
+  /* =========================
+     SKILL SHELF FLOW FOCUS
+  ========================= */
+  
+  .resource-skill.resource-active {
+    color: #a78bfa;
+    animation: skillShelfActivePulse 1.4s ease-in-out infinite;
+  }
+  
+  .resource-skill.resource-active::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 16px;
+    pointer-events: none;
+    border: 1px solid rgba(167, 139, 250, 0.42);
+    opacity: 0.28;
+    filter: blur(1px);
+  }
+  
+  @keyframes skillShelfActivePulse {
+    0%,
+    100% {
+      transform: translateY(0);
+      filter: brightness(1);
+    }
+  
+    50% {
+      transform: translateY(-3px);
+      filter: brightness(1.16);
+    }
+  }
+  
+  /* =========================
+     OUTPUT BOARD FLOW FOCUS
+  ========================= */
+  
+  .resource-output.in_progress {
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.48);
+    box-shadow:
+      0 16px 38px rgba(0, 0, 0, 0.28),
+      0 0 28px rgba(245, 158, 11, 0.16);
+  }
+  
+  .resource-output.done {
+    color: #22c55e;
+    animation: outputDoneGlow 1.8s ease-in-out infinite;
+  }
+  
+  .resource-output.error {
+    color: #ef4444;
+    animation: outputErrorAlert 1.15s ease-in-out infinite;
+  }
+  
+  .resource-output.done::before,
+  .resource-output.error::before,
+  .resource-output.in_progress::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 16px;
+    pointer-events: none;
+    border: 1px solid currentColor;
+    opacity: 0.22;
+  }
+  
+  @keyframes outputDoneGlow {
+    0%,
+    100% {
+      filter: brightness(1);
+    }
+  
+    50% {
+      filter: brightness(1.14);
+    }
+  }
+  
+  @keyframes outputErrorAlert {
+    0%,
+    100% {
+      filter: brightness(1);
+    }
+  
+    50% {
+      filter: brightness(1.2);
+    }
+  }
+  
+  /* =========================
+     VISUAL FLOW HINTS
+     Lightweight directional feel without drawing noisy connector lines
+  ========================= */
+  
+  .office-scene.is-processing .office-server-core::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -18px;
+    width: 92px;
+    height: 6px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.65);
+    animation: serverFlowBeam 1.25s ease-in-out infinite;
+  }
+  
+  @keyframes serverFlowBeam {
+    0%,
+    100% {
+      opacity: 0.35;
+      transform: translateX(-50%) scaleX(0.8);
+    }
+  
+    50% {
+      opacity: 1;
+      transform: translateX(-50%) scaleX(1.08);
+    }
+  }
+  
+  /* =========================
+     ACTIVITY LOG LATEST HIGHLIGHT
+  ========================= */
+  
+  .office-activity-list .office-activity-item:first-of-type {
+    border-color: rgba(96, 165, 250, 0.38);
+    background:
+      linear-gradient(180deg, rgba(37, 99, 235, 0.16), rgba(2, 6, 23, 0.34));
+    box-shadow:
+      0 10px 26px rgba(0, 0, 0, 0.18),
+      0 0 18px rgba(96, 165, 250, 0.08);
+  }
+  
+  .office-activity-list .office-activity-item:first-of-type .activity-icon {
+    box-shadow: 0 0 14px currentColor;
+  }
+  
+  .office-activity-list .office-activity-item:first-of-type::after {
+    content: "Latest";
+    justify-self: end;
+    align-self: center;
+    grid-column: 1 / -1;
+    width: fit-content;
+    margin-top: -2px;
+    border-radius: 999px;
+    padding: 3px 7px;
+    color: #bfdbfe;
+    background: rgba(37, 99, 235, 0.16);
+    border: 1px solid rgba(96, 165, 250, 0.18);
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  
+  /* =========================
+     SELECTED ELEMENT + FLOW STATE BALANCE
+  ========================= */
+  
+  .office-selected-element.office-source-card.source-active,
+  .office-selected-element.office-resource-card.resource-active,
+  .office-selected-element.office-active-task.in_progress {
+    box-shadow:
+      0 20px 50px rgba(0, 0, 0, 0.36),
+      0 0 38px rgba(96, 165, 250, 0.24),
+      0 0 24px currentColor;
+  }
+  
+  .office-scene.detail-open .office-active-task,
+  .office-scene.detail-open .office-source-card,
+  .office-scene.detail-open .office-resource-card {
+    transition:
+      filter 0.18s ease,
+      opacity 0.18s ease;
+  }
+  
+  /* =========================
+     M365 LIGHT SUPPORT
+  ========================= */
+  
+  :root[data-theme="m365-light"] .office-activity-list .office-activity-item:first-of-type {
+    background: #eff6ff;
+    border-color: rgba(37, 99, 235, 0.2);
+    box-shadow:
+      0 10px 26px rgba(15, 23, 42, 0.08),
+      0 0 16px rgba(37, 99, 235, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .office-activity-list .office-activity-item:first-of-type::after {
+    color: #1d4ed8;
+    background: #dbeafe;
+    border-color: rgba(37, 99, 235, 0.14);
+  }
+  
+  :root[data-theme="m365-light"] .office-source-card.source-active::before,
+  :root[data-theme="m365-light"] .resource-skill.resource-active::before,
+  :root[data-theme="m365-light"] .resource-output.done::before,
+  :root[data-theme="m365-light"] .resource-output.error::before,
+  :root[data-theme="m365-light"] .resource-output.in_progress::before {
+    opacity: 0.16;
+  }
+  
+  :root[data-theme="m365-light"] .office-room.working.registered::after,
+  :root[data-theme="m365-light"] .office-room.active-room::after {
+    opacity: 0.12;
+  }
+  
+  /* =========================
+     RESPONSIVE
+  ========================= */
+  
+  @media (max-width: 1200px) {
+    .office-source-card.source-active,
+    .resource-skill.resource-active,
+    .resource-output.done,
+    .resource-output.error,
+    .resource-output.in_progress {
+      animation: none;
+    }
+  
+    .office-active-task.in_progress,
+    .office-active-task.error {
+      animation: none;
+    }
+  
+    .office-scene.is-processing .office-server-core::after {
+      display: none;
+    }
+  
+    .office-activity-list .office-activity-item:first-of-type::after {
+      grid-column: auto;
+      margin-top: 0;
+    }
+  }
+  
+  @media (max-width: 700px) {
+    .office-activity-list .office-activity-item:first-of-type::after {
+      grid-column: 1 / -1;
+      justify-self: start;
+      margin-left: 36px;
+    }
+  }
+  
+  /* =========================
+     REDUCED MOTION SUPPORT
+  ========================= */
+  
+  @media (prefers-reduced-motion: reduce) {
+    .office-source-card.source-active,
+    .office-source-card.source-active::before,
+    .office-active-task.in_progress,
+    .office-active-task.error,
+    .office-room.working.registered::after,
+    .office-room.active-room::after,
+    .office-room.working .desk-keyboard,
+    .office-room.active-room .desk-keyboard,
+    .resource-skill.resource-active,
+    .resource-output.done,
+    .resource-output.error,
+    .office-scene.is-processing .office-server-core::after {
+      animation: none !important;
+    }
+  }

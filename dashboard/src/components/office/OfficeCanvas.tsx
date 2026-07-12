@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   AgentSnapshot,
   SkillSnapshot,
@@ -207,6 +207,46 @@ function formatTime(value?: string | null) {
   return new Date(value).toLocaleString();
 }
 
+function formatShortTime(value?: string | null) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Date(value).toLocaleTimeString();
+}
+
+function getActivityIcon(status: string) {
+  if (status === "in_progress") {
+    return "⌁";
+  }
+
+  if (status === "done") {
+    return "✓";
+  }
+
+  if (status === "error") {
+    return "!";
+  }
+
+  return "•";
+}
+
+function getActivityLabel(task: TaskSnapshot) {
+  if (task.status === "in_progress") {
+    return `${task.agentName} is processing`;
+  }
+
+  if (task.status === "done") {
+    return `${task.agentName} completed task`;
+  }
+
+  if (task.status === "error") {
+    return `${task.agentName} task failed`;
+  }
+
+  return `${task.agentName} update`;
+}
+
 function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
   if (!task) {
     return {
@@ -269,7 +309,14 @@ export function OfficeCanvas({
   skills,
   isProcessing,
 }: OfficeCanvasProps) {
-  const [selectedItem, setSelectedItem] = useState<OfficeDetailItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<OfficeDetailItem | null>(
+    null
+  );
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [showMoreActivity, setShowMoreActivity] = useState(false);
+  const [showLabels, setShowLabels] = useState(true);
+  const [showActivityLog, setShowActivityLog] = useState(true);
+  const [compactMode, setCompactMode] = useState(false);
 
   const realAgents = agents.slice(0, roomSlots.length);
 
@@ -280,6 +327,10 @@ export function OfficeCanvas({
 
   const latestTaskStatus = latestTask?.status || "idle";
   const latestSource = latestTask?.source || "none";
+
+  const visibleActivityTasks = showMoreActivity
+    ? recentTasks.slice(0, 8)
+    : recentTasks.slice(0, 4);
 
   const workingCount = realAgents.filter((agent) => {
     const status = normalizeStatus(agentStatuses[agent.name] || agent.status);
@@ -296,11 +347,37 @@ export function OfficeCanvas({
     return status === "error";
   }).length;
 
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeDetailPanel();
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
+  function setDetail(key: string, item: OfficeDetailItem) {
+    setSelectedKey(key);
+    setSelectedItem(item);
+  }
+
+  function closeDetailPanel() {
+    setSelectedKey(null);
+    setSelectedItem(null);
+  }
+
   function openAgentDetail(agent: AgentSnapshot, status: string) {
     const latestAgentTask = getLatestTaskForAgent(recentTasks, agent.name);
-    const assignedSkills = skills.filter((skill) => skill.agentName === agent.name);
+    const assignedSkills = skills.filter(
+      (skill) => skill.agentName === agent.name
+    );
 
-    setSelectedItem({
+    setDetail(`agent:${agent.name}`, {
       type: "agent",
       title: agent.name,
       subtitle: getAgentRole(agent.name),
@@ -339,7 +416,7 @@ export function OfficeCanvas({
   }
 
   function openSourceDetail(source: "whatsapp" | "manual", task?: TaskSnapshot) {
-    setSelectedItem({
+    setDetail(`source:${source}`, {
       type: "source",
       title: source === "whatsapp" ? "WhatsApp Source" : "Manual Console",
       subtitle:
@@ -350,7 +427,9 @@ export function OfficeCanvas({
       accent: source === "whatsapp" ? "green" : "blue",
       body:
         task?.inputText ||
-        `No ${source === "whatsapp" ? "WhatsApp" : "manual"} task has been received yet.`,
+        `No ${
+          source === "whatsapp" ? "WhatsApp" : "manual"
+        } task has been received yet.`,
       metadata: [
         {
           label: "Source",
@@ -377,7 +456,7 @@ export function OfficeCanvas({
   }
 
   function openSkillDetail(skill?: SkillSnapshot) {
-    setSelectedItem({
+    setDetail("skill:shelf", {
       type: "skill",
       title: skill?.name || "Skill Shelf",
       subtitle: skill ? `Assigned to ${skill.agentName}` : "No skill registered",
@@ -408,7 +487,7 @@ export function OfficeCanvas({
   }
 
   function openOutputDetail(task?: TaskSnapshot) {
-    setSelectedItem({
+    setDetail("output:board", {
       type: "output",
       title: "Output Board",
       subtitle: task ? `${task.agentName} latest output` : "No output yet",
@@ -442,7 +521,7 @@ export function OfficeCanvas({
   }
 
   function openServerDetail() {
-    setSelectedItem({
+    setDetail("server:core", {
       type: "server",
       title: "Server Room",
       subtitle: "Realtime backend orchestration layer",
@@ -475,6 +554,10 @@ export function OfficeCanvas({
     });
   }
 
+  function openTaskDetail(task: TaskSnapshot) {
+    setDetail(`task:${task.id}`, createTaskDetail(task));
+  }
+
   return (
     <div className="office-scene-shell">
       <div className="office-scene-topbar">
@@ -495,14 +578,97 @@ export function OfficeCanvas({
       <div
         className={`office-scene ${isProcessing ? "is-processing" : ""} ${
           realAgents.length === 1 ? "single-agent-scene" : ""
-        } office-latest-${latestTaskStatus}`}
+        } office-latest-${latestTaskStatus} ${
+          selectedItem ? "detail-open" : ""
+        } ${showLabels ? "" : "labels-hidden"} ${
+          showActivityLog ? "" : "activity-hidden"
+        } ${compactMode ? "compact-office" : ""}`}
+        onClick={closeDetailPanel}
       >
         <div className="office-scene-bg" />
 
+        <div
+          className="office-mini-toolbar"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button
+            type="button"
+            className={showLabels ? "active" : ""}
+            onClick={() => setShowLabels((current) => !current)}
+          >
+            {showLabels ? "Hide Labels" : "Show Labels"}
+          </button>
+
+          <button
+            type="button"
+            className={showActivityLog ? "active" : ""}
+            onClick={() => setShowActivityLog((current) => !current)}
+          >
+            {showActivityLog ? "Hide Log" : "Show Log"}
+          </button>
+
+          <button
+            type="button"
+            className={compactMode ? "active" : ""}
+            onClick={() => setCompactMode((current) => !current)}
+          >
+            {compactMode ? "Comfort" : "Compact"}
+          </button>
+
+          <button type="button" onClick={closeDetailPanel}>
+            Reset
+          </button>
+        </div>
+
+        <div
+          className="office-legend"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <strong>Legend</strong>
+
+          <div className="office-legend-grid">
+            <span>
+              <i className="legend-dot green" />
+              Idle / Done
+            </span>
+
+            <span>
+              <i className="legend-dot orange" />
+              Processing
+            </span>
+
+            <span>
+              <i className="legend-dot red" />
+              Error
+            </span>
+
+            <span>
+              <i className="legend-dot purple" />
+              Skill
+            </span>
+
+            <span>
+              <i className="legend-dot cyan" />
+              Server
+            </span>
+
+            <span>
+              <i className="legend-dot blue" />
+              Manual
+            </span>
+          </div>
+        </div>
+
         <button
           type="button"
-          className="office-server-core office-clickable"
-          onClick={openServerDetail}
+          className={`office-server-core office-clickable ${
+            selectedKey === "server:core" ? "office-selected-element" : ""
+          }`}
+          onClick={(event) => {
+            event.stopPropagation();
+            openServerDetail();
+          }}
+          aria-pressed={selectedKey === "server:core"}
         >
           <div className="server-glass" />
           <div className="server-rack rack-one" />
@@ -541,14 +707,20 @@ export function OfficeCanvas({
           const isActiveAgent =
             status === "working" || latestAgentTask?.status === "in_progress";
 
+          const agentKey = `agent:${agent.name}`;
+
           return (
             <button
               type="button"
               key={agent.id}
               className={`office-room office-clickable ${slot.roomClass} ${status} registered ${
                 isActiveAgent ? "active-room" : ""
-              }`}
-              onClick={() => openAgentDetail(agent, status)}
+              } ${selectedKey === agentKey ? "office-selected-element" : ""}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                openAgentDetail(agent, status);
+              }}
+              aria-pressed={selectedKey === agentKey}
             >
               <div className="room-floor" />
               <div className="room-back-wall" />
@@ -592,8 +764,14 @@ export function OfficeCanvas({
           type="button"
           className={`office-source-card office-clickable source-whatsapp ${
             latestSource === "whatsapp" ? "source-active" : ""
+          } ${
+            selectedKey === "source:whatsapp" ? "office-selected-element" : ""
           }`}
-          onClick={() => openSourceDetail("whatsapp", latestWhatsAppTask)}
+          onClick={(event) => {
+            event.stopPropagation();
+            openSourceDetail("whatsapp", latestWhatsAppTask);
+          }}
+          aria-pressed={selectedKey === "source:whatsapp"}
         >
           <span className="dot green" />
           <strong>WhatsApp Source</strong>
@@ -609,8 +787,14 @@ export function OfficeCanvas({
           type="button"
           className={`office-source-card office-clickable source-manual ${
             latestSource === "manual" ? "source-active" : ""
+          } ${
+            selectedKey === "source:manual" ? "office-selected-element" : ""
           }`}
-          onClick={() => openSourceDetail("manual", latestManualTask)}
+          onClick={(event) => {
+            event.stopPropagation();
+            openSourceDetail("manual", latestManualTask);
+          }}
+          aria-pressed={selectedKey === "source:manual"}
         >
           <span className="dot blue" />
           <strong>Manual Console</strong>
@@ -623,8 +807,14 @@ export function OfficeCanvas({
           type="button"
           className={`office-resource-card office-clickable resource-skill ${
             activeSkill ? "resource-ready" : ""
-          } ${isProcessing ? "resource-active" : ""}`}
-          onClick={() => openSkillDetail(activeSkill)}
+          } ${isProcessing ? "resource-active" : ""} ${
+            selectedKey === "skill:shelf" ? "office-selected-element" : ""
+          }`}
+          onClick={(event) => {
+            event.stopPropagation();
+            openSkillDetail(activeSkill);
+          }}
+          aria-pressed={selectedKey === "skill:shelf"}
         >
           <span className="dot purple" />
           <strong>Skill Shelf</strong>
@@ -639,8 +829,12 @@ export function OfficeCanvas({
           type="button"
           className={`office-resource-card office-clickable resource-output ${
             latestTask?.status || ""
-          }`}
-          onClick={() => openOutputDetail(latestTask)}
+          } ${selectedKey === "output:board" ? "office-selected-element" : ""}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            openOutputDetail(latestTask);
+          }}
+          aria-pressed={selectedKey === "output:board"}
         >
           <span className="dot yellow" />
           <strong>Output Board</strong>
@@ -650,8 +844,16 @@ export function OfficeCanvas({
         {latestTask && (
           <button
             type="button"
-            className={`office-active-task office-clickable ${latestTask.status}`}
-            onClick={() => setSelectedItem(createTaskDetail(latestTask))}
+            className={`office-active-task office-clickable ${latestTask.status} ${
+              selectedKey === `task:${latestTask.id}`
+                ? "office-selected-element"
+                : ""
+            }`}
+            onClick={(event) => {
+              event.stopPropagation();
+              openTaskDetail(latestTask);
+            }}
+            aria-pressed={selectedKey === `task:${latestTask.id}`}
           >
             <span>{latestTask.source}</span>
             <strong>{latestTask.agentName}</strong>
@@ -659,15 +861,64 @@ export function OfficeCanvas({
           </button>
         )}
 
+        {showActivityLog && (
+          <div
+            className="office-activity-log"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="office-activity-header">
+              <div>
+                <strong>Mini Activity Log</strong>
+                <small>Latest office events</small>
+              </div>
+
+              {recentTasks.length > 4 && (
+                <button
+                  type="button"
+                  onClick={() => setShowMoreActivity((current) => !current)}
+                >
+                  {showMoreActivity ? "Show less" : "Show more"}
+                </button>
+              )}
+            </div>
+
+            <div className="office-activity-list">
+              {visibleActivityTasks.length === 0 ? (
+                <div className="office-activity-empty">
+                  <span>◇</span>
+                  <p>No task activity yet.</p>
+                </div>
+              ) : (
+                visibleActivityTasks.map((task) => (
+                  <button
+                    type="button"
+                    key={`activity-${task.id}`}
+                    className={`office-activity-item ${task.status}`}
+                    onClick={() => openTaskDetail(task)}
+                  >
+                    <span className="activity-icon">
+                      {getActivityIcon(task.status)}
+                    </span>
+
+                    <div>
+                      <strong>{getActivityLabel(task)}</strong>
+                      <small>
+                        {task.source} · {formatShortTime(task.updatedAt)}
+                      </small>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="office-help-bar">
-          <span>Realtime office visualization</span>
           <span>Click any element to inspect details</span>
+          <span>ESC or empty area closes panel</span>
         </div>
 
-        <OfficeDetailPanel
-          item={selectedItem}
-          onClose={() => setSelectedItem(null)}
-        />
+        <OfficeDetailPanel item={selectedItem} onClose={closeDetailPanel} />
       </div>
     </div>
   );

@@ -1,0 +1,493 @@
+/* =========================
+   PHASE 8.7
+   OFFICE SCENE ANIMATION & AMBIENT POLISH
+   CSS-only visual life layer
+========================= */
+
+/* =========================
+   GLOBAL AMBIENT LAYER
+========================= */
+
+.office-scene::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 48%, rgba(168, 85, 247, 0.12), transparent 22%),
+      radial-gradient(circle at 20% 72%, rgba(34, 211, 238, 0.08), transparent 18%),
+      radial-gradient(circle at 82% 68%, rgba(245, 158, 11, 0.06), transparent 16%);
+    animation: officeAmbientBreath 5.5s ease-in-out infinite;
+  }
+  
+  @keyframes officeAmbientBreath {
+    0%,
+    100% {
+      opacity: 0.65;
+      filter: blur(0);
+    }
+  
+    50% {
+      opacity: 1;
+      filter: blur(1px);
+    }
+  }
+  
+  /* Keep interactive elements above ambient layer */
+  .office-room,
+  .office-server-core,
+  .office-source-card,
+  .office-resource-card,
+  .office-active-task,
+  .office-help-bar,
+  .office-detail-panel,
+  .office-empty-agents {
+    z-index: 5;
+  }
+  
+  .office-detail-panel {
+    z-index: 50;
+  }
+  
+  /* =========================
+     SERVER ROOM LIFE
+  ========================= */
+  
+  .server-rack::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    right: 7px;
+    top: 10px;
+    height: 4px;
+    border-radius: 999px;
+    background: #22d3ee;
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.8);
+    opacity: 0.75;
+    animation: serverBlink 1.8s ease-in-out infinite;
+  }
+  
+  .server-rack::after {
+    content: "";
+    position: absolute;
+    left: 7px;
+    right: 7px;
+    top: 24px;
+    height: 4px;
+    border-radius: 999px;
+    background: #a855f7;
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.75);
+    opacity: 0.65;
+    animation: serverBlink 2.4s ease-in-out infinite reverse;
+  }
+  
+  .rack-two::before {
+    animation-delay: 0.25s;
+  }
+  
+  .rack-three::before {
+    animation-delay: 0.45s;
+  }
+  
+  .rack-two::after {
+    animation-delay: 0.35s;
+  }
+  
+  .rack-three::after {
+    animation-delay: 0.6s;
+  }
+  
+  @keyframes serverBlink {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+  
+    50% {
+      opacity: 1;
+    }
+  }
+  
+  .office-server-core {
+    transition:
+      transform 0.22s ease,
+      filter 0.22s ease;
+  }
+  
+  .office-server-core:hover {
+    filter: brightness(1.12);
+  }
+  
+  .office-scene.is-processing .server-rack {
+    box-shadow:
+      inset 0 0 14px rgba(245, 158, 11, 0.22),
+      0 0 18px rgba(245, 158, 11, 0.1);
+  }
+  
+  .office-scene.is-processing .server-rack::before,
+  .office-scene.is-processing .server-rack::after {
+    background: #f59e0b;
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.85);
+  }
+  
+  /* =========================
+     AGENT ROOM LIFE
+  ========================= */
+  
+  .office-room.registered {
+    transition:
+      filter 0.22s ease,
+      transform 0.22s ease;
+  }
+  
+  .office-room.registered:hover {
+    filter: brightness(1.12);
+  }
+  
+  .room-floor {
+    transition:
+      border-color 0.22s ease,
+      box-shadow 0.22s ease,
+      filter 0.22s ease;
+  }
+  
+  .room-back-wall,
+  .room-side-wall {
+    transition:
+      background-color 0.22s ease,
+      border-color 0.22s ease,
+      filter 0.22s ease;
+  }
+  
+  /* subtle ambient shimmer on active / registered room */
+  .office-room.registered .room-floor::after {
+    content: "";
+    position: absolute;
+    inset: 12px 18px;
+    border-radius: 999px;
+    opacity: 0.18;
+    background: currentColor;
+    filter: blur(16px);
+    animation: roomAmbientGlow 3.2s ease-in-out infinite;
+  }
+  
+  @keyframes roomAmbientGlow {
+    0%,
+    100% {
+      opacity: 0.1;
+      transform: scale(0.94);
+    }
+  
+    50% {
+      opacity: 0.24;
+      transform: scale(1.04);
+    }
+  }
+  
+  /* Working room gets stronger but still smooth */
+  .office-room.working.registered .room-floor::after,
+  .office-room.active-room .room-floor::after {
+    opacity: 0.34;
+    animation: roomWorkingGlow 1.55s ease-in-out infinite;
+  }
+  
+  @keyframes roomWorkingGlow {
+    0%,
+    100% {
+      opacity: 0.2;
+      transform: scale(0.94);
+    }
+  
+    50% {
+      opacity: 0.44;
+      transform: scale(1.08);
+    }
+  }
+  
+  /* =========================
+     DESK / MONITOR LIFE
+  ========================= */
+  
+  .desk-monitor {
+    overflow: hidden;
+  }
+  
+  .desk-monitor::before {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border-radius: 4px;
+    background:
+      linear-gradient(180deg, rgba(96, 165, 250, 0.55), rgba(14, 165, 233, 0.12));
+    opacity: 0.55;
+    animation: monitorIdleGlow 2.8s ease-in-out infinite;
+  }
+  
+  .monitor-side::before {
+    animation-delay: 0.4s;
+  }
+  
+  @keyframes monitorIdleGlow {
+    0%,
+    100% {
+      opacity: 0.28;
+    }
+  
+    50% {
+      opacity: 0.75;
+    }
+  }
+  
+  .office-room.working .desk-monitor::before,
+  .office-room.active-room .desk-monitor::before {
+    background:
+      linear-gradient(180deg, rgba(245, 158, 11, 0.8), rgba(251, 191, 36, 0.18));
+    animation: monitorWorkingGlow 1.05s ease-in-out infinite;
+  }
+  
+  @keyframes monitorWorkingGlow {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+  
+    50% {
+      opacity: 1;
+    }
+  }
+  
+  .office-room.error .desk-monitor::before {
+    background:
+      linear-gradient(180deg, rgba(239, 68, 68, 0.85), rgba(248, 113, 113, 0.18));
+    animation: monitorErrorBlink 0.9s steps(2, start) infinite;
+  }
+  
+  @keyframes monitorErrorBlink {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+  
+    50% {
+      opacity: 1;
+    }
+  }
+  
+  /* avatar idle breathing */
+  .agent-avatar-iso {
+    animation: avatarIdleBreath 3.2s ease-in-out infinite;
+  }
+  
+  @keyframes avatarIdleBreath {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+  
+    50% {
+      transform: translateY(-2px);
+    }
+  }
+  
+  .office-room.working .agent-avatar-iso,
+  .office-room.active-room .agent-avatar-iso {
+    animation: avatarWorking 1.15s ease-in-out infinite;
+  }
+  
+  /* =========================
+     FLOATING LABEL POLISH
+  ========================= */
+  
+  .office-floating-label {
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.2s ease,
+      filter 0.2s ease;
+  }
+  
+  .office-room:hover .office-floating-label {
+    transform: translateY(-2px);
+    border-color: rgba(96, 165, 250, 0.34);
+    box-shadow:
+      0 16px 38px rgba(0, 0, 0, 0.32),
+      0 0 24px rgba(96, 165, 250, 0.14);
+  }
+  
+  .office-room.working .office-floating-label,
+  .office-room.active-room .office-floating-label {
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+  
+  /* =========================
+     SOURCE / RESOURCE AMBIENT
+  ========================= */
+  
+  .office-source-card,
+  .office-resource-card,
+  .office-active-task {
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      filter 0.2s ease;
+  }
+  
+  .office-source-card:hover,
+  .office-resource-card:hover,
+  .office-active-task:hover {
+    transform: translateY(-3px);
+  }
+  
+  .office-source-card::after,
+  .office-resource-card::after,
+  .office-active-task::after {
+    content: "";
+    position: absolute;
+    inset: auto 14px -10px;
+    height: 18px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.12;
+    filter: blur(12px);
+    pointer-events: none;
+  }
+  
+  .source-whatsapp {
+    color: #22c55e;
+  }
+  
+  .source-manual {
+    color: #60a5fa;
+  }
+  
+  .resource-skill {
+    color: #a78bfa;
+  }
+  
+  .resource-output {
+    color: #facc15;
+  }
+  
+  .office-active-task {
+    color: #60a5fa;
+  }
+  
+  .office-active-task.in_progress {
+    color: #f59e0b;
+  }
+  
+  .office-active-task.done {
+    color: #22c55e;
+  }
+  
+  .office-active-task.error {
+    color: #ef4444;
+  }
+  
+  /* =========================
+     MINI TASK CARD POLISH
+  ========================= */
+  
+  .mini-task-card {
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  
+  .office-room:hover .mini-task-card {
+    transform: translateY(-2px);
+  }
+  
+  .mini-task-card.in_progress {
+    box-shadow:
+      0 12px 28px rgba(0, 0, 0, 0.26),
+      0 0 18px rgba(245, 158, 11, 0.18);
+  }
+  
+  .mini-task-card.done {
+    box-shadow:
+      0 12px 28px rgba(0, 0, 0, 0.26),
+      0 0 18px rgba(34, 197, 94, 0.14);
+  }
+  
+  .mini-task-card.error {
+    box-shadow:
+      0 12px 28px rgba(0, 0, 0, 0.26),
+      0 0 18px rgba(239, 68, 68, 0.16);
+  }
+  
+  /* =========================
+     HELP BAR ANIMATION
+  ========================= */
+  
+  .office-help-bar {
+    animation: helpBarFadeIn 0.35s ease-out;
+  }
+  
+  @keyframes helpBarFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(8px);
+    }
+  
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+  
+  /* =========================
+     M365 LIGHT SUPPORT
+  ========================= */
+  
+  :root[data-theme="m365-light"] .office-scene::after {
+    background:
+      radial-gradient(circle at 50% 48%, rgba(37, 99, 235, 0.08), transparent 22%),
+      radial-gradient(circle at 20% 72%, rgba(14, 165, 233, 0.06), transparent 18%),
+      radial-gradient(circle at 82% 68%, rgba(245, 158, 11, 0.05), transparent 16%);
+  }
+  
+  :root[data-theme="m365-light"] .office-room.registered .room-floor::after {
+    opacity: 0.12;
+  }
+  
+  :root[data-theme="m365-light"] .office-source-card::after,
+  :root[data-theme="m365-light"] .office-resource-card::after,
+  :root[data-theme="m365-light"] .office-active-task::after {
+    opacity: 0.08;
+  }
+  
+  /* =========================
+     REDUCED MOTION SUPPORT
+  ========================= */
+  
+  @media (prefers-reduced-motion: reduce) {
+    .office-scene::after,
+    .server-rack::before,
+    .server-rack::after,
+    .office-room.registered .room-floor::after,
+    .office-room.working.registered .room-neon-strip,
+    .office-room.working.registered .agent-avatar-iso,
+    .agent-avatar-iso,
+    .desk-monitor::before,
+    .office-help-bar {
+      animation: none !important;
+    }
+  }
+  
+  /* =========================
+     RESPONSIVE
+  ========================= */
+  
+  @media (max-width: 1200px) {
+    .office-source-card:hover,
+    .office-resource-card:hover,
+    .office-active-task:hover,
+    .office-room:hover .office-floating-label,
+    .office-room:hover .mini-task-card {
+      transform: none;
+    }
+  }

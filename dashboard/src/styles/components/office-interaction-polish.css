@@ -1,0 +1,163 @@
+/* =========================
+   PHASE 8.6
+   OFFICE INTERACTION POLISH & UX HARDENING
+========================= */
+
+/* Clickable affordance */
+.office-clickable {
+    transition:
+      filter 0.18s ease,
+      transform 0.18s ease,
+      box-shadow 0.18s ease,
+      border-color 0.18s ease;
+  }
+  
+  .office-clickable:hover {
+    filter: brightness(1.1);
+  }
+  
+  .office-clickable:active {
+    filter: brightness(0.96);
+  }
+  
+  .office-room.office-clickable:hover .room-floor,
+  .office-room.office-selected-element .room-floor {
+    border-color: rgba(96, 165, 250, 0.42);
+    box-shadow:
+      0 22px 44px rgba(0, 0, 0, 0.4),
+      0 0 30px rgba(96, 165, 250, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+  
+  .office-room.office-selected-element .room-neon-strip {
+    opacity: 1;
+    box-shadow: 0 0 28px currentColor;
+  }
+  
+  .office-selected-element.office-source-card,
+  .office-selected-element.office-resource-card,
+  .office-selected-element.office-active-task {
+    border-color: rgba(96, 165, 250, 0.55);
+    box-shadow:
+      0 18px 44px rgba(0, 0, 0, 0.32),
+      0 0 34px rgba(96, 165, 250, 0.24);
+  }
+  
+  .office-selected-element.office-server-core .server-glass {
+    border-color: rgba(96, 165, 250, 0.45);
+    box-shadow:
+      0 24px 48px rgba(0, 0, 0, 0.42),
+      0 0 38px rgba(96, 165, 250, 0.22);
+  }
+  
+  .office-selected-element .office-floating-label,
+  .office-selected-element.office-source-card,
+  .office-selected-element.office-resource-card,
+  .office-selected-element.office-active-task {
+    outline: 1px solid rgba(191, 219, 254, 0.38);
+    outline-offset: 3px;
+  }
+  
+  /* Detail open scene dimming */
+  .office-scene.detail-open::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 13;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at right center, rgba(59, 130, 246, 0.1), transparent 28%),
+      linear-gradient(90deg, transparent 0%, rgba(2, 6, 23, 0.08) 66%, rgba(2, 6, 23, 0.26) 100%);
+  }
+  
+  .office-detail-panel {
+    z-index: 50;
+  }
+  
+  /* Keep selected objects above dim overlay */
+  .office-selected-element {
+    z-index: 20 !important;
+  }
+  
+  /* Help bar updated for interaction */
+  .office-help-bar {
+    gap: 14px;
+  }
+  
+  .office-help-bar span:first-child {
+    color: #bfdbfe;
+  }
+  
+  /* Better focus for keyboard users */
+  .office-clickable:focus-visible {
+    outline: 2px solid rgba(96, 165, 250, 0.9);
+    outline-offset: 5px;
+  }
+  
+  /* Prevent button default weirdness for complex SVG-like scene elements */
+  button.office-room,
+  button.office-server-core,
+  button.office-source-card,
+  button.office-resource-card,
+  button.office-active-task {
+    user-select: none;
+  }
+  
+  /* Detail panel scroll polish */
+  .office-detail-panel::-webkit-scrollbar {
+    width: 7px;
+  }
+  
+  .office-detail-panel::-webkit-scrollbar-thumb {
+    background: rgba(96, 165, 250, 0.35);
+    border-radius: 999px;
+  }
+  
+  /* M365 Light support */
+  :root[data-theme="m365-light"] .office-scene.detail-open::before {
+    background:
+      radial-gradient(circle at right center, rgba(37, 99, 235, 0.06), transparent 28%),
+      linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.06) 66%, rgba(15, 23, 42, 0.05) 100%);
+  }
+  
+  :root[data-theme="m365-light"] .office-room.office-clickable:hover .room-floor,
+  :root[data-theme="m365-light"] .office-room.office-selected-element .room-floor {
+    border-color: rgba(37, 99, 235, 0.32);
+    box-shadow:
+      0 22px 44px rgba(15, 23, 42, 0.14),
+      0 0 28px rgba(37, 99, 235, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+  
+  :root[data-theme="m365-light"] .office-selected-element.office-source-card,
+  :root[data-theme="m365-light"] .office-selected-element.office-resource-card,
+  :root[data-theme="m365-light"] .office-selected-element.office-active-task {
+    border-color: rgba(37, 99, 235, 0.32);
+    box-shadow:
+      0 18px 44px rgba(15, 23, 42, 0.12),
+      0 0 28px rgba(37, 99, 235, 0.1);
+  }
+  
+  /* Tablet/mobile: detail naturally becomes full-width block */
+  @media (max-width: 1200px) {
+    .office-scene.detail-open::before {
+      display: none;
+    }
+  
+    .office-selected-element {
+      z-index: auto !important;
+    }
+  
+    .office-detail-panel {
+      order: 99;
+    }
+  }
+  
+  @media (max-width: 700px) {
+    .office-help-bar {
+      display: grid;
+      gap: 4px;
+      border-radius: 14px;
+      text-align: center;
+    }
+  }

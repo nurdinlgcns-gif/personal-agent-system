@@ -11,3 +11,8 @@
 @import "./styles/components/office-element-polish.css";
 @import "./styles/components/office-position-map.css";
 @import "./styles/components/office-detail-panel.css";
+@import "./styles/components/office-interaction-polish.css";
+@import "./styles/components/office-ambient-polish.css";
+@import "./styles/components/office-activity-log.css";
+@import "./styles/components/office-task-flow-polish.css";
+@import "./styles/components/office-toolbar-legend.css";

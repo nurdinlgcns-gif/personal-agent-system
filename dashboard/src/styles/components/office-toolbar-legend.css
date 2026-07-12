@@ -1,0 +1,275 @@
+/* =========================
+   PHASE 8.10
+   OFFICE SCENE LEGEND & MINI TOOLBAR
+========================= */
+
+.office-mini-toolbar {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 30;
+    display: inline-flex;
+    gap: 7px;
+    padding: 8px;
+    border-radius: 16px;
+    background: rgba(8, 15, 32, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow:
+      0 18px 42px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+  }
+  
+  .office-mini-toolbar button {
+    border-radius: 999px;
+    padding: 7px 10px;
+    color: #cbd5e1;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    font-size: 10.5px;
+    font-weight: 800;
+    white-space: nowrap;
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      transform 0.18s ease,
+      color 0.18s ease;
+  }
+  
+  .office-mini-toolbar button:hover {
+    color: #ffffff;
+    background: rgba(37, 99, 235, 0.22);
+    border-color: rgba(96, 165, 250, 0.28);
+    transform: translateY(-1px);
+  }
+  
+  .office-mini-toolbar button.active {
+    color: #bfdbfe;
+    background: rgba(37, 99, 235, 0.28);
+    border-color: rgba(96, 165, 250, 0.36);
+    box-shadow: 0 0 18px rgba(37, 99, 235, 0.14);
+  }
+  
+  /* Legend */
+  .office-legend {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 30;
+    width: 255px;
+    border-radius: 16px;
+    padding: 11px 12px;
+    background: rgba(8, 15, 32, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow:
+      0 18px 42px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+  }
+  
+  .office-legend strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 12px;
+    margin-bottom: 9px;
+  }
+  
+  .office-legend-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px 10px;
+  }
+  
+  .office-legend-grid span {
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #cbd5e1;
+    font-size: 10.5px;
+    white-space: nowrap;
+  }
+  
+  .legend-dot {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    display: inline-block;
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor;
+  }
+  
+  .legend-dot.green {
+    color: #22c55e;
+  }
+  
+  .legend-dot.orange {
+    color: #f59e0b;
+  }
+  
+  .legend-dot.red {
+    color: #ef4444;
+  }
+  
+  .legend-dot.purple {
+    color: #a78bfa;
+  }
+  
+  .legend-dot.cyan {
+    color: #22d3ee;
+  }
+  
+  .legend-dot.blue {
+    color: #60a5fa;
+  }
+  
+  /* Hide labels mode */
+  .office-scene.labels-hidden .office-floating-label,
+  .office-scene.labels-hidden .office-source-card,
+  .office-scene.labels-hidden .office-resource-card,
+  .office-scene.labels-hidden .office-active-task {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px) scale(0.98);
+  }
+  
+  .office-scene.labels-hidden .office-detail-panel,
+  .office-scene.labels-hidden .office-mini-toolbar,
+  .office-scene.labels-hidden .office-legend,
+  .office-scene.labels-hidden .office-activity-log,
+  .office-scene.labels-hidden .office-help-bar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
+  
+  /* Activity hidden mode */
+  .office-scene.activity-hidden .office-activity-log {
+    display: none;
+  }
+  
+  /* Compact mode */
+  .office-scene.compact-office .office-help-bar {
+    display: none;
+  }
+  
+  .office-scene.compact-office .office-legend {
+    width: 210px;
+  }
+  
+  .office-scene.compact-office .office-legend-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .office-scene.compact-office .office-mini-toolbar {
+    transform: scale(0.92);
+    transform-origin: top left;
+  }
+  
+  .office-scene.compact-office .office-source-card,
+  .office-scene.compact-office .office-resource-card,
+  .office-scene.compact-office .office-active-task {
+    max-width: 190px;
+  }
+  
+  /* Make labels fade smoothly */
+  .office-floating-label,
+  .office-source-card,
+  .office-resource-card,
+  .office-active-task {
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      filter 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  
+  /* M365 Light support */
+  :root[data-theme="m365-light"] .office-mini-toolbar,
+  :root[data-theme="m365-light"] .office-legend {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.11);
+  }
+  
+  :root[data-theme="m365-light"] .office-mini-toolbar button {
+    color: #334155;
+    background: #f8fafc;
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .office-mini-toolbar button:hover,
+  :root[data-theme="m365-light"] .office-mini-toolbar button.active {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-color: rgba(37, 99, 235, 0.16);
+  }
+  
+  :root[data-theme="m365-light"] .office-legend strong {
+    color: #111827;
+  }
+  
+  :root[data-theme="m365-light"] .office-legend-grid span {
+    color: #334155;
+  }
+  
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .office-mini-toolbar,
+    .office-legend {
+      position: relative;
+      top: auto;
+      left: auto;
+      right: auto;
+      width: 100%;
+      grid-column: 1 / -1;
+    }
+  
+    .office-mini-toolbar {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      order: -10;
+    }
+  
+    .office-legend {
+      order: -9;
+    }
+  
+    .office-scene.labels-hidden .office-source-card,
+    .office-scene.labels-hidden .office-resource-card,
+    .office-scene.labels-hidden .office-active-task {
+      opacity: 1;
+      pointer-events: auto;
+      transform: none;
+    }
+  
+    .office-scene.labels-hidden .office-floating-label {
+      display: none;
+    }
+  
+    .office-scene.compact-office .office-mini-toolbar {
+      transform: none;
+    }
+  }
+  
+  @media (max-width: 700px) {
+    .office-mini-toolbar {
+      gap: 6px;
+      padding: 7px;
+    }
+  
+    .office-mini-toolbar button {
+      font-size: 10px;
+      padding: 6px 8px;
+    }
+  
+    .office-legend {
+      padding: 10px;
+    }
+  
+    .office-legend-grid {
+      grid-template-columns: 1fr;
+    }
+  }
