@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import type {
   AgentSnapshot,
   SkillSnapshot,
@@ -23,6 +23,13 @@ type OfficeRoomSlot = {
   roomClass: string;
   accent: "green" | "blue" | "purple" | "pink" | "yellow" | "cyan";
 };
+
+type ActivityLogPosition = {
+  x: number;
+  y: number;
+};
+
+const ACTIVITY_LOG_POSITION_KEY = "office-activity-log-position";
 
 const roomSlots: OfficeRoomSlot[] = [
   {
@@ -318,6 +325,31 @@ export function OfficeCanvas({
   const [showActivityLog, setShowActivityLog] = useState(true);
   const [compactMode, setCompactMode] = useState(false);
 
+  const [activityLogPosition, setActivityLogPosition] =
+    useState<ActivityLogPosition>(() => {
+      const savedPosition = localStorage.getItem(ACTIVITY_LOG_POSITION_KEY);
+
+      if (!savedPosition) {
+        return { x: 0, y: 0 };
+      }
+
+      try {
+        return JSON.parse(savedPosition) as ActivityLogPosition;
+      } catch {
+        return { x: 0, y: 0 };
+      }
+    });
+
+  const [isActivityLogDragging, setIsActivityLogDragging] = useState(false);
+
+  const activityLogDragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+  } | null>(null);
+
   const realAgents = agents.slice(0, roomSlots.length);
 
   const latestTask = recentTasks[0];
@@ -361,6 +393,13 @@ export function OfficeCanvas({
     };
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem(
+      ACTIVITY_LOG_POSITION_KEY,
+      JSON.stringify(activityLogPosition)
+    );
+  }, [activityLogPosition]);
+
   function setDetail(key: string, item: OfficeDetailItem) {
     setSelectedKey(key);
     setSelectedItem(item);
@@ -369,6 +408,68 @@ export function OfficeCanvas({
   function closeDetailPanel() {
     setSelectedKey(null);
     setSelectedItem(null);
+  }
+
+  function resetActivityLogPosition() {
+    setActivityLogPosition({
+      x: 0,
+      y: 0,
+    });
+  }
+
+  function handleActivityLogPointerDown(
+    event: PointerEvent<HTMLDivElement>
+  ) {
+    const target = event.target as HTMLElement;
+
+    if (target.closest("button")) {
+      return;
+    }
+
+    event.stopPropagation();
+
+    activityLogDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: activityLogPosition.x,
+      originY: activityLogPosition.y,
+    };
+
+    setIsActivityLogDragging(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleActivityLogPointerMove(
+    event: PointerEvent<HTMLDivElement>
+  ) {
+    const dragState = activityLogDragRef.current;
+
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const nextX = dragState.originX + event.clientX - dragState.startX;
+    const nextY = dragState.originY + event.clientY - dragState.startY;
+
+    setActivityLogPosition({
+      x: nextX,
+      y: nextY,
+    });
+  }
+
+  function handleActivityLogPointerUp(
+    event: PointerEvent<HTMLDivElement>
+  ) {
+    const dragState = activityLogDragRef.current;
+
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    activityLogDragRef.current = null;
+    setIsActivityLogDragging(false);
+    event.currentTarget.releasePointerCapture(event.pointerId);
   }
 
   function openAgentDetail(agent: AgentSnapshot, status: string) {
@@ -841,45 +942,42 @@ export function OfficeCanvas({
           <small>{getOutputPreview(latestTask)}</small>
         </button>
 
-        {latestTask && (
-          <button
-            type="button"
-            className={`office-active-task office-clickable ${latestTask.status} ${
-              selectedKey === `task:${latestTask.id}`
-                ? "office-selected-element"
-                : ""
-            }`}
-            onClick={(event) => {
-              event.stopPropagation();
-              openTaskDetail(latestTask);
-            }}
-            aria-pressed={selectedKey === `task:${latestTask.id}`}
-          >
-            <span>{latestTask.source}</span>
-            <strong>{latestTask.agentName}</strong>
-            <small>{getTaskLabel(latestTask)}</small>
-          </button>
-        )}
-
         {showActivityLog && (
           <div
-            className="office-activity-log"
+            className={`office-activity-log ${
+              isActivityLogDragging ? "dragging" : ""
+            }`}
+            style={{
+              transform: `translate(${activityLogPosition.x}px, ${activityLogPosition.y}px)`,
+            }}
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="office-activity-header">
+            <div
+              className="office-activity-header draggable"
+              onPointerDown={handleActivityLogPointerDown}
+              onPointerMove={handleActivityLogPointerMove}
+              onPointerUp={handleActivityLogPointerUp}
+              onPointerCancel={handleActivityLogPointerUp}
+            >
               <div>
                 <strong>Mini Activity Log</strong>
                 <small>Latest office events</small>
               </div>
 
-              {recentTasks.length > 4 && (
-                <button
-                  type="button"
-                  onClick={() => setShowMoreActivity((current) => !current)}
-                >
-                  {showMoreActivity ? "Show less" : "Show more"}
+              <div className="office-activity-actions">
+                {recentTasks.length > 4 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowMoreActivity((current) => !current)}
+                  >
+                    {showMoreActivity ? "Show less" : "Show more"}
+                  </button>
+                )}
+
+                <button type="button" onClick={resetActivityLogPosition}>
+                  Reset
                 </button>
-              )}
+              </div>
             </div>
 
             <div className="office-activity-list">

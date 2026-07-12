@@ -275,3 +275,63 @@
       height: 26px;
     }
   }
+
+  /* =========================
+   PHASE 8.11.1
+   DRAGGABLE MINI ACTIVITY LOG
+========================= */
+
+.office-activity-log {
+    will-change: transform;
+  }
+  
+  .office-activity-log.dragging {
+    cursor: grabbing;
+    user-select: none;
+    z-index: 45;
+    box-shadow:
+      0 26px 64px rgba(0, 0, 0, 0.42),
+      0 0 28px rgba(96, 165, 250, 0.18);
+  }
+  
+  .office-activity-header.draggable {
+    cursor: grab;
+    user-select: none;
+  }
+  
+  .office-activity-header.draggable:active {
+    cursor: grabbing;
+  }
+  
+  .office-activity-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  
+  .office-activity-header {
+    gap: 8px;
+  }
+  
+  .office-activity-header > button,
+  .office-activity-actions button {
+    white-space: nowrap;
+  }
+  
+  /* Active task bubble sudah dihapus dari React, ini jaga-jaga kalau CSS lama masih ada */
+  .office-active-task {
+    display: none;
+  }
+  
+  /* Tablet/mobile: log balik normal supaya tidak bikin layout kacau */
+  @media (max-width: 1200px) {
+    .office-activity-log {
+      transform: none !important;
+    }
+  
+    .office-activity-header.draggable {
+      cursor: default;
+    }
+  }

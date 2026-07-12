@@ -1,0 +1,139 @@
+/* =========================
+   PHASE 8.11
+   OFFICE SCENE FINAL UX REVIEW
+   Small hardening layer only
+========================= */
+
+/* Keep Office Scene stable and prevent accidental horizontal overflow */
+.office-scene-shell,
+.office-scene {
+  max-width: 100%;
+}
+
+.office-scene {
+  isolation: isolate;
+}
+
+/* Make toolbar / legend / detail / log layering predictable */
+.office-mini-toolbar {
+  z-index: 34;
+}
+
+.office-legend {
+  z-index: 34;
+}
+
+.office-activity-log {
+  z-index: 28;
+}
+
+.office-help-bar {
+  z-index: 26;
+}
+
+.office-detail-panel {
+  z-index: 60;
+}
+
+/* Avoid scene controls blocking important detail panel on desktop */
+.office-scene.detail-open .office-mini-toolbar,
+.office-scene.detail-open .office-legend,
+.office-scene.detail-open .office-activity-log,
+.office-scene.detail-open .office-help-bar {
+  transition:
+    opacity 0.18s ease,
+    filter 0.18s ease;
+}
+
+.office-scene.detail-open .office-mini-toolbar,
+.office-scene.detail-open .office-legend {
+  filter: brightness(0.92);
+}
+
+/* Improve clickable affordance without changing design */
+.office-clickable {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.office-clickable[aria-pressed="true"] {
+  filter: brightness(1.12);
+}
+
+/* Prevent long text from breaking overlays */
+.office-floating-label strong,
+.office-floating-label small,
+.office-source-card strong,
+.office-source-card small,
+.office-resource-card strong,
+.office-resource-card small,
+.office-active-task strong,
+.office-active-task small,
+.office-activity-item strong,
+.office-activity-item small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Keep source/resource cards readable */
+.office-source-card,
+.office-resource-card,
+.office-active-task {
+  overflow: visible;
+}
+
+/* Detail panel row values should not overflow */
+.office-detail-row strong {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Mobile/tablet: toolbar and legend should behave like normal blocks */
+@media (max-width: 1200px) {
+  .office-mini-toolbar,
+  .office-legend,
+  .office-activity-log,
+  .office-detail-panel {
+    max-width: 100%;
+  }
+
+  .office-scene {
+    overflow: visible;
+  }
+}
+
+/* Small mobile: keep buttons wrapping nicely */
+@media (max-width: 700px) {
+  .office-mini-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .office-mini-toolbar button {
+    flex: 0 0 auto;
+  }
+
+  .office-scene-stats {
+    justify-content: flex-start;
+  }
+}
+
+/* M365 Light support */
+:root[data-theme="m365-light"] .office-scene.detail-open .office-mini-toolbar,
+:root[data-theme="m365-light"] .office-scene.detail-open .office-legend {
+  filter: none;
+}
+
+/* Reduced motion consistency */
+@media (prefers-reduced-motion: reduce) {
+  .office-clickable,
+  .office-mini-toolbar,
+  .office-legend,
+  .office-activity-log,
+  .office-detail-panel,
+  .office-floating-label,
+  .office-source-card,
+  .office-resource-card,
+  .office-active-task {
+    transition: none !important;
+  }
+}

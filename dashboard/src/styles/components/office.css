@@ -8,72 +8,11 @@
     display: grid;
     gap: 16px;
   }
-  
-  .office-hero {
-    background:
-      linear-gradient(180deg, rgba(20, 52, 90, 0.92), rgba(9, 28, 54, 0.94));
-    border: 1px solid rgba(174, 211, 255, 0.22);
-    border-radius: 16px;
-    padding: 18px 20px;
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    align-items: center;
-    box-shadow: var(--office-shadow-card);
-  }
-  
-  .office-hero h1 {
-    margin: 0;
-    color: var(--office-text-main, #f8fafc);
-    font-size: 22px;
-    letter-spacing: -0.02em;
-  }
-  
-  .office-hero p {
-    margin: 7px 0 0;
-    color: var(--office-text-muted, #94a3b8);
-    font-size: 13px;
-  }
-  
-  .office-live-badge {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    border-radius: 999px;
-    padding: 9px 13px;
-    border: 1px solid rgba(96, 165, 250, 0.28);
-    color: #bfdbfe;
-    background: rgba(37, 99, 235, 0.18);
-    font-size: 12px;
-    font-weight: 800;
-    white-space: nowrap;
-  }
-  
-  .office-live-badge span {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: currentColor;
-    box-shadow: 0 0 14px currentColor;
-  }
-  
-  .office-live-badge.working {
-    color: #fed7aa;
-    background: rgba(245, 158, 11, 0.2);
-    border-color: rgba(245, 158, 11, 0.36);
-  }
-  
-  .office-live-badge.idle {
-    color: #bbf7d0;
-    background: rgba(34, 197, 94, 0.16);
-    border-color: rgba(34, 197, 94, 0.3);
-  }
-  
-  /* =========================
+
+/* =========================
      SCENE SHELL
   ========================= */
-  
+
   .office-scene-shell {
     border-radius: 18px;
     overflow: hidden;
@@ -85,7 +24,7 @@
       0 24px 80px rgba(0, 0, 0, 0.36),
       inset 0 1px 0 rgba(255, 255, 255, 0.045);
   }
-  
+
   .office-scene-topbar {
     padding: 14px 16px;
     background:
@@ -96,27 +35,27 @@
     gap: 16px;
     align-items: center;
   }
-  
+
   .office-scene-topbar strong {
     display: block;
     color: #ffffff;
     font-size: 15px;
   }
-  
+
   .office-scene-topbar span {
     display: block;
     margin-top: 3px;
     color: rgba(237, 247, 255, 0.78);
     font-size: 12px;
   }
-  
+
   .office-scene-stats {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
     justify-content: flex-end;
   }
-  
+
   .office-scene-stats span {
     margin: 0;
     color: #ffffff;
@@ -128,11 +67,11 @@
     font-size: 11px;
     white-space: nowrap;
   }
-  
+
   /* =========================
      ISOMETRIC SCENE
   ========================= */
-  
+
   .office-scene {
     position: relative;
     height: min(720px, calc(100vh - 210px));
@@ -143,7 +82,7 @@
       radial-gradient(circle at 20% 80%, rgba(34, 211, 238, 0.1), transparent 22%),
       #020617;
   }
-  
+
   .office-scene-bg {
     position: absolute;
     inset: 0;
@@ -160,11 +99,11 @@
       46px 79px,
       46px 79px;
   }
-  
+
   /* =========================
      FLOATING LABELS
   ========================= */
-  
+
   .office-floating-label,
   .office-source-card,
   .office-resource-card,
@@ -172,7 +111,7 @@
   .office-help-bar {
     backdrop-filter: blur(14px);
   }
-  
+
   .office-floating-label {
     position: absolute;
     z-index: 8;
@@ -184,14 +123,14 @@
     border: 1px solid rgba(148, 163, 184, 0.14);
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
   }
-  
+
   .office-floating-label strong {
     display: block;
     color: #f8fafc;
     font-size: 12px;
     line-height: 1.25;
   }
-  
+
   .office-floating-label small {
     display: block;
     margin-top: 4px;
@@ -199,7 +138,7 @@
     font-size: 10.5px;
     line-height: 1.35;
   }
-  
+
   .dot {
     display: inline-block;
     width: 7px;
@@ -209,35 +148,35 @@
     background: currentColor;
     box-shadow: 0 0 12px currentColor;
   }
-  
+
   .dot.green {
     color: #22c55e;
   }
-  
+
   .dot.blue {
     color: #60a5fa;
   }
-  
+
   .dot.purple {
     color: #a78bfa;
   }
-  
+
   .dot.pink {
     color: #ec4899;
   }
-  
+
   .dot.yellow {
     color: #facc15;
   }
-  
+
   .dot.cyan {
     color: #22d3ee;
   }
-  
+
   /* =========================
      ROOMS
   ========================= */
-  
+
   .office-room {
     position: absolute;
     z-index: 4;
@@ -245,7 +184,7 @@
     height: 170px;
     transform: rotateX(0deg) rotateZ(0deg);
   }
-  
+
   .room-floor {
     position: absolute;
     inset: 28px 12px 8px;
@@ -258,7 +197,7 @@
       0 22px 40px rgba(0, 0, 0, 0.36),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
-  
+
   .room-back-wall,
   .room-side-wall {
     position: absolute;
@@ -266,7 +205,7 @@
     background: rgba(15, 23, 42, 0.72);
     border: 1px solid rgba(148, 163, 184, 0.12);
   }
-  
+
   .room-back-wall {
     left: 38px;
     top: 6px;
@@ -274,7 +213,7 @@
     height: 52px;
     transform: skewX(-28deg);
   }
-  
+
   .room-side-wall {
     right: 20px;
     top: 26px;
@@ -282,7 +221,7 @@
     height: 96px;
     transform: skewY(-35deg);
   }
-  
+
   .room-neon-strip {
     position: absolute;
     left: 42px;
@@ -294,7 +233,7 @@
     box-shadow: 0 0 18px currentColor;
     opacity: 0.85;
   }
-  
+
   .room-plant {
     position: absolute;
     width: 18px;
@@ -303,21 +242,21 @@
     background: linear-gradient(180deg, #22c55e, #14532d);
     opacity: 0.78;
   }
-  
+
   .plant-left {
     left: 18px;
     bottom: 28px;
   }
-  
+
   .plant-right {
     right: 18px;
     bottom: 36px;
   }
-  
+
   /* =========================
      DESK / AGENT OBJECTS
   ========================= */
-  
+
   .agent-desk {
     position: absolute;
     left: 72px;
@@ -326,7 +265,7 @@
     height: 54px;
     z-index: 5;
   }
-  
+
   .desk-surface {
     position: absolute;
     inset: 12px 0 0;
@@ -335,7 +274,7 @@
     background: linear-gradient(180deg, #9a6a45, #4b2c1d);
     box-shadow: 0 12px 22px rgba(0, 0, 0, 0.34);
   }
-  
+
   .desk-monitor {
     position: absolute;
     top: 0;
@@ -346,16 +285,16 @@
     border: 1px solid rgba(96, 165, 250, 0.3);
     box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.28);
   }
-  
+
   .monitor-main {
     left: 22px;
   }
-  
+
   .monitor-side {
     right: 18px;
     transform: rotate(5deg);
   }
-  
+
   .desk-keyboard {
     position: absolute;
     left: 35px;
@@ -366,7 +305,7 @@
     background: #cbd5e1;
     opacity: 0.72;
   }
-  
+
   .desk-chair {
     position: absolute;
     left: 38px;
@@ -377,7 +316,7 @@
     background: #1e293b;
     border: 1px solid rgba(148, 163, 184, 0.25);
   }
-  
+
   .agent-avatar-iso {
     position: absolute;
     left: 118px;
@@ -391,159 +330,159 @@
     background: linear-gradient(180deg, #dbeafe, #2563eb);
     box-shadow: 0 0 18px rgba(96, 165, 250, 0.32);
   }
-  
+
   .agent-avatar-iso span {
     color: white;
     font-size: 10px;
     font-weight: 900;
   }
-  
+
   /* =========================
      ROOM POSITIONS
   ========================= */
-  
+
   .room-design {
     left: 7%;
     top: 42%;
     color: #22d3ee;
   }
-  
+
   .room-research {
     left: 26%;
     top: 64%;
     color: #a78bfa;
   }
-  
+
   .room-code {
     right: 7%;
     top: 42%;
     color: #818cf8;
   }
-  
+
   .room-writer {
     left: 42%;
     top: 9%;
     color: #a78bfa;
   }
-  
+
   .room-image {
     right: 7%;
     top: 9%;
     color: #ec4899;
   }
-  
+
   .room-qa {
     right: 29%;
     top: 66%;
     color: #facc15;
   }
-  
+
   .room-label {
     top: -8px;
     left: 0;
   }
-  
+
   .room-design .room-label {
     top: -34px;
     left: -22px;
   }
-  
+
   .room-research .room-label {
     top: -26px;
     left: -14px;
   }
-  
+
   .room-code .room-label {
     top: -28px;
     right: -8px;
     left: auto;
   }
-  
+
   .room-writer .room-label {
     top: -34px;
     left: -8px;
   }
-  
+
   .room-image .room-label {
     top: -30px;
     left: -4px;
   }
-  
+
   .room-qa .room-label {
     top: -28px;
     left: -18px;
   }
-  
+
   /* =========================
      ROOM STATES
   ========================= */
-  
+
   .office-room.planned {
     opacity: 0.34;
     filter: grayscale(0.2);
   }
-  
+
   .office-room.idle.registered .room-neon-strip {
     opacity: 0.72;
   }
-  
+
   .office-room.working.registered .room-neon-strip {
     opacity: 1;
     animation: roomWorkingPulse 1.35s ease-in-out infinite;
   }
-  
+
   .office-room.working.registered .agent-avatar-iso {
     animation: avatarWorking 1.2s ease-in-out infinite;
     box-shadow:
       0 0 24px currentColor,
       0 0 34px rgba(245, 158, 11, 0.32);
   }
-  
+
   .office-room.error.registered {
     color: #ef4444;
   }
-  
+
   .office-room.error.registered .room-neon-strip {
     animation: roomErrorBlink 1s steps(2, start) infinite;
   }
-  
+
   @keyframes roomWorkingPulse {
     0%,
     100% {
       box-shadow: 0 0 14px currentColor;
     }
-  
+
     50% {
       box-shadow: 0 0 30px currentColor;
     }
   }
-  
+
   @keyframes avatarWorking {
     0%,
     100% {
       transform: translateY(0);
     }
-  
+
     50% {
       transform: translateY(-4px);
     }
   }
-  
+
   @keyframes roomErrorBlink {
     0%,
     100% {
       opacity: 0.45;
     }
-  
+
     50% {
       opacity: 1;
     }
   }
-  
+
   /* =========================
      CENTRAL SERVER ROOM
   ========================= */
-  
+
   .office-server-core {
     position: absolute;
     z-index: 6;
@@ -553,7 +492,7 @@
     height: 150px;
     transform: translate(-50%, -50%);
   }
-  
+
   .server-glass {
     position: absolute;
     inset: 8px;
@@ -566,7 +505,7 @@
       0 24px 48px rgba(0, 0, 0, 0.42),
       0 0 38px rgba(168, 85, 247, 0.14);
   }
-  
+
   .server-rack {
     position: absolute;
     top: 42px;
@@ -577,19 +516,19 @@
     border: 1px solid rgba(96, 165, 250, 0.24);
     box-shadow: inset 0 0 14px rgba(96, 165, 250, 0.2);
   }
-  
+
   .rack-one {
     left: 54px;
   }
-  
+
   .rack-two {
     left: 88px;
   }
-  
+
   .rack-three {
     left: 122px;
   }
-  
+
   .server-core-light {
     position: absolute;
     left: 50%;
@@ -601,16 +540,16 @@
     background: #a855f7;
     box-shadow: 0 0 28px #a855f7;
   }
-  
+
   .label-server {
     left: 20px;
     top: -42px;
   }
-  
+
   /* =========================
      SOURCE / RESOURCE CARDS
   ========================= */
-  
+
   .office-source-card,
   .office-resource-card,
   .office-active-task {
@@ -624,7 +563,7 @@
     border: 1px solid rgba(148, 163, 184, 0.14);
     box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
   }
-  
+
   .office-source-card strong,
   .office-resource-card strong,
   .office-active-task strong {
@@ -633,7 +572,7 @@
     font-size: 12px;
     line-height: 1.25;
   }
-  
+
   .office-source-card small,
   .office-resource-card small,
   .office-active-task small {
@@ -643,27 +582,27 @@
     font-size: 10.5px;
     line-height: 1.35;
   }
-  
+
   .source-whatsapp {
     left: 4%;
     top: 33%;
   }
-  
+
   .source-manual {
     left: 10%;
     bottom: 18%;
   }
-  
+
   .resource-skill {
     right: 4%;
     top: 32%;
   }
-  
+
   .resource-output {
     right: 7%;
     bottom: 19%;
   }
-  
+
   .office-active-task {
     left: 50%;
     top: 22%;
@@ -671,22 +610,22 @@
     border-color: rgba(96, 165, 250, 0.28);
     animation: taskFloatScene 2.2s ease-in-out infinite;
   }
-  
+
   .office-active-task.in_progress {
     border-color: rgba(245, 158, 11, 0.46);
     box-shadow:
       0 16px 38px rgba(0, 0, 0, 0.28),
       0 0 26px rgba(245, 158, 11, 0.2);
   }
-  
+
   .office-active-task.done {
     border-color: rgba(34, 197, 94, 0.42);
   }
-  
+
   .office-active-task.error {
     border-color: rgba(239, 68, 68, 0.5);
   }
-  
+
   .office-active-task span {
     display: inline-flex;
     border-radius: 999px;
@@ -698,22 +637,22 @@
     text-transform: uppercase;
     margin-bottom: 6px;
   }
-  
+
   @keyframes taskFloatScene {
     0%,
     100% {
       transform: translateX(-50%) translateY(0);
     }
-  
+
     50% {
       transform: translateX(-50%) translateY(-6px);
     }
   }
-  
+
   /* =========================
      HELP BAR
   ========================= */
-  
+
   .office-help-bar {
     position: absolute;
     left: 50%;
@@ -728,75 +667,69 @@
     border: 1px solid rgba(148, 163, 184, 0.14);
     box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
   }
-  
+
   .office-help-bar span {
     color: #94a3b8;
     font-size: 11px;
     white-space: nowrap;
   }
-  
+
   /* =========================
      PROCESSING SCENE
   ========================= */
-  
+
   .office-scene.is-processing .office-server-core {
     animation: serverProcessing 1.6s ease-in-out infinite;
   }
-  
+
   .office-scene.is-processing .server-core-light {
     background: #f59e0b;
     box-shadow: 0 0 34px #f59e0b;
   }
-  
+
   @keyframes serverProcessing {
     0%,
     100% {
       filter: brightness(1);
     }
-  
+
     50% {
       filter: brightness(1.18);
     }
   }
-  
+
   /* =========================
      M365 LIGHT SUPPORT
   ========================= */
-  
+
   :root[data-theme="m365-light"] .office-scene-shell,
-  :root[data-theme="m365-light"] .office-hero {
-    background: #ffffff;
-    border-color: rgba(15, 23, 42, 0.08);
-    box-shadow: var(--office-shadow-card);
-  }
-  
-  :root[data-theme="m365-light"] .office-scene {
+:root[data-theme="m365-light"] .office-scene {
     background:
       radial-gradient(circle at 50% 42%, rgba(96, 165, 250, 0.2), transparent 26%),
       #eef2f7;
   }
-  
+
   :root[data-theme="m365-light"] .office-hero h1,
   :root[data-theme="m365-light"] .office-scene-topbar strong {
     color: #111827;
   }
-  
+
   :root[data-theme="m365-light"] .office-hero p,
   :root[data-theme="m365-light"] .office-scene-topbar span {
     color: #64748b;
   }
-  
+
   :root[data-theme="m365-light"] .office-scene-topbar {
     background: linear-gradient(180deg, #ffffff, #f3f6fb);
     border-bottom-color: rgba(15, 23, 42, 0.08);
   }
-  
+
   :root[data-theme="m365-light"] .office-scene-stats span {
     color: #2563eb;
     background: #eff6ff;
     border-color: rgba(37, 99, 235, 0.14);
   }
-  
+
   :root[data-theme="m365-light"] .office-floating-label,
   :root[data-theme="m365-light"] .office-source-card,
   :root[data-theme="m365-light"] .office-resource-card,
@@ -806,14 +739,14 @@
     border-color: rgba(15, 23, 42, 0.08);
     box-shadow: 0 14px 34px rgba(15, 23, 42, 0.1);
   }
-  
+
   :root[data-theme="m365-light"] .office-floating-label strong,
   :root[data-theme="m365-light"] .office-source-card strong,
   :root[data-theme="m365-light"] .office-resource-card strong,
   :root[data-theme="m365-light"] .office-active-task strong {
     color: #111827;
   }
-  
+
   :root[data-theme="m365-light"] .office-floating-label small,
   :root[data-theme="m365-light"] .office-source-card small,
   :root[data-theme="m365-light"] .office-resource-card small,
@@ -821,11 +754,11 @@
   :root[data-theme="m365-light"] .office-help-bar span {
     color: #64748b;
   }
-  
+
   /* =========================
      RESPONSIVE
   ========================= */
-  
+
   @media (max-width: 1200px) {
     .office-scene {
       height: auto;
@@ -835,13 +768,13 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
     }
-  
+
     .office-scene-bg,
     .office-server-core,
     .office-help-bar {
       display: none;
     }
-  
+
     .office-room,
     .office-source-card,
     .office-resource-card,
@@ -856,52 +789,44 @@
       max-width: none;
       min-width: 0;
     }
-  
+
     .office-room {
       height: 170px;
     }
-  
+
     .office-active-task {
       grid-column: 1 / -1;
     }
   }
-  
+
   @media (max-width: 700px) {
     .office-hero,
     .office-scene-topbar {
       flex-direction: column;
       align-items: flex-start;
     }
-  
+
     .office-scene {
       grid-template-columns: 1fr;
       padding: 14px;
     }
-  
+
     .office-room {
       height: 168px;
     }
-  
+
     .office-summary-chips {
       justify-content: flex-start;
     }
   }
-  
+
   @media (max-width: 420px) {
-    .office-hero h1 {
-      font-size: 18px;
-    }
-  
-    .office-hero p {
-      font-size: 12px;
-    }
-  
-    .office-scene-topbar {
+.office-scene-topbar {
       padding: 12px;
     }
   }
-  
-  
+
+
 /* =========================
 
    PHASE 8.2.1
@@ -911,7 +836,7 @@
 ========================= */
 
 .office-view-compact {
-    margin-top: 14px;  
+    margin-top: 14px;
 }
 
 .office-view-compact .office-scene-shell {
@@ -941,13 +866,13 @@
     box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
     backdrop-filter: blur(14px);
   }
-  
+
   .office-empty-agents strong {
     display: block;
     color: #f8fafc;
     font-size: 14px;
   }
-  
+
   .office-empty-agents small {
     display: block;
     margin-top: 6px;
@@ -955,58 +880,58 @@
     font-size: 12px;
     line-height: 1.45;
   }
-  
+
   /* If only one real agent exists, make the scene feel intentional */
   .single-agent-scene .room-design {
     left: 11%;
     top: 40%;
   }
-  
+
   .single-agent-scene .office-server-core {
     left: 50%;
     top: 48%;
   }
-  
+
   .single-agent-scene .source-whatsapp {
     left: 5%;
     top: 28%;
   }
-  
+
   .single-agent-scene .source-manual {
     left: 12%;
     bottom: 17%;
   }
-  
+
   .single-agent-scene .resource-skill {
     right: 7%;
     top: 32%;
   }
-  
+
   .single-agent-scene .resource-output {
     right: 8%;
     bottom: 18%;
   }
-  
+
   .single-agent-scene .office-active-task {
     top: 24%;
   }
-  
+
   /* Hide future-agent visual artifacts because only real DB agents should show */
   .office-room.planned {
     display: none;
   }
-  
+
   /* M365 Light support */
   :root[data-theme="m365-light"] .office-empty-agents {
     background: rgba(255, 255, 255, 0.9);
     border-color: rgba(15, 23, 42, 0.08);
     box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
   }
-  
+
   :root[data-theme="m365-light"] .office-empty-agents strong {
     color: #111827;
   }
-  
+
   :root[data-theme="m365-light"] .office-empty-agents small {
     color: #64748b;
   }
