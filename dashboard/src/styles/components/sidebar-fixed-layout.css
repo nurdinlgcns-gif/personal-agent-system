@@ -1,0 +1,125 @@
+/* =========================
+   PHASE 8.14
+   FIXED SIDEBAR + SCROLLABLE MAIN LAYOUT
+========================= */
+
+/* App shell should own the viewport height */
+.dashboard-shell {
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Sidebar stays independent from right-side content height */
+  .sidebar {
+    height: 100vh;
+    max-height: 100vh;
+    position: sticky;
+    top: 0;
+    align-self: stretch;
+  
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  /* Logo stays at top */
+  .sidebar-logo {
+    flex: 0 0 auto;
+  }
+  
+  /* Navigation becomes the scrollable middle area if needed */
+  .sidebar-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 2px;
+  }
+  
+  /* Keep footer pinned at bottom of sidebar */
+  .sidebar-footer {
+    flex: 0 0 auto;
+    margin-top: auto;
+  }
+  
+  /* Main content is the only large scroll container */
+  .dashboard-main {
+    height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-width: 0;
+    scroll-behavior: smooth;
+  }
+  
+  /* Better right-side scroll bar */
+  .dashboard-main::-webkit-scrollbar,
+  .sidebar-nav::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .dashboard-main::-webkit-scrollbar-thumb,
+  .sidebar-nav::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(96, 165, 250, 0.26);
+  }
+  
+  .dashboard-main::-webkit-scrollbar-track,
+  .sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  /* Sidebar footer should not shrink or disappear */
+  .system-health-mini,
+  .version-box {
+    flex: 0 0 auto;
+  }
+  
+  /* Keep footer cards visually stable */
+  .sidebar-footer {
+    display: grid;
+    gap: 12px;
+  }
+  
+  /* Prevent sidebar links from stretching weirdly */
+  .sidebar-item {
+    flex: 0 0 auto;
+  }
+  
+  /* M365 Light support */
+  :root[data-theme="m365-light"] .dashboard-main::-webkit-scrollbar-thumb,
+  :root[data-theme="m365-light"] .sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(37, 99, 235, 0.24);
+  }
+  
+  /* Tablet / mobile layout: sidebar likely becomes top nav from existing CSS */
+  @media (max-width: 900px) {
+    .dashboard-shell {
+      height: auto;
+      min-height: 100vh;
+      overflow: visible;
+    }
+  
+    .sidebar {
+      position: relative;
+      top: auto;
+      height: auto;
+      max-height: none;
+      overflow: visible;
+    }
+  
+    .sidebar-nav {
+      overflow: visible;
+    }
+  
+    .dashboard-main {
+      height: auto;
+      max-height: none;
+      overflow: visible;
+    }
+  
+    .sidebar-footer {
+      margin-top: 0;
+    }
+  }

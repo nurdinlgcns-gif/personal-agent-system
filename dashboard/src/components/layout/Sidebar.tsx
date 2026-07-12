@@ -1,24 +1,24 @@
-export type DashboardView = "dashboard" | "office";
+import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 
-type SidebarProps = {
-  activeView: DashboardView;
-  onViewChange: (view: DashboardView) => void;
-};
+const SIDEBAR_STORAGE_KEY = "personal-agent-dashboard-sidebar";
+
+type SidebarMode = "expanded" | "collapsed";
 
 const navItems: Array<{
   label: string;
   icon: string;
-  view?: DashboardView;
+  path?: string;
 }> = [
   {
     label: "Overview",
     icon: "▣",
-    view: "dashboard",
+    path: "/",
   },
   {
     label: "Agent Office",
     icon: "◇",
-    view: "office",
+    path: "/office",
   },
   {
     label: "Agents",
@@ -46,34 +46,80 @@ const navItems: Array<{
   },
 ];
 
-export function Sidebar({ activeView, onViewChange }: SidebarProps) {
+function getInitialSidebarMode(): SidebarMode {
+  const savedMode = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+
+  if (savedMode === "collapsed" || savedMode === "expanded") {
+    return savedMode;
+  }
+
+  return "expanded";
+}
+
+export function Sidebar() {
+  const [sidebarMode, setSidebarMode] = useState<SidebarMode>(
+    getInitialSidebarMode
+  );
+
+  const isCollapsed = sidebarMode === "collapsed";
+
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_STORAGE_KEY, sidebarMode);
+    document.documentElement.setAttribute("data-sidebar", sidebarMode);
+  }, [sidebarMode]);
+
+  function toggleSidebar() {
+    setSidebarMode((currentMode) =>
+      currentMode === "expanded" ? "collapsed" : "expanded"
+    );
+  }
+
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isCollapsed ? "collapsed" : "expanded"}`}>
       <div className="sidebar-logo">
         <div className="logo-mark">◇</div>
+
+        <button
+          type="button"
+          className="sidebar-collapse-button"
+          onClick={toggleSidebar}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? "›" : "‹"}
+        </button>
       </div>
 
       <nav className="sidebar-nav">
         {navItems.map((item) => {
-          const isActive = item.view === activeView;
-          const isDisabled = !item.view;
+          if (!item.path) {
+            return (
+              <button
+                key={item.label}
+                className="sidebar-item disabled"
+                disabled
+                type="button"
+                title={isCollapsed ? item.label : undefined}
+              >
+                <span className="sidebar-icon">{item.icon}</span>
+                <span className="sidebar-label">{item.label}</span>
+              </button>
+            );
+          }
 
           return (
-            <button
+            <NavLink
               key={item.label}
-              className={`sidebar-item ${isActive ? "active" : ""} ${
-                isDisabled ? "disabled" : ""
-              }`}
-              onClick={() => {
-                if (item.view) {
-                  onViewChange(item.view);
-                }
-              }}
-              disabled={isDisabled}
+              to={item.path}
+              end={item.path === "/"}
+              title={isCollapsed ? item.label : undefined}
+              className={({ isActive }) =>
+                `sidebar-item ${isActive ? "active" : ""}`
+              }
             >
               <span className="sidebar-icon">{item.icon}</span>
-              <span>{item.label}</span>
-            </button>
+              <span className="sidebar-label">{item.label}</span>
+            </NavLink>
           );
         })}
       </nav>
@@ -86,7 +132,7 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
 
         <div className="version-box">
           <div className="avatar-mini">🤖</div>
-          <div>
+          <div className="version-copy">
             <strong>Personal System</strong>
             <small>v1.0.0</small>
           </div>

@@ -1,0 +1,384 @@
+/* =========================
+   PHASE 8.15
+   COLLAPSIBLE SIDEBAR
+   Desktop collapsed sidebar + mobile/tablet top nav
+========================= */
+
+/* =========================
+   DESKTOP / LAPTOP
+========================= */
+
+:root[data-sidebar="expanded"] .dashboard-shell {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  
+  :root[data-sidebar="collapsed"] .dashboard-shell {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+  
+  .dashboard-shell {
+    transition: grid-template-columns 0.22s ease;
+  }
+  
+  .sidebar {
+    transition:
+      width 0.22s ease,
+      padding 0.22s ease,
+      border-color 0.22s ease;
+  }
+  
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  
+  .sidebar-collapse-button {
+    width: 30px;
+    height: 30px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: var(--office-text-soft, #cbd5e1);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(15, 23, 42, 0.32));
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      transform 0.18s ease,
+      color 0.18s ease;
+  }
+  
+  .sidebar-collapse-button:hover {
+    color: #ffffff;
+    border-color: rgba(96, 165, 250, 0.34);
+    background: rgba(37, 99, 235, 0.22);
+    transform: translateY(-1px);
+  }
+  
+  .sidebar-label,
+  .version-copy,
+  .system-health-mini p,
+  .system-health-mini span {
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease,
+      max-width 0.22s ease;
+  }
+  
+  .sidebar.expanded .sidebar-item {
+    justify-content: flex-start;
+  }
+  
+  /* Desktop collapsed mode */
+  .sidebar.collapsed {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  
+  .sidebar.collapsed .sidebar-logo {
+    justify-content: center;
+    flex-direction: column;
+  }
+  
+  .sidebar.collapsed .logo-mark {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .sidebar.collapsed .sidebar-collapse-button {
+    width: 32px;
+    height: 28px;
+    font-size: 18px;
+  }
+  
+  .sidebar.collapsed .sidebar-item {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+    gap: 0;
+    min-height: 42px;
+  }
+  
+  .sidebar.collapsed .sidebar-icon {
+    margin: 0;
+  }
+  
+  .sidebar.collapsed .sidebar-label {
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    transform: translateX(-4px);
+    white-space: nowrap;
+  }
+  
+  .sidebar.collapsed .sidebar-item.active::before {
+    left: 2px;
+  }
+  
+  .sidebar.collapsed .sidebar-footer {
+    gap: 10px;
+  }
+  
+  .sidebar.collapsed .system-health-mini {
+    padding: 10px 8px;
+    display: grid;
+    place-items: center;
+  }
+  
+  .sidebar.collapsed .system-health-mini p {
+    display: none;
+  }
+  
+  .sidebar.collapsed .system-health-mini span {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    text-indent: -999px;
+    background: #22c55e;
+    box-shadow: 0 0 14px rgba(34, 197, 94, 0.75);
+  }
+  
+  .sidebar.collapsed .version-box {
+    padding: 9px;
+    justify-content: center;
+  }
+  
+  .sidebar.collapsed .avatar-mini {
+    margin: 0;
+  }
+  
+  .sidebar.collapsed .version-copy {
+    display: none;
+  }
+  
+  /* M365 Light support */
+  :root[data-theme="m365-light"] .sidebar-collapse-button {
+    color: #334155;
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.1);
+  }
+  
+  :root[data-theme="m365-light"] .sidebar-collapse-button:hover {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-color: rgba(37, 99, 235, 0.18);
+  }
+  
+  :root[data-theme="m365-light"] .sidebar.collapsed .system-health-mini span {
+    background: #16a34a;
+    box-shadow: 0 0 12px rgba(22, 163, 74, 0.45);
+  }
+  
+  /* =========================
+     TABLET / MOBILE
+     Sidebar becomes compact top nav.
+     Do not use desktop collapsed sidebar behavior here.
+  ========================= */
+  
+  @media (max-width: 900px) {
+    :root[data-sidebar="collapsed"] .dashboard-shell,
+    :root[data-sidebar="expanded"] .dashboard-shell,
+    .dashboard-shell {
+      grid-template-columns: 1fr !important;
+      height: auto;
+      min-height: 100vh;
+      overflow: visible;
+    }
+  
+    .sidebar {
+      position: relative !important;
+      top: auto !important;
+      height: auto !important;
+      max-height: none !important;
+      width: 100% !important;
+  
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+  
+      padding: 10px 12px !important;
+      border-right: 0;
+      border-bottom: 1px solid rgba(174, 211, 255, 0.16);
+      overflow: visible !important;
+    }
+  
+    .sidebar-logo {
+      grid-column: 1;
+      display: flex !important;
+      flex-direction: row !important;
+      justify-content: flex-start !important;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+  
+    .logo-mark {
+      width: 36px;
+      height: 36px;
+      flex: 0 0 auto;
+    }
+  
+    /* Hide collapse button on tablet/mobile */
+    .sidebar-collapse-button {
+      display: none;
+    }
+  
+    .sidebar-nav {
+      grid-column: 2;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+  
+      min-width: 0;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      padding: 2px 2px 4px;
+      scrollbar-width: thin;
+    }
+  
+    .sidebar-nav::-webkit-scrollbar {
+      height: 4px;
+    }
+  
+    .sidebar-nav::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(96, 165, 250, 0.32);
+    }
+  
+    .sidebar-item,
+    .sidebar.collapsed .sidebar-item {
+      flex: 0 0 auto;
+      min-height: 34px;
+      width: auto;
+      max-width: none;
+  
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+  
+      gap: 6px;
+      padding: 8px 11px !important;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+  
+    .sidebar-icon,
+    .sidebar.collapsed .sidebar-icon {
+      margin: 0;
+      flex: 0 0 auto;
+    }
+  
+    .sidebar-label,
+    .sidebar.collapsed .sidebar-label {
+      opacity: 1 !important;
+      max-width: none !important;
+      overflow: visible !important;
+      transform: none !important;
+      display: inline !important;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+  
+    .sidebar-item.active::before,
+    .sidebar.collapsed .sidebar-item.active::before {
+      left: 8px;
+      top: auto;
+      bottom: 4px;
+      width: calc(100% - 16px);
+      height: 2px;
+      transform: none;
+    }
+  
+    /* Sidebar footer hidden on smaller screens to avoid clutter */
+    .sidebar-footer {
+      display: none !important;
+    }
+  
+    .dashboard-main {
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      min-width: 0;
+    }
+  
+    .sidebar.collapsed {
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+    }
+  
+    .sidebar.collapsed .system-health-mini p,
+    .sidebar.collapsed .version-copy {
+      display: block;
+    }
+  
+    .sidebar.collapsed .system-health-mini span {
+      width: auto;
+      height: auto;
+      text-indent: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+  }
+  
+  /* =========================
+     SMALL MOBILE
+  ========================= */
+  
+  @media (max-width: 560px) {
+    .sidebar {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+      gap: 8px;
+    }
+  
+    .sidebar-logo {
+      justify-content: space-between !important;
+    }
+  
+    .sidebar-nav {
+      grid-column: 1;
+      width: 100%;
+      gap: 7px;
+    }
+  
+    .sidebar-item,
+    .sidebar.collapsed .sidebar-item {
+      padding: 7px 10px !important;
+      min-height: 32px;
+    }
+  
+    .sidebar-label,
+    .sidebar.collapsed .sidebar-label {
+      font-size: 11.5px;
+    }
+  }
+  
+  /* Very small screen: icons only to protect layout */
+  @media (max-width: 390px) {
+    .sidebar-item,
+    .sidebar.collapsed .sidebar-item {
+      width: 38px;
+      padding: 7px 0 !important;
+    }
+  
+    .sidebar-label,
+    .sidebar.collapsed .sidebar-label {
+      display: none !important;
+    }
+  
+    .sidebar-item.active::before,
+    .sidebar.collapsed .sidebar-item.active::before {
+      left: 9px;
+      width: 20px;
+    }
+  }

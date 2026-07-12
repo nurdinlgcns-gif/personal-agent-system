@@ -435,3 +435,20 @@
     }
   }
   
+  /* =========================
+   PHASE 8.13
+   CLEAN URL ROUTING SIDEBAR LINK POLISH
+========================= */
+
+a.sidebar-item {
+  text-decoration: none;
+}
+
+a.sidebar-item:visited {
+  color: inherit;
+}
+
+.sidebar-item.disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}

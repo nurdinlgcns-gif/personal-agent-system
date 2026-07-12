@@ -18,3 +18,5 @@
 @import "./styles/components/office-toolbar-legend.css";
 @import "./styles/components/office-final-review.css";
 @import "./styles/components/office-flow-channels.css";
+@import "./styles/components/sidebar-fixed-layout.css";
+@import "./styles/components/sidebar-collapsible.css";
