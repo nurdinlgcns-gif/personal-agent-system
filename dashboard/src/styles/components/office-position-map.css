@@ -1,282 +1,198 @@
 /* =========================
-   PHASE 8.4.1
-   OFFICE SCENE POSITION MAP
-   Align sources, agent, skill, and output zones
+   PHASE 8.12 FINAL
+   OFFICE NODE GRID POSITION MAP
+   Grid aligned orthogonal layout
 ========================= */
 
-/* Desktop / laptop scene position map */
 @media (min-width: 1201px) {
-    .office-scene {
-      height: min(700px, calc(100vh - 210px));
-      min-height: 620px;
-    }
-  
-    /* LEFT RED AREA:
-       WhatsApp Source, active task bubble, and Manual Console aligned vertically */
-    .office-scene.single-agent-scene .source-whatsapp,
-    .office-scene .source-whatsapp {
-      left: 5% !important;
-      top: 30% !important;
-      right: auto !important;
-      bottom: auto !important;
-      width: 190px;
-      max-width: 190px;
-    }
-  
-    .office-scene.single-agent-scene .office-active-task,
-    .office-scene .office-active-task {
-      left: 5% !important;
-      top: 45% !important;
-      right: auto !important;
-      bottom: auto !important;
-      transform: none !important;
-      width: 190px;
-      min-width: 190px;
-      max-width: 190px;
-    }
-  
-    .office-scene.single-agent-scene .source-manual,
-    .office-scene .source-manual {
-      left: 5% !important;
-      top: 61% !important;
-      right: auto !important;
-      bottom: auto !important;
-      width: 190px;
-      max-width: 190px;
-    }
-  
-    /* GREEN AREA:
-       Real agent workspace positioned lower-center */
-    .office-scene.single-agent-scene .room-design,
-    .office-scene .room-design {
-      left: 35% !important;
-      top: 57% !important;
-      right: auto !important;
-      bottom: auto !important;
-    }
-  
-    /* WHITE AREA:
-       Skill Shelf positioned top-center */
-    .office-scene.single-agent-scene .resource-skill,
-    .office-scene .resource-skill {
-      left: 43% !important;
-      top: 9% !important;
-      right: auto !important;
-      bottom: auto !important;
-      width: 230px;
-      max-width: 230px;
-    }
-  
-    /* CENTER SERVER ROOM:
-       Keep server in the middle but slightly lower than skill */
-    .office-scene.single-agent-scene .office-server-core,
-    .office-scene .office-server-core {
-      left: 52% !important;
-      top: 43% !important;
-    }
-  
-    /* YELLOW AREA:
-       Output Board positioned right side */
-    .office-scene.single-agent-scene .resource-output,
-    .office-scene .resource-output {
-      right: 7% !important;
-      top: 57% !important;
-      left: auto !important;
-      bottom: auto !important;
-      width: 230px;
-      max-width: 230px;
-    }
-  
-    /* Make overlay cards more compact and consistent */
-    .office-source-card,
-    .office-resource-card,
-    .office-active-task {
-      padding: 9px 11px;
-    }
-  
-    .office-source-card strong,
-    .office-resource-card strong,
-    .office-active-task strong {
-      font-size: 11.5px;
-    }
-  
-    .office-source-card small,
-    .office-resource-card small,
-    .office-active-task small {
-      font-size: 10px;
-      line-height: 1.35;
-    }
-  
-    /* Avoid labels covering the agent scene too much */
-    .room-design .room-label {
-      top: -32px;
-      left: -10px;
-      max-width: 190px;
-    }
-  
-    .room-design .mini-task-card {
-      right: 4px;
-      bottom: 8px;
-    }
-  
-    /* Skill and output cards should not visually dominate the scene */
-    .resource-skill,
-    .resource-output {
-      min-width: 0;
-    }
-  
-    /* Help bar stays centered at bottom */
-    .office-help-bar {
-      bottom: 18px;
-    }
-  }
-  
-  /* Large desktop tuning */
-  @media (min-width: 1500px) {
-    .office-scene.single-agent-scene .source-whatsapp,
-    .office-scene .source-whatsapp {
-      left: 5.5% !important;
-      top: 29% !important;
-    }
-  
-    .office-scene.single-agent-scene .office-active-task,
-    .office-scene .office-active-task {
-      left: 5.5% !important;
-      top: 45% !important;
-    }
-  
-    .office-scene.single-agent-scene .source-manual,
-    .office-scene .source-manual {
-      left: 5.5% !important;
-      top: 61% !important;
-    }
-  
-    .office-scene.single-agent-scene .room-design,
-    .office-scene .room-design {
-      left: 36% !important;
-      top: 57% !important;
-    }
-  
-    .office-scene.single-agent-scene .resource-skill,
-    .office-scene .resource-skill {
-      left: 43.5% !important;
-      top: 9% !important;
-    }
-  
-    .office-scene.single-agent-scene .resource-output,
-    .office-scene .resource-output {
-      right: 7.5% !important;
-      top: 57% !important;
-    }
-  }
-  
-  /* Tablet and mobile use normal responsive grid from office.css */
-  @media (max-width: 1200px) {
-    .office-source-card,
-    .office-resource-card,
-    .office-active-task,
-    .office-room {
-      width: auto !important;
-      max-width: none !important;
-    }
+  .office-scene {
+    height: min(700px, calc(100vh - 210px));
+    min-height: 620px;
   }
 
   /* =========================
-   PHASE 8.4.2
-   DESIGN AGENT LABEL ALIGNMENT TUNING
-========================= */
+     LEFT INPUT COLUMN
+  ========================= */
 
-@media (min-width: 1201px) {
-    /* Geser label design-agent lebih bawah dan kanan supaya sejajar workstation */
-    .office-scene .room-design .room-label,
-    .office-scene.single-agent-scene .room-design .room-label {
-      top: -8px !important;
-      left: 28px !important;
-      max-width: 210px;
-    }
-  
-    /* Geser mini task card sedikit ke kanan dan bawah supaya tidak nutup avatar */
-    .office-scene .room-design .mini-task-card,
-    .office-scene.single-agent-scene .room-design .mini-task-card {
-      right: -18px !important;
-      bottom: 2px !important;
-    }
-  
-    /* Biar room design terasa lebih center terhadap area hijau */
-    .office-scene .room-design,
-    .office-scene.single-agent-scene .room-design {
-      left: 36.5% !important;
-      top: 58.5% !important;
-    }
+  .office-scene .source-whatsapp,
+  .office-scene.single-agent-scene .source-whatsapp {
+    left: 5% !important;
+    top: 34% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 210px;
+    max-width: 210px;
   }
-  
-  /* Large desktop fine tune */
-  @media (min-width: 1500px) {
-    .office-scene .room-design .room-label,
-    .office-scene.single-agent-scene .room-design .room-label {
-      top: -6px !important;
-      left: 34px !important;
-    }
-  
-    .office-scene .room-design .mini-task-card,
-    .office-scene.single-agent-scene .room-design .mini-task-card {
-      right: -22px !important;
-      bottom: 0 !important;
-    }
-  
-    .office-scene .room-design,
-    .office-scene.single-agent-scene .room-design {
-      left: 37% !important;
-      top: 58.5% !important;
-    }
+
+  .office-scene .source-manual,
+  .office-scene.single-agent-scene .source-manual {
+    left: 5% !important;
+    top: 64% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 210px;
+    max-width: 210px;
   }
 
   /* =========================
-   PHASE 8.4.3
-   DESIGN AGENT ROOM FINAL POSITION TUNING
+     CENTER HUB
+  ========================= */
+
+  .office-scene .office-server-core,
+  .office-scene.single-agent-scene .office-server-core {
+    left: 50.5% !important;
+    top: 45% !important;
+  }
+
+  /* =========================
+     LOWER WORK AREA
+  ========================= */
+
+  .office-scene .room-design,
+  .office-scene.single-agent-scene .room-design {
+    left: 43% !important;
+    top: 67% !important;
+  }
+
+  .office-scene .resource-skill,
+  .office-scene.single-agent-scene .resource-skill {
+    left: 29% !important;
+    top: 67% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 220px;
+    max-width: 220px;
+  }
+
+  .office-scene .resource-output,
+  .office-scene.single-agent-scene .resource-output {
+    right: 7% !important;
+    top: 62% !important;
+    left: auto !important;
+    bottom: auto !important;
+    width: 245px;
+    max-width: 245px;
+  }
+
+  /* =========================
+     SCALING
+  ========================= */
+
+  .office-scene .office-room.registered {
+    transform: scale(0.86);
+    transform-origin: top left;
+  }
+
+  .office-scene:not(.single-agent-scene) .office-room.registered {
+    transform: scale(0.78);
+    transform-origin: top left;
+  }
+
+  /* =========================
+     LABELS
+  ========================= */
+
+  .office-scene .room-design .room-label,
+  .office-scene.single-agent-scene .room-design .room-label {
+    top: -8px !important;
+    left: 32px !important;
+    max-width: 210px;
+  }
+
+  .office-scene .room-design .mini-task-card,
+  .office-scene.single-agent-scene .room-design .mini-task-card {
+    right: -18px !important;
+    bottom: -2px !important;
+  }
+
+  .office-scene:not(.single-agent-scene) .office-floating-label.room-label {
+    max-width: 180px;
+  }
+
+  /* =========================
+     OVERLAY CARD SIZE
+  ========================= */
+
+  .office-source-card,
+  .office-resource-card {
+    padding: 9px 11px;
+  }
+
+  .office-source-card strong,
+  .office-resource-card strong {
+    font-size: 11.5px;
+  }
+
+  .office-source-card small,
+  .office-resource-card small {
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .office-help-bar {
+    bottom: 16px;
+  }
+}
+
+/* =========================
+   LARGE DESKTOP FINE TUNE
 ========================= */
 
-@media (min-width: 1201px) {
-    /* Geser seluruh workstation design-agent lebih kanan dan lebih bawah */
-    .office-scene .room-design,
-    .office-scene.single-agent-scene .room-design {
-      left: 40.5% !important;
-      top: 62% !important;
-    }
-  
-    /* Label ikut dirapikan supaya tetap nempel ke workstation */
-    .office-scene .room-design .room-label,
-    .office-scene.single-agent-scene .room-design .room-label {
-      top: -10px !important;
-      left: 30px !important;
-      max-width: 220px;
-    }
-  
-    /* Mini task card Completed ikut digeser sedikit agar tidak terlalu menumpuk avatar */
-    .office-scene .room-design .mini-task-card,
-    .office-scene.single-agent-scene .room-design .mini-task-card {
-      right: -22px !important;
-      bottom: 0px !important;
-    }
+@media (min-width: 1500px) {
+  .office-scene .source-whatsapp,
+  .office-scene.single-agent-scene .source-whatsapp {
+    left: 5.2% !important;
+    top: 34% !important;
   }
-  
-  /* Large desktop fine tune */
-  @media (min-width: 1500px) {
-    .office-scene .room-design,
-    .office-scene.single-agent-scene .room-design {
-      left: 41% !important;
-      top: 62% !important;
-    }
-  
-    .office-scene .room-design .room-label,
-    .office-scene.single-agent-scene .room-design .room-label {
-      top: -8px !important;
-      left: 34px !important;
-    }
-  
-    .office-scene .room-design .mini-task-card,
-    .office-scene.single-agent-scene .room-design .mini-task-card {
-      right: -26px !important;
-      bottom: -2px !important;
-    }
+
+  .office-scene .source-manual,
+  .office-scene.single-agent-scene .source-manual {
+    left: 5.2% !important;
+    top: 64% !important;
   }
+
+  .office-scene .office-server-core,
+  .office-scene.single-agent-scene .office-server-core {
+    left: 50.5% !important;
+    top: 45% !important;
+  }
+
+  .office-scene .room-design,
+  .office-scene.single-agent-scene .room-design {
+    left: 43% !important;
+    top: 67% !important;
+  }
+
+  .office-scene .resource-skill,
+  .office-scene.single-agent-scene .resource-skill {
+    left: 29.5% !important;
+    top: 67% !important;
+  }
+
+  .office-scene .resource-output,
+  .office-scene.single-agent-scene .resource-output {
+    right: 7.5% !important;
+    top: 62% !important;
+  }
+
+  .office-scene .office-room.registered {
+    transform: scale(0.88);
+  }
+
+  .office-scene:not(.single-agent-scene) .office-room.registered {
+    transform: scale(0.8);
+  }
+}
+
+/* =========================
+   RESPONSIVE FALLBACK
+========================= */
+
+@media (max-width: 1200px) {
+  .office-source-card,
+  .office-resource-card,
+  .office-room {
+    width: auto !important;
+    max-width: none !important;
+  }
+}

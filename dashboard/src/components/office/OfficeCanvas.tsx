@@ -8,6 +8,7 @@ import {
   OfficeDetailPanel,
   type OfficeDetailItem,
 } from "./OfficeDetailPanel";
+import { OfficeFlowChannels } from "./OfficeFlowChannels";
 
 type OfficeCanvasProps = {
   agents: AgentSnapshot[];
@@ -359,6 +360,7 @@ export function OfficeCanvas({
 
   const latestTaskStatus = latestTask?.status || "idle";
   const latestSource = latestTask?.source || "none";
+  const hasLatestTask = Boolean(latestTask);
 
   const visibleActivityTasks = showMoreActivity
     ? recentTasks.slice(0, 8)
@@ -417,9 +419,7 @@ export function OfficeCanvas({
     });
   }
 
-  function handleActivityLogPointerDown(
-    event: PointerEvent<HTMLDivElement>
-  ) {
+  function handleActivityLogPointerDown(event: PointerEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement;
 
     if (target.closest("button")) {
@@ -440,9 +440,7 @@ export function OfficeCanvas({
     event.currentTarget.setPointerCapture(event.pointerId);
   }
 
-  function handleActivityLogPointerMove(
-    event: PointerEvent<HTMLDivElement>
-  ) {
+  function handleActivityLogPointerMove(event: PointerEvent<HTMLDivElement>) {
     const dragState = activityLogDragRef.current;
 
     if (!dragState || dragState.pointerId !== event.pointerId) {
@@ -458,9 +456,7 @@ export function OfficeCanvas({
     });
   }
 
-  function handleActivityLogPointerUp(
-    event: PointerEvent<HTMLDivElement>
-  ) {
+  function handleActivityLogPointerUp(event: PointerEvent<HTMLDivElement>) {
     const dragState = activityLogDragRef.current;
 
     if (!dragState || dragState.pointerId !== event.pointerId) {
@@ -687,6 +683,13 @@ export function OfficeCanvas({
         onClick={closeDetailPanel}
       >
         <div className="office-scene-bg" />
+
+        <OfficeFlowChannels
+          isProcessing={isProcessing}
+          latestSource={latestSource}
+          latestTaskStatus={latestTaskStatus}
+          hasLatestTask={hasLatestTask}
+        />
 
         <div
           className="office-mini-toolbar"

@@ -1,0 +1,375 @@
+/* =========================
+   PHASE 8.13
+   REALTIME FLOW CHANNEL BEHAVIOR
+   Static when idle/done, animated only while processing
+========================= */
+
+.office-flow-channel-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 26;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
+  
+  /* =========================
+     STATIC CONNECTOR DUCTS
+     These stay visible but do not animate.
+  ========================= */
+  
+  .office-flow-duct {
+    fill: none;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 12 16;
+    opacity: 0.52;
+    filter: url("#office-flow-glow");
+    transition:
+      opacity 0.28s ease,
+      stroke-width 0.28s ease,
+      stroke 0.28s ease;
+  }
+  
+  .duct-whatsapp-server {
+    stroke: rgba(34, 197, 94, 0.72);
+  }
+  
+  .duct-manual-server {
+    stroke: rgba(96, 165, 250, 0.68);
+  }
+  
+  .duct-agent-server {
+    stroke: rgba(245, 158, 11, 0.78);
+    stroke-width: 4.4;
+  }
+  
+  .duct-skill-agent {
+    stroke: rgba(167, 139, 250, 0.82);
+    stroke-width: 4.4;
+  }
+  
+  .duct-server-output {
+    stroke: rgba(34, 197, 94, 0.68);
+  }
+  
+  /* Calm static state */
+  .office-flow-channel-layer.flow-idle .office-flow-duct {
+    opacity: 0.46;
+    stroke-width: 3.6;
+  }
+  
+  /* If latest task is done/error, keep connectors visible but calm */
+  .office-flow-channel-layer.has-latest-task.flow-idle .office-flow-duct {
+    opacity: 0.52;
+  }
+  
+  /* Output connector status coloring while static */
+  .office-flow-channel-layer.flow-status-done .duct-server-output {
+    stroke: rgba(34, 197, 94, 0.76);
+  }
+  
+  .office-flow-channel-layer.flow-status-error .duct-server-output {
+    stroke: rgba(239, 68, 68, 0.76);
+  }
+  
+  .office-flow-channel-layer.flow-status-in_progress .duct-server-output {
+    stroke: rgba(245, 158, 11, 0.76);
+  }
+  
+  /* =========================
+     ACTIVE DATA STREAMS
+     Only rendered as moving stream during processing.
+  ========================= */
+  
+  .office-flow-data {
+    fill: none;
+    stroke-width: 5.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 18 22;
+    opacity: 0;
+    filter: url("#office-flow-glow");
+    transition:
+      opacity 0.25s ease,
+      stroke 0.25s ease,
+      stroke-width 0.25s ease;
+  }
+  
+  /* Slow smooth animation only when active */
+  .office-flow-data.active {
+    opacity: 0.95;
+    animation:
+      officeFlowMoveSlow 2.4s linear infinite,
+      officeFlowBreath 2.8s ease-in-out infinite;
+  }
+  
+  .data-whatsapp-server.active {
+    stroke: #22c55e;
+  }
+  
+  .data-manual-server.active {
+    stroke: #60a5fa;
+  }
+  
+  .data-agent-server.active {
+    stroke: #f59e0b;
+    stroke-width: 6;
+  }
+  
+  .data-skill-agent.active {
+    stroke: #a78bfa;
+  }
+  
+  .data-server-output.active {
+    stroke: #f59e0b;
+  }
+  
+  /* Processing source emphasis */
+  .office-flow-channel-layer.flow-source-whatsapp.flow-active .duct-whatsapp-server {
+    opacity: 0.82;
+    stroke-width: 4.6;
+  }
+  
+  .office-flow-channel-layer.flow-source-manual.flow-active .duct-manual-server {
+    opacity: 0.82;
+    stroke-width: 4.6;
+  }
+  
+  /* During processing, work connectors feel more alive */
+  .office-flow-channel-layer.flow-active .duct-agent-server,
+  .office-flow-channel-layer.flow-active .duct-skill-agent,
+  .office-flow-channel-layer.flow-active .duct-server-output {
+    opacity: 0.78;
+  }
+  
+  /* After done/error, no animation, just status color */
+  .office-flow-channel-layer.flow-status-done.flow-idle .duct-server-output {
+    stroke: rgba(34, 197, 94, 0.8);
+  }
+  
+  .office-flow-channel-layer.flow-status-error.flow-idle .duct-server-output {
+    stroke: rgba(239, 68, 68, 0.8);
+  }
+  
+  @keyframes officeFlowMoveSlow {
+    to {
+      stroke-dashoffset: -160;
+    }
+  }
+  
+  @keyframes officeFlowBreath {
+    0%,
+    100% {
+      opacity: 0.58;
+    }
+  
+    50% {
+      opacity: 1;
+    }
+  }
+  
+  /* =========================
+     ANCHOR NODES
+  ========================= */
+  
+  .office-flow-node {
+    stroke: rgba(255, 255, 255, 0.62);
+    stroke-width: 1.8;
+    filter: url("#office-flow-glow");
+    opacity: 0.9;
+    transition:
+      opacity 0.22s ease,
+      fill 0.22s ease,
+      transform 0.22s ease;
+  }
+  
+  .whatsapp-anchor {
+    fill: #22c55e;
+  }
+  
+  .manual-anchor {
+    fill: #60a5fa;
+  }
+  
+  .server-anchor {
+    fill: #22d3ee;
+  }
+  
+  .agent-server-anchor,
+  .agent-skill-anchor {
+    fill: #f59e0b;
+  }
+  
+  .skill-anchor {
+    fill: #a78bfa;
+  }
+  
+  .output-anchor {
+    fill: #22c55e;
+  }
+  
+  /* Active anchors pulse only during processing */
+  .office-flow-node.active {
+    opacity: 1;
+    animation: officeFlowNodePulseSlow 2s ease-in-out infinite;
+  }
+  
+  .office-flow-channel-layer.flow-status-done.flow-idle .output-anchor {
+    fill: #22c55e;
+  }
+  
+  .office-flow-channel-layer.flow-status-error.flow-idle .output-anchor {
+    fill: #ef4444;
+  }
+  
+  .office-flow-channel-layer.flow-status-in_progress .output-anchor {
+    fill: #f59e0b;
+  }
+  
+  @keyframes officeFlowNodePulseSlow {
+    0%,
+    100% {
+      opacity: 0.78;
+      r: 6;
+    }
+  
+    50% {
+      opacity: 1;
+      r: 7.2;
+    }
+  }
+  
+  /* =========================
+     LAYERING
+  ========================= */
+  
+  .office-mini-toolbar,
+  .office-legend,
+  .office-detail-panel,
+  .office-activity-log,
+  .office-help-bar,
+  .floating-task-button,
+  .floating-task-panel {
+    position: absolute;
+  }
+  
+  .office-mini-toolbar,
+  .office-legend {
+    z-index: 44;
+  }
+  
+  .office-activity-log {
+    z-index: 45;
+  }
+  
+  .office-help-bar {
+    z-index: 46;
+  }
+  
+  .office-detail-panel {
+    z-index: 70;
+  }
+  
+  .floating-task-button,
+  .floating-task-panel {
+    z-index: 90;
+  }
+  
+  /* Detail mode */
+  .office-scene.detail-open .office-flow-duct {
+    opacity: 0.24;
+  }
+  
+  .office-scene.detail-open .office-flow-data.active {
+    opacity: 0.38;
+  }
+  
+  .office-scene.detail-open .office-flow-node {
+    opacity: 0.5;
+  }
+  
+  /* Compact mode */
+  .office-scene.compact-office .office-flow-duct {
+    opacity: 0.34;
+    stroke-width: 3.2;
+  }
+  
+  .office-scene.compact-office .office-flow-data.active {
+    opacity: 0.64;
+    stroke-width: 4.5;
+  }
+  
+  /* Labels hidden should not hide structural connectors */
+  .office-scene.labels-hidden .office-flow-channel-layer {
+    opacity: 1;
+  }
+  
+  /* =========================
+     M365 LIGHT SUPPORT
+  ========================= */
+  
+  :root[data-theme="m365-light"] .duct-whatsapp-server {
+    stroke: rgba(22, 163, 74, 0.62);
+  }
+  
+  :root[data-theme="m365-light"] .duct-manual-server {
+    stroke: rgba(37, 99, 235, 0.58);
+  }
+  
+  :root[data-theme="m365-light"] .duct-agent-server {
+    stroke: rgba(217, 119, 6, 0.68);
+  }
+  
+  :root[data-theme="m365-light"] .duct-skill-agent {
+    stroke: rgba(124, 58, 237, 0.68);
+  }
+  
+  :root[data-theme="m365-light"] .duct-server-output {
+    stroke: rgba(22, 163, 74, 0.58);
+  }
+  
+  :root[data-theme="m365-light"] .data-whatsapp-server.active {
+    stroke: #16a34a;
+  }
+  
+  :root[data-theme="m365-light"] .data-manual-server.active {
+    stroke: #2563eb;
+  }
+  
+  :root[data-theme="m365-light"] .data-agent-server.active {
+    stroke: #d97706;
+  }
+  
+  :root[data-theme="m365-light"] .data-skill-agent.active {
+    stroke: #7c3aed;
+  }
+  
+  :root[data-theme="m365-light"] .data-server-output.active {
+    stroke: #d97706;
+  }
+  
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .office-flow-channel-layer {
+      display: none;
+    }
+  
+    .office-mini-toolbar,
+    .office-legend,
+    .office-detail-panel,
+    .office-activity-log,
+    .office-help-bar {
+      position: relative;
+    }
+  }
+  
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .office-flow-data.active,
+    .office-flow-node.active {
+      animation: none !important;
+    }
+  }
