@@ -21,6 +21,15 @@ type Suggestion = {
   message: string;
 };
 
+const PREFERRED_AGENT_ORDER = [
+  "design-agent",
+  "writer-agent",
+  "image-agent",
+  "code-agent",
+  "research-agent",
+  "qa-agent",
+];
+
 function createMessage(
   role: ChatMessage["role"],
   text: string,
@@ -33,6 +42,56 @@ function createMessage(
     timestamp: new Date().toISOString(),
     status,
   };
+}
+
+function sortAgentsForManualSelector(agents: AgentSnapshot[]) {
+  return [...agents].sort((firstAgent, secondAgent) => {
+    const firstIndex = PREFERRED_AGENT_ORDER.indexOf(firstAgent.name);
+    const secondIndex = PREFERRED_AGENT_ORDER.indexOf(secondAgent.name);
+
+    const safeFirstIndex =
+      firstIndex === -1 ? PREFERRED_AGENT_ORDER.length + 1 : firstIndex;
+    const safeSecondIndex =
+      secondIndex === -1 ? PREFERRED_AGENT_ORDER.length + 1 : secondIndex;
+
+    if (safeFirstIndex !== safeSecondIndex) {
+      return safeFirstIndex - safeSecondIndex;
+    }
+
+    return firstAgent.name.localeCompare(secondAgent.name);
+  });
+}
+
+function getDefaultAgentName(agents: AgentSnapshot[]) {
+  const designAgent = agents.find((agent) => agent.name === "design-agent");
+
+  if (designAgent) {
+    return designAgent.name;
+  }
+
+  return agents[0]?.name || "design-agent";
+}
+
+function removeLeadingAgentMention(message: string) {
+  return message.trim().replace(/^@[\w-]+\s*/i, "").trim();
+}
+
+function hasAgentMention(message: string) {
+  return /^@[\w-]+\s+/i.test(message.trim());
+}
+
+function buildTargetedMessage(message: string, selectedAgentName: string) {
+  const trimmedMessage = message.trim();
+
+  if (!trimmedMessage) {
+    return "";
+  }
+
+  if (hasAgentMention(trimmedMessage)) {
+    return trimmedMessage;
+  }
+
+  return `@${selectedAgentName} ${trimmedMessage}`;
 }
 
 function buildAvailableAgentsText(agents: AgentSnapshot[]) {
@@ -114,14 +173,23 @@ export function FloatingTaskAssistant({
   agents,
   skills,
 }: FloatingTaskAssistantProps) {
+  const sortedAgents = useMemo(() => sortAgentsForManualSelector(agents), [
+    agents,
+  ]);
+
   const availableAgentsText = useMemo(
-    () => buildAvailableAgentsText(agents),
-    [agents]
+    () => buildAvailableAgentsText(sortedAgents),
+    [sortedAgents]
   );
 
   const suggestions = useMemo(
-    () => buildSuggestions(agents, skills),
-    [agents, skills]
+    () => buildSuggestions(sortedAgents, skills),
+    [sortedAgents, skills]
+  );
+
+  const defaultAgentName = useMemo(
+    () => getDefaultAgentName(sortedAgents),
+    [sortedAgents]
   );
 
   const defaultMessage = useMemo(() => {
@@ -129,14 +197,15 @@ export function FloatingTaskAssistant({
       return suggestions[0].message;
     }
 
-    if (agents.length > 0) {
-      return `@${agents[0].name} halo`;
+    if (sortedAgents.length > 0) {
+      return `@${sortedAgents[0].name} halo`;
     }
 
     return "@design-agent halo";
-  }, [agents, suggestions]);
+  }, [sortedAgents, suggestions]);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedAgentName, setSelectedAgentName] = useState(defaultAgentName);
   const [message, setMessage] = useState(defaultMessage);
   const [isSending, setIsSending] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -144,6 +213,26 @@ export function FloatingTaskAssistant({
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const selectedAgent = sortedAgents.find(
+    (agent) => agent.name === selectedAgentName
+  );
+
+  const targetedPreview = buildTargetedMessage(message, selectedAgentName);
+
+  useEffect(() => {
+    setSelectedAgentName((currentAgentName) => {
+      const currentAgentExists = sortedAgents.some(
+        (agent) => agent.name === currentAgentName
+      );
+
+      if (currentAgentExists) {
+        return currentAgentName;
+      }
+
+      return getDefaultAgentName(sortedAgents);
+    });
+  }, [sortedAgents]);
 
   useEffect(() => {
     setMessages((currentMessages) => {
@@ -185,10 +274,29 @@ export function FloatingTaskAssistant({
     });
   }, [messages, isOpen]);
 
+  function handleAgentChange(nextAgentName: string) {
+    setSelectedAgentName(nextAgentName);
+
+    setMessage((currentMessage) => {
+      if (!currentMessage.trim()) {
+        return `@${nextAgentName} `;
+      }
+
+      const messageWithoutMention = removeLeadingAgentMention(currentMessage);
+
+      if (!messageWithoutMention) {
+        return `@${nextAgentName} `;
+      }
+
+      return `@${nextAgentName} ${messageWithoutMention}`;
+    });
+  }
+
   async function handleSendTask() {
     const trimmedMessage = message.trim();
+    const targetedMessage = buildTargetedMessage(trimmedMessage, selectedAgentName);
 
-    if (!trimmedMessage) {
+    if (!targetedMessage) {
       setMessages((currentMessages) => [
         ...currentMessages,
         createMessage("assistant", "Message wajib diisi.", "error"),
@@ -196,7 +304,7 @@ export function FloatingTaskAssistant({
       return;
     }
 
-    if (!trimmedMessage.includes("@")) {
+    if (!targetedMessage.includes("@")) {
       setMessages((currentMessages) => [
         ...currentMessages,
         createMessage(
@@ -213,12 +321,12 @@ export function FloatingTaskAssistant({
 
       setMessages((currentMessages) => [
         ...currentMessages,
-        createMessage("user", trimmedMessage),
+        createMessage("user", targetedMessage),
       ]);
 
       setMessage("");
 
-      const response = await sendManualTask(trimmedMessage);
+      const response = await sendManualTask(targetedMessage);
 
       setMessages((currentMessages) => [
         ...currentMessages,
@@ -291,6 +399,35 @@ export function FloatingTaskAssistant({
             Connected to backend orchestrator
           </div>
 
+          <div className="floating-task-target-row">
+            <label htmlFor="floating-task-agent-select">Target</label>
+
+            <select
+              id="floating-task-agent-select"
+              value={selectedAgentName}
+              onChange={(event) => handleAgentChange(event.target.value)}
+            >
+              {sortedAgents.length === 0 ? (
+                <option value="design-agent">design-agent</option>
+              ) : (
+                sortedAgents.map((agent) => (
+                  <option key={agent.id} value={agent.name}>
+                    {agent.name}
+                  </option>
+                ))
+              )}
+            </select>
+
+            <span className="floating-task-target-status">
+              {selectedAgent?.status || "idle"}
+            </span>
+          </div>
+
+          <div className="floating-task-preview">
+            <span>Preview</span>
+            <code>{targetedPreview || `@${selectedAgentName} ...`}</code>
+          </div>
+
           <div className="floating-task-messages">
             {messages.map((chatMessage) => (
               <div
@@ -323,7 +460,7 @@ export function FloatingTaskAssistant({
 
           <div className="floating-task-suggestions">
             {suggestions.length === 0 ? (
-              <button onClick={() => setMessage("@design-agent halo")}>
+              <button onClick={() => setMessage(`@${selectedAgentName} halo`)}>
                 Default command
               </button>
             ) : (
@@ -343,7 +480,7 @@ export function FloatingTaskAssistant({
               value={message}
               onChange={(event) => setMessage(event.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="@design-agent create an ad copy..."
+              placeholder={`@${selectedAgentName} create an ad copy...`}
               rows={2}
             />
 

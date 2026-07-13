@@ -15,6 +15,7 @@ import {
   type OfficeDetailItem,
 } from "./OfficeDetailPanel";
 import { OfficeFlowChannels } from "./OfficeFlowChannels";
+import { sortOfficeAgents } from "./officeAgentOrder";
 
 type OfficeCanvasProps = {
   agents: AgentSnapshot[];
@@ -438,7 +439,7 @@ export function OfficeCanvas({
     originY: number;
   } | null>(null);
 
-  const realAgents = agents.slice(0, roomSlots.length);
+  const realAgents = sortOfficeAgents(agents).slice(0, roomSlots.length);
 
   const latestTask = recentTasks[0];
   const latestWhatsAppTask = getLatestWhatsAppTask(recentTasks);

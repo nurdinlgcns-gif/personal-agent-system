@@ -2,6 +2,7 @@
 
 /* Core components */
 @import "./styles/components/floating-assistant.css";
+
 @import "./styles/components/skill-library.css";
 @import "./styles/components/agent-status.css";
 @import "./styles/components/agent-preview.css";
