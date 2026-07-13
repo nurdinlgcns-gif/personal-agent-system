@@ -386,114 +386,139 @@
 }
 
 /* =========================
-   PHASE 8.23
-   TARGET AGENT SELECTOR
-   Keep old chat bubble UI, add only compact selector polish
+   PHASE 8.24
+   AGENT MENTION AUTOCOMPLETE
+   Keep old Floating Assistant UI unchanged
 ========================= */
 
-.floating-task-target-row {
+.floating-task-input-wrap {
+  position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 10px;
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.46);
-  border: 1px solid rgba(148, 163, 184, 0.13);
 }
 
-.floating-task-target-row label {
-  color: #94a3b8;
-  font-size: 10.5px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.32px;
-}
+.floating-task-mention-popover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 220;
 
-.floating-task-target-row select {
-  min-width: 0;
-  height: 32px;
-  border-radius: 10px;
-  padding: 0 9px;
-  color: #f8fafc;
-  background: rgba(2, 6, 23, 0.72);
-  border: 1px solid rgba(96, 165, 250, 0.22);
-  font-size: 11.5px;
-  font-weight: 800;
-  outline: none;
-}
-
-.floating-task-target-row select:focus {
-  border-color: rgba(96, 165, 250, 0.55);
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
-}
-
-.floating-task-target-status {
-  border-radius: 999px;
-  padding: 5px 8px;
-  color: #bbf7d0;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-  font-size: 10px;
-  font-weight: 900;
-}
-
-.floating-task-preview {
   display: grid;
   gap: 5px;
-  padding: 9px 10px;
+  padding: 8px;
   border-radius: 14px;
-  background: rgba(37, 99, 235, 0.1);
-  border: 1px solid rgba(96, 165, 250, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(96, 165, 250, 0.16), transparent 36%),
+    rgba(8, 15, 32, 0.96);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
 }
 
-.floating-task-preview span {
+.mention-popover-title {
+  padding: 3px 5px 6px;
   color: #93c5fd;
   font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.32px;
+  letter-spacing: 0.36px;
 }
 
-.floating-task-preview code {
+.mention-agent-option {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border-radius: 11px;
+  padding: 8px 9px;
   color: #e2e8f0;
-  font-size: 11px;
-  line-height: 1.38;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  background: rgba(15, 23, 42, 0.58);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease,
+    color 0.16s ease;
+}
+
+.mention-agent-option:hover,
+.mention-agent-option.active {
+  color: #ffffff;
+  background: rgba(37, 99, 235, 0.22);
+  border-color: rgba(96, 165, 250, 0.34);
+  transform: translateY(-1px);
+}
+
+.mention-agent-option span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.mention-agent-option small {
+  border-radius: 999px;
+  padding: 4px 7px;
+  color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 /* Light theme support */
-:root[data-theme="m365-light"] .floating-task-target-row {
+:root[data-theme="m365-light"] .floating-task-mention-popover {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(37, 99, 235, 0.16);
+  box-shadow:
+    0 20px 50px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+:root[data-theme="m365-light"] .mention-popover-title {
+  color: #1d4ed8;
+}
+
+:root[data-theme="m365-light"] .mention-agent-option {
+  color: #334155;
   background: #f8fafc;
   border-color: rgba(15, 23, 42, 0.08);
 }
 
-:root[data-theme="m365-light"] .floating-task-target-row label {
-  color: #64748b;
-}
-
-:root[data-theme="m365-light"] .floating-task-target-row select {
-  color: #111827;
-  background: #ffffff;
+:root[data-theme="m365-light"] .mention-agent-option:hover,
+:root[data-theme="m365-light"] .mention-agent-option.active {
+  color: #1d4ed8;
+  background: #eff6ff;
   border-color: rgba(37, 99, 235, 0.16);
 }
 
-:root[data-theme="m365-light"] .floating-task-target-status {
+:root[data-theme="m365-light"] .mention-agent-option small {
   color: #15803d;
   background: #dcfce7;
   border-color: rgba(22, 163, 74, 0.18);
 }
 
-:root[data-theme="m365-light"] .floating-task-preview {
-  background: #eff6ff;
-  border-color: rgba(37, 99, 235, 0.14);
-}
+/* Mobile safety */
+@media (max-width: 560px) {
+  .floating-task-mention-popover {
+    bottom: calc(100% + 6px);
+    padding: 7px;
+  }
 
-:root[data-theme="m365-light"] .floating-task-preview span {
-  color: #1d4ed8;
-}
+  .mention-agent-option {
+    padding: 7px 8px;
+  }
 
-:root[data-theme="m365-light"] .floating-task-preview code {
-  color: #111827;
+  .mention-agent-option span {
+    font-size: 11.5px;
+  }
 }

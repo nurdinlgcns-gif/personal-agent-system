@@ -21,6 +21,12 @@ type Suggestion = {
   message: string;
 };
 
+type MentionQuery = {
+  query: string;
+  startIndex: number;
+  endIndex: number;
+};
+
 const PREFERRED_AGENT_ORDER = [
   "design-agent",
   "writer-agent",
@@ -44,7 +50,7 @@ function createMessage(
   };
 }
 
-function sortAgentsForManualSelector(agents: AgentSnapshot[]) {
+function sortAgentsForMention(agents: AgentSnapshot[]) {
   return [...agents].sort((firstAgent, secondAgent) => {
     const firstIndex = PREFERRED_AGENT_ORDER.indexOf(firstAgent.name);
     const secondIndex = PREFERRED_AGENT_ORDER.indexOf(secondAgent.name);
@@ -60,38 +66,6 @@ function sortAgentsForManualSelector(agents: AgentSnapshot[]) {
 
     return firstAgent.name.localeCompare(secondAgent.name);
   });
-}
-
-function getDefaultAgentName(agents: AgentSnapshot[]) {
-  const designAgent = agents.find((agent) => agent.name === "design-agent");
-
-  if (designAgent) {
-    return designAgent.name;
-  }
-
-  return agents[0]?.name || "design-agent";
-}
-
-function removeLeadingAgentMention(message: string) {
-  return message.trim().replace(/^@[\w-]+\s*/i, "").trim();
-}
-
-function hasAgentMention(message: string) {
-  return /^@[\w-]+\s+/i.test(message.trim());
-}
-
-function buildTargetedMessage(message: string, selectedAgentName: string) {
-  const trimmedMessage = message.trim();
-
-  if (!trimmedMessage) {
-    return "";
-  }
-
-  if (hasAgentMention(trimmedMessage)) {
-    return trimmedMessage;
-  }
-
-  return `@${selectedAgentName} ${trimmedMessage}`;
 }
 
 function buildAvailableAgentsText(agents: AgentSnapshot[]) {
@@ -168,14 +142,37 @@ function buildSuggestions(
   return suggestions.slice(0, 6);
 }
 
+function getMentionQuery(message: string, cursorPosition: number): MentionQuery | null {
+  const textBeforeCursor = message.slice(0, cursorPosition);
+
+  const match = textBeforeCursor.match(/(^|\s)@([\w-]*)$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const fullMatch = match[0];
+  const query = match[2] || "";
+  const atIndexInMatch = fullMatch.lastIndexOf("@");
+  const startIndex = textBeforeCursor.length - fullMatch.length + atIndexInMatch;
+
+  return {
+    query,
+    startIndex,
+    endIndex: cursorPosition,
+  };
+}
+
+function hasAgentMention(message: string) {
+  return /(^|\s)@[\w-]+(\s|$)/i.test(message.trim());
+}
+
 export function FloatingTaskAssistant({
   onTaskSent,
   agents,
   skills,
 }: FloatingTaskAssistantProps) {
-  const sortedAgents = useMemo(() => sortAgentsForManualSelector(agents), [
-    agents,
-  ]);
+  const sortedAgents = useMemo(() => sortAgentsForMention(agents), [agents]);
 
   const availableAgentsText = useMemo(
     () => buildAvailableAgentsText(sortedAgents),
@@ -185,11 +182,6 @@ export function FloatingTaskAssistant({
   const suggestions = useMemo(
     () => buildSuggestions(sortedAgents, skills),
     [sortedAgents, skills]
-  );
-
-  const defaultAgentName = useMemo(
-    () => getDefaultAgentName(sortedAgents),
-    [sortedAgents]
   );
 
   const defaultMessage = useMemo(() => {
@@ -205,34 +197,31 @@ export function FloatingTaskAssistant({
   }, [sortedAgents, suggestions]);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedAgentName, setSelectedAgentName] = useState(defaultAgentName);
   const [message, setMessage] = useState(defaultMessage);
   const [isSending, setIsSending] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     createMessage("system", availableAgentsText),
   ]);
 
+  const [mentionQuery, setMentionQuery] = useState<MentionQuery | null>(null);
+  const [activeMentionIndex, setActiveMentionIndex] = useState(0);
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const selectedAgent = sortedAgents.find(
-    (agent) => agent.name === selectedAgentName
-  );
+  const mentionAgents = useMemo(() => {
+    if (!mentionQuery) {
+      return [];
+    }
 
-  const targetedPreview = buildTargetedMessage(message, selectedAgentName);
+    const normalizedQuery = mentionQuery.query.toLowerCase();
 
-  useEffect(() => {
-    setSelectedAgentName((currentAgentName) => {
-      const currentAgentExists = sortedAgents.some(
-        (agent) => agent.name === currentAgentName
-      );
+    return sortedAgents
+      .filter((agent) => agent.name.toLowerCase().includes(normalizedQuery))
+      .slice(0, 6);
+  }, [mentionQuery, sortedAgents]);
 
-      if (currentAgentExists) {
-        return currentAgentName;
-      }
-
-      return getDefaultAgentName(sortedAgents);
-    });
-  }, [sortedAgents]);
+  const shouldShowMentionPopup = mentionQuery !== null && mentionAgents.length > 0;
 
   useEffect(() => {
     setMessages((currentMessages) => {
@@ -274,29 +263,63 @@ export function FloatingTaskAssistant({
     });
   }, [messages, isOpen]);
 
-  function handleAgentChange(nextAgentName: string) {
-    setSelectedAgentName(nextAgentName);
+  useEffect(() => {
+    if (!shouldShowMentionPopup) {
+      setActiveMentionIndex(0);
+      return;
+    }
 
-    setMessage((currentMessage) => {
-      if (!currentMessage.trim()) {
-        return `@${nextAgentName} `;
+    setActiveMentionIndex((currentIndex) => {
+      if (currentIndex >= mentionAgents.length) {
+        return 0;
       }
 
-      const messageWithoutMention = removeLeadingAgentMention(currentMessage);
+      return currentIndex;
+    });
+  }, [mentionAgents.length, shouldShowMentionPopup]);
 
-      if (!messageWithoutMention) {
-        return `@${nextAgentName} `;
-      }
+  function updateMentionQuery(nextMessage: string, cursorPosition: number) {
+    const nextMentionQuery = getMentionQuery(nextMessage, cursorPosition);
+    setMentionQuery(nextMentionQuery);
+  }
 
-      return `@${nextAgentName} ${messageWithoutMention}`;
+  function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
+    const nextMessage = event.target.value;
+    const cursorPosition = event.target.selectionStart;
+
+    setMessage(nextMessage);
+    updateMentionQuery(nextMessage, cursorPosition);
+  }
+
+  function insertAgentMention(agentName: string) {
+    const textarea = textareaRef.current;
+
+    if (!mentionQuery || !textarea) {
+      return;
+    }
+
+    const mentionText = `@${agentName} `;
+    const nextMessage =
+      message.slice(0, mentionQuery.startIndex) +
+      mentionText +
+      message.slice(mentionQuery.endIndex);
+
+    const nextCursorPosition = mentionQuery.startIndex + mentionText.length;
+
+    setMessage(nextMessage);
+    setMentionQuery(null);
+    setActiveMentionIndex(0);
+
+    window.requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(nextCursorPosition, nextCursorPosition);
     });
   }
 
   async function handleSendTask() {
     const trimmedMessage = message.trim();
-    const targetedMessage = buildTargetedMessage(trimmedMessage, selectedAgentName);
 
-    if (!targetedMessage) {
+    if (!trimmedMessage) {
       setMessages((currentMessages) => [
         ...currentMessages,
         createMessage("assistant", "Message wajib diisi.", "error"),
@@ -304,7 +327,7 @@ export function FloatingTaskAssistant({
       return;
     }
 
-    if (!targetedMessage.includes("@")) {
+    if (!hasAgentMention(trimmedMessage)) {
       setMessages((currentMessages) => [
         ...currentMessages,
         createMessage(
@@ -321,12 +344,13 @@ export function FloatingTaskAssistant({
 
       setMessages((currentMessages) => [
         ...currentMessages,
-        createMessage("user", targetedMessage),
+        createMessage("user", trimmedMessage),
       ]);
 
       setMessage("");
+      setMentionQuery(null);
 
-      const response = await sendManualTask(targetedMessage);
+      const response = await sendManualTask(trimmedMessage);
 
       setMessages((currentMessages) => [
         ...currentMessages,
@@ -348,9 +372,67 @@ export function FloatingTaskAssistant({
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (shouldShowMentionPopup) {
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+
+        setActiveMentionIndex((currentIndex) =>
+          currentIndex + 1 >= mentionAgents.length ? 0 : currentIndex + 1
+        );
+
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+
+        setActiveMentionIndex((currentIndex) =>
+          currentIndex - 1 < 0 ? mentionAgents.length - 1 : currentIndex - 1
+        );
+
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === "Tab") {
+        event.preventDefault();
+
+        const selectedAgent = mentionAgents[activeMentionIndex];
+
+        if (selectedAgent) {
+          insertAgentMention(selectedAgent.name);
+        }
+
+        return;
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMentionQuery(null);
+        setActiveMentionIndex(0);
+        return;
+      }
+    }
+
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       handleSendTask();
+    }
+  }
+
+  function handleTextareaClick(event: React.MouseEvent<HTMLTextAreaElement>) {
+    const target = event.currentTarget;
+    updateMentionQuery(target.value, target.selectionStart);
+  }
+
+  function handleTextareaKeyUp(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (
+      event.key === "ArrowLeft" ||
+      event.key === "ArrowRight" ||
+      event.key === "Home" ||
+      event.key === "End"
+    ) {
+      const target = event.currentTarget;
+      updateMentionQuery(target.value, target.selectionStart);
     }
   }
 
@@ -399,35 +481,6 @@ export function FloatingTaskAssistant({
             Connected to backend orchestrator
           </div>
 
-          <div className="floating-task-target-row">
-            <label htmlFor="floating-task-agent-select">Target</label>
-
-            <select
-              id="floating-task-agent-select"
-              value={selectedAgentName}
-              onChange={(event) => handleAgentChange(event.target.value)}
-            >
-              {sortedAgents.length === 0 ? (
-                <option value="design-agent">design-agent</option>
-              ) : (
-                sortedAgents.map((agent) => (
-                  <option key={agent.id} value={agent.name}>
-                    {agent.name}
-                  </option>
-                ))
-              )}
-            </select>
-
-            <span className="floating-task-target-status">
-              {selectedAgent?.status || "idle"}
-            </span>
-          </div>
-
-          <div className="floating-task-preview">
-            <span>Preview</span>
-            <code>{targetedPreview || `@${selectedAgentName} ...`}</code>
-          </div>
-
           <div className="floating-task-messages">
             {messages.map((chatMessage) => (
               <div
@@ -460,14 +513,17 @@ export function FloatingTaskAssistant({
 
           <div className="floating-task-suggestions">
             {suggestions.length === 0 ? (
-              <button onClick={() => setMessage(`@${selectedAgentName} halo`)}>
+              <button onClick={() => setMessage("@design-agent halo")}>
                 Default command
               </button>
             ) : (
               suggestions.map((suggestion) => (
                 <button
                   key={`${suggestion.label}-${suggestion.message}`}
-                  onClick={() => setMessage(suggestion.message)}
+                  onClick={() => {
+                    setMessage(suggestion.message);
+                    setMentionQuery(null);
+                  }}
                 >
                   {suggestion.label}
                 </button>
@@ -476,13 +532,43 @@ export function FloatingTaskAssistant({
           </div>
 
           <footer className="floating-task-input-area">
-            <textarea
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={`@${selectedAgentName} create an ad copy...`}
-              rows={2}
-            />
+            <div className="floating-task-input-wrap">
+              {shouldShowMentionPopup && (
+                <div className="floating-task-mention-popover">
+                  <div className="mention-popover-title">
+                    Select agent
+                  </div>
+
+                  {mentionAgents.map((agent, index) => (
+                    <button
+                      type="button"
+                      key={agent.id}
+                      className={`mention-agent-option ${
+                        index === activeMentionIndex ? "active" : ""
+                      }`}
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        insertAgentMention(agent.name);
+                      }}
+                    >
+                      <span>@{agent.name}</span>
+                      <small>{agent.status}</small>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <textarea
+                ref={textareaRef}
+                value={message}
+                onChange={handleTextareaChange}
+                onClick={handleTextareaClick}
+                onKeyDown={handleKeyDown}
+                onKeyUp={handleTextareaKeyUp}
+                placeholder="@design-agent create an ad copy..."
+                rows={2}
+              />
+            </div>
 
             <div className="floating-task-actions">
               <button
