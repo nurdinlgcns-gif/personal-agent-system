@@ -11,15 +11,17 @@ type OfficeFlowChannelsProps = {
     latestTaskStatus,
     hasLatestTask,
   }: OfficeFlowChannelsProps) {
-    const isManualFlowActive = hasLatestTask && latestSource === "manual";
-    const isWhatsAppFlowActive = hasLatestTask && latestSource === "whatsapp";
-    const hasVisibleActivity = isProcessing || hasLatestTask;
+    const isManualFlowActive = isProcessing && latestSource === "manual";
+    const isWhatsAppFlowActive = isProcessing && latestSource === "whatsapp";
+    const isWorkflowActive = isProcessing;
   
     return (
       <svg
         className={`office-flow-channel-layer ${
           isProcessing ? "flow-active" : "flow-idle"
-        } flow-status-${latestTaskStatus} flow-source-${latestSource}`}
+        } flow-status-${latestTaskStatus} flow-source-${latestSource} ${
+          hasLatestTask ? "has-latest-task" : "no-latest-task"
+        }`}
         viewBox="0 0 1600 700"
         preserveAspectRatio="none"
         aria-hidden="true"
@@ -32,7 +34,7 @@ type OfficeFlowChannelsProps = {
             width="220%"
             height="220%"
           >
-            <feGaussianBlur stdDeviation="3.6" result="coloredBlur" />
+            <feGaussianBlur stdDeviation="3.4" result="coloredBlur" />
             <feMerge>
               <feMergeNode in="coloredBlur" />
               <feMergeNode in="SourceGraphic" />
@@ -40,69 +42,66 @@ type OfficeFlowChannelsProps = {
           </filter>
         </defs>
   
-        {/* WhatsApp Source -> Server Room */}
+        {/* Static connector ducts */}
         <path
           className="office-flow-duct duct-whatsapp-server"
           d="M285 305 H570 V355 H755"
         />
   
-        {/* Manual Console -> Server Room */}
         <path
           className="office-flow-duct duct-manual-server"
           d="M285 530 H570 V390 H755"
         />
   
-        {/* design-agent -> Server Room */}
         <path
           className="office-flow-duct duct-agent-server"
           d="M940 585 H985 V445 H860"
         />
   
-        {/* Skill Shelf -> design-agent */}
         <path
           className="office-flow-duct duct-skill-agent"
           d="M620 615 H740"
         />
   
-        {/* Server Room -> Output Board */}
         <path
           className="office-flow-duct duct-server-output"
           d="M900 385 H1125 V505 H1260"
         />
   
-        {/* Ambient moving streams, subtle but always visible for structural clarity */}
+        {/* Step 1: Source -> Server */}
         <path
-          className={`office-flow-data ambient data-whatsapp-server ${
-            isWhatsAppFlowActive ? "active" : ""
+          className={`office-flow-data data-whatsapp-server ${
+            isWhatsAppFlowActive ? "active step-1" : ""
           }`}
           d="M285 305 H570 V355 H755"
         />
   
         <path
-          className={`office-flow-data ambient data-skill-agent ${
-            hasVisibleActivity ? "active" : ""
-          }`}
-          d="M620 615 H740"
-        />
-  
-        {/* Active source / system streams */}
-        <path
           className={`office-flow-data data-manual-server ${
-            isManualFlowActive ? "active" : ""
+            isManualFlowActive ? "active step-1" : ""
           }`}
           d="M285 530 H570 V390 H755"
         />
   
+        {/* Step 2: Skill -> Agent + Agent -> Server */}
+        <path
+          className={`office-flow-data data-skill-agent ${
+            isWorkflowActive ? "active step-2" : ""
+          }`}
+          d="M620 615 H740"
+        />
+  
         <path
           className={`office-flow-data data-agent-server ${
-            hasVisibleActivity ? "active" : ""
+            isWorkflowActive ? "active step-2" : ""
           }`}
           d="M940 585 H985 V445 H860"
         />
   
+        {/* Step 3: Server -> Output */}
         <path
           className={`office-flow-data data-server-output ${
-            hasLatestTask ? "active" : ""
+            isWorkflowActive ? "active step-3" : ""
           }`}
           d="M900 385 H1125 V505 H1260"
         />
@@ -110,7 +109,7 @@ type OfficeFlowChannelsProps = {
         {/* Source anchors */}
         <circle
           className={`office-flow-node whatsapp-anchor ${
-            isWhatsAppFlowActive ? "active" : ""
+            isWhatsAppFlowActive ? "active step-1" : ""
           }`}
           cx="285"
           cy="305"
@@ -119,7 +118,7 @@ type OfficeFlowChannelsProps = {
   
         <circle
           className={`office-flow-node manual-anchor ${
-            isManualFlowActive ? "active" : ""
+            isManualFlowActive ? "active step-1" : ""
           }`}
           cx="285"
           cy="530"
@@ -129,7 +128,7 @@ type OfficeFlowChannelsProps = {
         {/* Server anchors */}
         <circle
           className={`office-flow-node server-anchor server-whatsapp-anchor ${
-            isWhatsAppFlowActive || hasLatestTask ? "active" : ""
+            isWhatsAppFlowActive ? "active step-1" : ""
           }`}
           cx="755"
           cy="355"
@@ -138,7 +137,7 @@ type OfficeFlowChannelsProps = {
   
         <circle
           className={`office-flow-node server-anchor server-manual-anchor ${
-            isManualFlowActive || hasLatestTask ? "active" : ""
+            isManualFlowActive ? "active step-1" : ""
           }`}
           cx="755"
           cy="390"
@@ -147,7 +146,7 @@ type OfficeFlowChannelsProps = {
   
         <circle
           className={`office-flow-node server-anchor server-agent-anchor ${
-            hasVisibleActivity ? "active" : ""
+            isWorkflowActive ? "active step-2" : ""
           }`}
           cx="860"
           cy="445"
@@ -156,7 +155,7 @@ type OfficeFlowChannelsProps = {
   
         <circle
           className={`office-flow-node server-anchor server-output-anchor ${
-            hasLatestTask ? "active" : ""
+            isWorkflowActive ? "active step-3" : ""
           }`}
           cx="900"
           cy="385"
@@ -166,7 +165,7 @@ type OfficeFlowChannelsProps = {
         {/* Agent anchors */}
         <circle
           className={`office-flow-node agent-server-anchor ${
-            hasVisibleActivity ? "active" : ""
+            isWorkflowActive ? "active step-2" : ""
           }`}
           cx="940"
           cy="585"
@@ -175,7 +174,7 @@ type OfficeFlowChannelsProps = {
   
         <circle
           className={`office-flow-node agent-skill-anchor ${
-            hasVisibleActivity ? "active" : ""
+            isWorkflowActive ? "active step-2" : ""
           }`}
           cx="740"
           cy="615"
@@ -185,7 +184,7 @@ type OfficeFlowChannelsProps = {
         {/* Skill Shelf anchor */}
         <circle
           className={`office-flow-node skill-anchor ${
-            hasVisibleActivity ? "active" : ""
+            isWorkflowActive ? "active step-2" : ""
           }`}
           cx="620"
           cy="615"
@@ -195,7 +194,7 @@ type OfficeFlowChannelsProps = {
         {/* Output Board anchor */}
         <circle
           className={`office-flow-node output-anchor ${
-            hasLatestTask ? "active" : ""
+            isWorkflowActive ? "active step-3" : ""
           }`}
           cx="1260"
           cy="505"

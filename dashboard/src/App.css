@@ -20,3 +20,7 @@
 @import "./styles/components/office-flow-channels.css";
 @import "./styles/components/sidebar-fixed-layout.css";
 @import "./styles/components/sidebar-collapsible.css";
+@import "./styles/components/office-viewport-zoom.css";
+@import "./styles/components/office-activity-log-responsive.css";
+@import "./styles/components/office-mobile-canvas-fix.css";
+@import "./styles/components/office-render-stability.css";

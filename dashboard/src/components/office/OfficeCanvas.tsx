@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent,
+} from "react";
 import type {
   AgentSnapshot,
   SkillSnapshot,
@@ -30,7 +36,28 @@ type ActivityLogPosition = {
   y: number;
 };
 
+type VisualFlowState = {
+  active: boolean;
+  source: string;
+  status: string;
+  taskId: string | null;
+  startedAt: number;
+};
+
 const ACTIVITY_LOG_POSITION_KEY = "office-activity-log-position";
+const OFFICE_ZOOM_STORAGE_KEY = "office-scene-zoom-level";
+const OFFICE_SHOW_LABELS_KEY = "office-show-labels";
+const OFFICE_SHOW_LOG_KEY = "office-show-activity-log";
+const OFFICE_COMPACT_MODE_KEY = "office-compact-mode";
+
+const OFFICE_SCENE_WIDTH = 1600;
+const OFFICE_SCENE_HEIGHT = 700;
+
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 1.25;
+const ZOOM_STEP = 0.1;
+
+const MIN_VISUAL_FLOW_MS = 4200;
 
 const roomSlots: OfficeRoomSlot[] = [
   {
@@ -70,6 +97,46 @@ const roomSlots: OfficeRoomSlot[] = [
     accent: "yellow",
   },
 ];
+
+function clampZoom(value: number) {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
+}
+
+function readBooleanPreference(key: string, fallbackValue: boolean) {
+  const savedValue = localStorage.getItem(key);
+
+  if (savedValue === "true") {
+    return true;
+  }
+
+  if (savedValue === "false") {
+    return false;
+  }
+
+  return fallbackValue;
+}
+
+function getInitialZoomLevel() {
+  const savedZoom = localStorage.getItem(OFFICE_ZOOM_STORAGE_KEY);
+
+  if (savedZoom) {
+    const parsedZoom = Number(savedZoom);
+
+    if (!Number.isNaN(parsedZoom)) {
+      return clampZoom(parsedZoom);
+    }
+  }
+
+  if (window.innerWidth <= 700) {
+    return 0.62;
+  }
+
+  if (window.innerWidth <= 1200) {
+    return 0.75;
+  }
+
+  return 1;
+}
 
 function normalizeStatus(status?: string) {
   if (status === "working" || status === "in_progress") {
@@ -317,14 +384,34 @@ export function OfficeCanvas({
   skills,
   isProcessing,
 }: OfficeCanvasProps) {
+  const sceneViewportRef = useRef<HTMLDivElement | null>(null);
+  const visualFlowTimeoutRef = useRef<number | null>(null);
+
   const [selectedItem, setSelectedItem] = useState<OfficeDetailItem | null>(
     null
   );
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [showMoreActivity, setShowMoreActivity] = useState(false);
-  const [showLabels, setShowLabels] = useState(true);
-  const [showActivityLog, setShowActivityLog] = useState(true);
-  const [compactMode, setCompactMode] = useState(false);
+
+  const [showLabels, setShowLabels] = useState(() =>
+    readBooleanPreference(OFFICE_SHOW_LABELS_KEY, true)
+  );
+  const [showActivityLog, setShowActivityLog] = useState(() =>
+    readBooleanPreference(OFFICE_SHOW_LOG_KEY, true)
+  );
+  const [compactMode, setCompactMode] = useState(() =>
+    readBooleanPreference(OFFICE_COMPACT_MODE_KEY, false)
+  );
+
+  const [zoomLevel, setZoomLevel] = useState(getInitialZoomLevel);
+
+  const [visualFlow, setVisualFlow] = useState<VisualFlowState>({
+    active: false,
+    source: "none",
+    status: "idle",
+    taskId: null,
+    startedAt: 0,
+  });
 
   const [activityLogPosition, setActivityLogPosition] =
     useState<ActivityLogPosition>(() => {
@@ -381,6 +468,10 @@ export function OfficeCanvas({
     return status === "error";
   }).length;
 
+  const visualFlowSource = visualFlow.source || latestSource;
+  const visualFlowStatus = visualFlow.active ? "in_progress" : visualFlow.status;
+  const visualFlowHasTask = hasLatestTask || Boolean(visualFlow.taskId);
+
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -396,11 +487,91 @@ export function OfficeCanvas({
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (visualFlowTimeoutRef.current) {
+        window.clearTimeout(visualFlowTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isProcessing) {
+      if (visualFlowTimeoutRef.current) {
+        window.clearTimeout(visualFlowTimeoutRef.current);
+        visualFlowTimeoutRef.current = null;
+      }
+
+      setVisualFlow({
+        active: true,
+        source: latestSource,
+        status: "in_progress",
+        taskId: latestTask?.id || null,
+        startedAt: Date.now(),
+      });
+
+      return;
+    }
+
+    setVisualFlow((currentFlow) => {
+      if (!currentFlow.active) {
+        return {
+          ...currentFlow,
+          source: latestSource || currentFlow.source,
+          status: latestTaskStatus,
+          taskId: latestTask?.id || currentFlow.taskId,
+        };
+      }
+
+      const finalStatus =
+        latestTaskStatus === "error"
+          ? "error"
+          : latestTaskStatus === "done"
+            ? "done"
+            : "idle";
+
+      const elapsedTime = Date.now() - currentFlow.startedAt;
+      const remainingTime = Math.max(0, MIN_VISUAL_FLOW_MS - elapsedTime);
+
+      if (visualFlowTimeoutRef.current) {
+        window.clearTimeout(visualFlowTimeoutRef.current);
+      }
+
+      visualFlowTimeoutRef.current = window.setTimeout(() => {
+        setVisualFlow((previousFlow) => ({
+          ...previousFlow,
+          active: false,
+          status: finalStatus,
+          taskId: latestTask?.id || previousFlow.taskId,
+          startedAt: 0,
+        }));
+      }, remainingTime);
+
+      return currentFlow;
+    });
+  }, [isProcessing, latestSource, latestTaskStatus, latestTask?.id]);
+
+  useEffect(() => {
     localStorage.setItem(
       ACTIVITY_LOG_POSITION_KEY,
       JSON.stringify(activityLogPosition)
     );
   }, [activityLogPosition]);
+
+  useEffect(() => {
+    localStorage.setItem(OFFICE_ZOOM_STORAGE_KEY, String(zoomLevel));
+  }, [zoomLevel]);
+
+  useEffect(() => {
+    localStorage.setItem(OFFICE_SHOW_LABELS_KEY, String(showLabels));
+  }, [showLabels]);
+
+  useEffect(() => {
+    localStorage.setItem(OFFICE_SHOW_LOG_KEY, String(showActivityLog));
+  }, [showActivityLog]);
+
+  useEffect(() => {
+    localStorage.setItem(OFFICE_COMPACT_MODE_KEY, String(compactMode));
+  }, [compactMode]);
 
   function setDetail(key: string, item: OfficeDetailItem) {
     setSelectedKey(key);
@@ -416,6 +587,69 @@ export function OfficeCanvas({
     setActivityLogPosition({
       x: 0,
       y: 0,
+    });
+  }
+
+  function zoomIn() {
+    setZoomLevel((currentZoom) =>
+      clampZoom(Number((currentZoom + ZOOM_STEP).toFixed(2)))
+    );
+  }
+
+  function zoomOut() {
+    setZoomLevel((currentZoom) =>
+      clampZoom(Number((currentZoom - ZOOM_STEP).toFixed(2)))
+    );
+  }
+
+  function resetZoom() {
+    setZoomLevel(1);
+  }
+
+  function resetOfficePreferences() {
+    closeDetailPanel();
+    setShowLabels(true);
+    setShowActivityLog(true);
+    setCompactMode(false);
+    setShowMoreActivity(false);
+    setZoomLevel(1);
+    resetActivityLogPosition();
+
+    localStorage.setItem(OFFICE_SHOW_LABELS_KEY, "true");
+    localStorage.setItem(OFFICE_SHOW_LOG_KEY, "true");
+    localStorage.setItem(OFFICE_COMPACT_MODE_KEY, "false");
+    localStorage.setItem(OFFICE_ZOOM_STORAGE_KEY, "1");
+    localStorage.setItem(
+      ACTIVITY_LOG_POSITION_KEY,
+      JSON.stringify({ x: 0, y: 0 })
+    );
+  }
+
+  function fitOfficeScene() {
+    const viewport = sceneViewportRef.current;
+
+    if (!viewport) {
+      return;
+    }
+
+    const availableWidth = viewport.clientWidth - 28;
+    const availableHeight = viewport.clientHeight - 28;
+
+    const widthScale = availableWidth / OFFICE_SCENE_WIDTH;
+    const heightScale = availableHeight / OFFICE_SCENE_HEIGHT;
+
+    const nextZoom = clampZoom(
+      Number(Math.min(widthScale, heightScale, 1).toFixed(2))
+    );
+
+    setZoomLevel(nextZoom);
+
+    window.requestAnimationFrame(() => {
+      viewport.scrollTo({
+        left: 0,
+        top: 0,
+        behavior: "smooth",
+      });
     });
   }
 
@@ -660,7 +894,7 @@ export function OfficeCanvas({
       <div className="office-scene-topbar">
         <div>
           <strong>Agent Office Scene</strong>
-          <span>{getSceneLabel(isProcessing, latestTask)}</span>
+          <span>{getSceneLabel(visualFlow.active, latestTask)}</span>
         </div>
 
         <div className="office-scene-stats">
@@ -672,354 +906,423 @@ export function OfficeCanvas({
         </div>
       </div>
 
-      <div
-        className={`office-scene ${isProcessing ? "is-processing" : ""} ${
-          realAgents.length === 1 ? "single-agent-scene" : ""
-        } office-latest-${latestTaskStatus} ${
-          selectedItem ? "detail-open" : ""
-        } ${showLabels ? "" : "labels-hidden"} ${
-          showActivityLog ? "" : "activity-hidden"
-        } ${compactMode ? "compact-office" : ""}`}
-        onClick={closeDetailPanel}
-      >
-        <div className="office-scene-bg" />
-
-        <OfficeFlowChannels
-          isProcessing={isProcessing}
-          latestSource={latestSource}
-          latestTaskStatus={latestTaskStatus}
-          hasLatestTask={hasLatestTask}
-        />
-
-        <div
-          className="office-mini-toolbar"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <button
-            type="button"
-            className={showLabels ? "active" : ""}
-            onClick={() => setShowLabels((current) => !current)}
-          >
-            {showLabels ? "Hide Labels" : "Show Labels"}
+      <div className="office-viewport-controls">
+        <div className="office-viewport-control-group">
+          <button type="button" onClick={zoomOut}>
+            Zoom -
           </button>
 
-          <button
-            type="button"
-            className={showActivityLog ? "active" : ""}
-            onClick={() => setShowActivityLog((current) => !current)}
-          >
-            {showActivityLog ? "Hide Log" : "Show Log"}
+          <button type="button" onClick={resetZoom}>
+            {Math.round(zoomLevel * 100)}%
           </button>
 
-          <button
-            type="button"
-            className={compactMode ? "active" : ""}
-            onClick={() => setCompactMode((current) => !current)}
-          >
-            {compactMode ? "Comfort" : "Compact"}
+          <button type="button" onClick={zoomIn}>
+            Zoom +
           </button>
 
-          <button type="button" onClick={closeDetailPanel}>
-            Reset
+          <button type="button" onClick={fitOfficeScene}>
+            Fit
           </button>
         </div>
 
+        <small>Scroll or drag the viewport to explore the office scene.</small>
+      </div>
+
+      <div className="office-scene-viewport" ref={sceneViewportRef}>
         <div
-          className="office-legend"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <strong>Legend</strong>
-
-          <div className="office-legend-grid">
-            <span>
-              <i className="legend-dot green" />
-              Idle / Done
-            </span>
-
-            <span>
-              <i className="legend-dot orange" />
-              Processing
-            </span>
-
-            <span>
-              <i className="legend-dot red" />
-              Error
-            </span>
-
-            <span>
-              <i className="legend-dot purple" />
-              Skill
-            </span>
-
-            <span>
-              <i className="legend-dot cyan" />
-              Server
-            </span>
-
-            <span>
-              <i className="legend-dot blue" />
-              Manual
-            </span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className={`office-server-core office-clickable ${
-            selectedKey === "server:core" ? "office-selected-element" : ""
-          }`}
-          onClick={(event) => {
-            event.stopPropagation();
-            openServerDetail();
+          className="office-stage"
+          style={{
+            width: OFFICE_SCENE_WIDTH * zoomLevel,
+            height: OFFICE_SCENE_HEIGHT * zoomLevel,
           }}
-          aria-pressed={selectedKey === "server:core"}
         >
-          <div className="server-glass" />
-          <div className="server-rack rack-one" />
-          <div className="server-rack rack-two" />
-          <div className="server-rack rack-three" />
-          <div className="server-core-light" />
-
-          <div className="office-floating-label label-server">
-            <span className="dot cyan" />
-            <strong>Server Room</strong>
-            <small>
-              {isProcessing ? "Routing live task events" : "All systems running"}
-            </small>
-          </div>
-        </button>
-
-        {realAgents.length === 0 && (
-          <div className="office-empty-agents">
-            <strong>No registered agents found</strong>
-            <small>
-              Register an agent in the backend to show it in the office.
-            </small>
-          </div>
-        )}
-
-        {realAgents.map((agent, index) => {
-          const slot = roomSlots[index];
-          const status = normalizeStatus(
-            agentStatuses[agent.name] || agent.status
-          );
-          const latestAgentTask = getLatestTaskForAgent(
-            recentTasks,
-            agent.name
-          );
-
-          const isActiveAgent =
-            status === "working" || latestAgentTask?.status === "in_progress";
-
-          const agentKey = `agent:${agent.name}`;
-
-          return (
-            <button
-              type="button"
-              key={agent.id}
-              className={`office-room office-clickable ${slot.roomClass} ${status} registered ${
-                isActiveAgent ? "active-room" : ""
-              } ${selectedKey === agentKey ? "office-selected-element" : ""}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                openAgentDetail(agent, status);
-              }}
-              aria-pressed={selectedKey === agentKey}
-            >
-              <div className="room-floor" />
-              <div className="room-back-wall" />
-              <div className="room-side-wall" />
-
-              <div className="room-neon-strip" />
-              <div className="room-plant plant-left" />
-              <div className="room-plant plant-right" />
-
-              <div className="agent-desk">
-                <div className="desk-surface" />
-                <div className="desk-monitor monitor-main" />
-                <div className="desk-monitor monitor-side" />
-                <div className="desk-keyboard" />
-                <div className="desk-chair" />
-              </div>
-
-              <div className="agent-avatar-iso">
-                <span>{getAgentInitial(agent.name)}</span>
-              </div>
-
-              <div className={`office-floating-label room-label ${slot.accent}`}>
-                <span className={`dot ${slot.accent}`} />
-                <strong>{agent.name}</strong>
-                <small>
-                  {latestAgentTask?.inputText || getAgentRole(agent.name)}
-                </small>
-              </div>
-
-              {latestAgentTask && (
-                <div className={`mini-task-card ${latestAgentTask.status}`}>
-                  <strong>{getTaskLabel(latestAgentTask)}</strong>
-                  <small>{latestAgentTask.source}</small>
-                </div>
-              )}
-            </button>
-          );
-        })}
-
-        <button
-          type="button"
-          className={`office-source-card office-clickable source-whatsapp ${
-            latestSource === "whatsapp" ? "source-active" : ""
-          } ${
-            selectedKey === "source:whatsapp" ? "office-selected-element" : ""
-          }`}
-          onClick={(event) => {
-            event.stopPropagation();
-            openSourceDetail("whatsapp", latestWhatsAppTask);
-          }}
-          aria-pressed={selectedKey === "source:whatsapp"}
-        >
-          <span className="dot green" />
-          <strong>WhatsApp Source</strong>
-          <small>
-            {getSourceSummary(
-              latestWhatsAppTask,
-              "Waiting for WhatsApp message"
-            )}
-          </small>
-        </button>
-
-        <button
-          type="button"
-          className={`office-source-card office-clickable source-manual ${
-            latestSource === "manual" ? "source-active" : ""
-          } ${
-            selectedKey === "source:manual" ? "office-selected-element" : ""
-          }`}
-          onClick={(event) => {
-            event.stopPropagation();
-            openSourceDetail("manual", latestManualTask);
-          }}
-          aria-pressed={selectedKey === "source:manual"}
-        >
-          <span className="dot blue" />
-          <strong>Manual Console</strong>
-          <small>
-            {getSourceSummary(latestManualTask, "Waiting for dashboard command")}
-          </small>
-        </button>
-
-        <button
-          type="button"
-          className={`office-resource-card office-clickable resource-skill ${
-            activeSkill ? "resource-ready" : ""
-          } ${isProcessing ? "resource-active" : ""} ${
-            selectedKey === "skill:shelf" ? "office-selected-element" : ""
-          }`}
-          onClick={(event) => {
-            event.stopPropagation();
-            openSkillDetail(activeSkill);
-          }}
-          aria-pressed={selectedKey === "skill:shelf"}
-        >
-          <span className="dot purple" />
-          <strong>Skill Shelf</strong>
-          <small>
-            {activeSkill
-              ? `${activeSkill.name} → ${activeSkill.agentName}`
-              : "No skill registered"}
-          </small>
-        </button>
-
-        <button
-          type="button"
-          className={`office-resource-card office-clickable resource-output ${
-            latestTask?.status || ""
-          } ${selectedKey === "output:board" ? "office-selected-element" : ""}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            openOutputDetail(latestTask);
-          }}
-          aria-pressed={selectedKey === "output:board"}
-        >
-          <span className="dot yellow" />
-          <strong>Output Board</strong>
-          <small>{getOutputPreview(latestTask)}</small>
-        </button>
-
-        {showActivityLog && (
           <div
-            className={`office-activity-log ${
-              isActivityLogDragging ? "dragging" : ""
+            className={`office-scene ${
+              visualFlow.active ? "is-processing" : ""
+            } ${realAgents.length === 1 ? "single-agent-scene" : ""} office-latest-${
+              visualFlowStatus
+            } ${selectedItem ? "detail-open" : ""} ${
+              showLabels ? "" : "labels-hidden"
+            } ${showActivityLog ? "" : "activity-hidden"} ${
+              compactMode ? "compact-office" : ""
             }`}
             style={{
-              transform: `translate(${activityLogPosition.x}px, ${activityLogPosition.y}px)`,
+              width: OFFICE_SCENE_WIDTH,
+              height: OFFICE_SCENE_HEIGHT,
+              minHeight: OFFICE_SCENE_HEIGHT,
+              transform: `scale(${zoomLevel})`,
+              transformOrigin: "top left",
             }}
-            onClick={(event) => event.stopPropagation()}
+            onClick={closeDetailPanel}
           >
+            <div className="office-scene-bg" />
+
+            <OfficeFlowChannels
+              isProcessing={visualFlow.active}
+              latestSource={visualFlowSource}
+              latestTaskStatus={visualFlowStatus}
+              hasLatestTask={visualFlowHasTask}
+            />
+
             <div
-              className="office-activity-header draggable"
-              onPointerDown={handleActivityLogPointerDown}
-              onPointerMove={handleActivityLogPointerMove}
-              onPointerUp={handleActivityLogPointerUp}
-              onPointerCancel={handleActivityLogPointerUp}
+              className="office-mini-toolbar"
+              onClick={(event) => event.stopPropagation()}
             >
-              <div>
-                <strong>Mini Activity Log</strong>
-                <small>Latest office events</small>
-              </div>
+              <button
+                type="button"
+                className={showLabels ? "active" : ""}
+                onClick={() => setShowLabels((current) => !current)}
+              >
+                {showLabels ? "Hide Labels" : "Show Labels"}
+              </button>
 
-              <div className="office-activity-actions">
-                {recentTasks.length > 4 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowMoreActivity((current) => !current)}
-                  >
-                    {showMoreActivity ? "Show less" : "Show more"}
-                  </button>
-                )}
+              <button
+                type="button"
+                className={showActivityLog ? "active" : ""}
+                onClick={() => setShowActivityLog((current) => !current)}
+              >
+                {showActivityLog ? "Hide Log" : "Show Log"}
+              </button>
 
-                <button type="button" onClick={resetActivityLogPosition}>
-                  Reset
-                </button>
+              <button
+                type="button"
+                className={compactMode ? "active" : ""}
+                onClick={() => setCompactMode((current) => !current)}
+              >
+                {compactMode ? "Comfort" : "Compact"}
+              </button>
+
+              <button type="button" onClick={resetOfficePreferences}>
+                Reset
+              </button>
+            </div>
+
+            <div
+              className="office-legend"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <strong>Legend</strong>
+
+              <div className="office-legend-grid">
+                <span>
+                  <i className="legend-dot green" />
+                  Idle / Done
+                </span>
+
+                <span>
+                  <i className="legend-dot orange" />
+                  Processing
+                </span>
+
+                <span>
+                  <i className="legend-dot red" />
+                  Error
+                </span>
+
+                <span>
+                  <i className="legend-dot purple" />
+                  Skill
+                </span>
+
+                <span>
+                  <i className="legend-dot cyan" />
+                  Server
+                </span>
+
+                <span>
+                  <i className="legend-dot blue" />
+                  Manual
+                </span>
               </div>
             </div>
 
-            <div className="office-activity-list">
-              {visibleActivityTasks.length === 0 ? (
-                <div className="office-activity-empty">
-                  <span>◇</span>
-                  <p>No task activity yet.</p>
-                </div>
-              ) : (
-                visibleActivityTasks.map((task) => (
-                  <button
-                    type="button"
-                    key={`activity-${task.id}`}
-                    className={`office-activity-item ${task.status}`}
-                    onClick={() => openTaskDetail(task)}
-                  >
-                    <span className="activity-icon">
-                      {getActivityIcon(task.status)}
-                    </span>
+            <button
+              type="button"
+              className={`office-server-core office-clickable ${
+                selectedKey === "server:core" ? "office-selected-element" : ""
+              }`}
+              onClick={(event) => {
+                event.stopPropagation();
+                openServerDetail();
+              }}
+              aria-pressed={selectedKey === "server:core"}
+            >
+              <div className="server-glass" />
+              <div className="server-rack rack-one" />
+              <div className="server-rack rack-two" />
+              <div className="server-rack rack-three" />
+              <div className="server-core-light" />
 
-                    <div>
-                      <strong>{getActivityLabel(task)}</strong>
-                      <small>
-                        {task.source} · {formatShortTime(task.updatedAt)}
-                      </small>
+              <div className="office-floating-label label-server">
+                <span className="dot cyan" />
+                <strong>Server Room</strong>
+                <small>
+                  {visualFlow.active
+                    ? "Routing live task events"
+                    : "All systems running"}
+                </small>
+              </div>
+            </button>
+
+            {realAgents.length === 0 && (
+              <div className="office-empty-agents">
+                <strong>No registered agents found</strong>
+                <small>
+                  Register an agent in the backend to show it in the office.
+                </small>
+              </div>
+            )}
+
+            {realAgents.map((agent, index) => {
+              const slot = roomSlots[index];
+              const status = normalizeStatus(
+                agentStatuses[agent.name] || agent.status
+              );
+              const latestAgentTask = getLatestTaskForAgent(
+                recentTasks,
+                agent.name
+              );
+
+              const isActiveAgent =
+                status === "working" ||
+                latestAgentTask?.status === "in_progress" ||
+                visualFlow.active;
+
+              const agentKey = `agent:${agent.name}`;
+
+              return (
+                <button
+                  type="button"
+                  key={agent.id}
+                  className={`office-room office-clickable ${
+                    slot.roomClass
+                  } ${status} registered ${
+                    isActiveAgent ? "active-room" : ""
+                  } ${
+                    selectedKey === agentKey ? "office-selected-element" : ""
+                  }`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openAgentDetail(agent, status);
+                  }}
+                  aria-pressed={selectedKey === agentKey}
+                >
+                  <div className="room-floor" />
+                  <div className="room-back-wall" />
+                  <div className="room-side-wall" />
+
+                  <div className="room-neon-strip" />
+                  <div className="room-plant plant-left" />
+                  <div className="room-plant plant-right" />
+
+                  <div className="agent-desk">
+                    <div className="desk-surface" />
+                    <div className="desk-monitor monitor-main" />
+                    <div className="desk-monitor monitor-side" />
+                    <div className="desk-keyboard" />
+                    <div className="desk-chair" />
+                  </div>
+
+                  <div className="agent-avatar-iso">
+                    <span>{getAgentInitial(agent.name)}</span>
+                  </div>
+
+                  <div
+                    className={`office-floating-label room-label ${slot.accent}`}
+                  >
+                    <span className={`dot ${slot.accent}`} />
+                    <strong>{agent.name}</strong>
+                    <small>
+                      {latestAgentTask?.inputText || getAgentRole(agent.name)}
+                    </small>
+                  </div>
+
+                  {latestAgentTask && (
+                    <div className={`mini-task-card ${latestAgentTask.status}`}>
+                      <strong>{getTaskLabel(latestAgentTask)}</strong>
+                      <small>{latestAgentTask.source}</small>
                     </div>
-                  </button>
-                ))
-              )}
+                  )}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              className={`office-source-card office-clickable source-whatsapp ${
+                latestSource === "whatsapp" ? "source-active" : ""
+              } ${
+                selectedKey === "source:whatsapp"
+                  ? "office-selected-element"
+                  : ""
+              }`}
+              onClick={(event) => {
+                event.stopPropagation();
+                openSourceDetail("whatsapp", latestWhatsAppTask);
+              }}
+              aria-pressed={selectedKey === "source:whatsapp"}
+            >
+              <span className="dot green" />
+              <strong>WhatsApp Source</strong>
+              <small>
+                {getSourceSummary(
+                  latestWhatsAppTask,
+                  "Waiting for WhatsApp message"
+                )}
+              </small>
+            </button>
+
+            <button
+              type="button"
+              className={`office-source-card office-clickable source-manual ${
+                latestSource === "manual" ? "source-active" : ""
+              } ${
+                selectedKey === "source:manual"
+                  ? "office-selected-element"
+                  : ""
+              }`}
+              onClick={(event) => {
+                event.stopPropagation();
+                openSourceDetail("manual", latestManualTask);
+              }}
+              aria-pressed={selectedKey === "source:manual"}
+            >
+              <span className="dot blue" />
+              <strong>Manual Console</strong>
+              <small>
+                {getSourceSummary(
+                  latestManualTask,
+                  "Waiting for dashboard command"
+                )}
+              </small>
+            </button>
+
+            <button
+              type="button"
+              className={`office-resource-card office-clickable resource-skill ${
+                activeSkill ? "resource-ready" : ""
+              } ${visualFlow.active ? "resource-active" : ""} ${
+                selectedKey === "skill:shelf"
+                  ? "office-selected-element"
+                  : ""
+              }`}
+              onClick={(event) => {
+                event.stopPropagation();
+                openSkillDetail(activeSkill);
+              }}
+              aria-pressed={selectedKey === "skill:shelf"}
+            >
+              <span className="dot purple" />
+              <strong>Skill Shelf</strong>
+              <small>
+                {activeSkill
+                  ? `${activeSkill.name} → ${activeSkill.agentName}`
+                  : "No skill registered"}
+              </small>
+            </button>
+
+            <button
+              type="button"
+              className={`office-resource-card office-clickable resource-output ${
+                latestTask?.status || ""
+              } ${
+                selectedKey === "output:board"
+                  ? "office-selected-element"
+                  : ""
+              }`}
+              onClick={(event) => {
+                event.stopPropagation();
+                openOutputDetail(latestTask);
+              }}
+              aria-pressed={selectedKey === "output:board"}
+            >
+              <span className="dot yellow" />
+              <strong>Output Board</strong>
+              <small>{getOutputPreview(latestTask)}</small>
+            </button>
+
+            {showActivityLog && (
+              <div
+                className={`office-activity-log ${
+                  isActivityLogDragging ? "dragging" : ""
+                }`}
+                style={
+                  {
+                    "--office-activity-log-x": `${activityLogPosition.x}px`,
+                    "--office-activity-log-y": `${activityLogPosition.y}px`,
+                  } as CSSProperties
+                }
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div
+                  className="office-activity-header draggable"
+                  onPointerDown={handleActivityLogPointerDown}
+                  onPointerMove={handleActivityLogPointerMove}
+                  onPointerUp={handleActivityLogPointerUp}
+                  onPointerCancel={handleActivityLogPointerUp}
+                >
+                  <div>
+                    <strong>Mini Activity Log</strong>
+                    <small>Latest office events</small>
+                  </div>
+
+                  <div className="office-activity-actions">
+                    {recentTasks.length > 4 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowMoreActivity((current) => !current)
+                        }
+                      >
+                        {showMoreActivity ? "Show less" : "Show more"}
+                      </button>
+                    )}
+
+                    <button type="button" onClick={resetActivityLogPosition}>
+                      Reset
+                    </button>
+                  </div>
+                </div>
+
+                <div className="office-activity-list">
+                  {visibleActivityTasks.length === 0 ? (
+                    <div className="office-activity-empty">
+                      <span>◇</span>
+                      <p>No task activity yet.</p>
+                    </div>
+                  ) : (
+                    visibleActivityTasks.map((task) => (
+                      <button
+                        type="button"
+                        key={`activity-${task.id}`}
+                        className={`office-activity-item ${task.status}`}
+                        onClick={() => openTaskDetail(task)}
+                      >
+                        <span className="activity-icon">
+                          {getActivityIcon(task.status)}
+                        </span>
+
+                        <div>
+                          <strong>{getActivityLabel(task)}</strong>
+                          <small>
+                            {task.source} · {formatShortTime(task.updatedAt)}
+                          </small>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="office-help-bar">
+              <span>Click any element to inspect details</span>
+              <span>ESC or empty area closes panel</span>
             </div>
+
+            <OfficeDetailPanel item={selectedItem} onClose={closeDetailPanel} />
           </div>
-        )}
-
-        <div className="office-help-bar">
-          <span>Click any element to inspect details</span>
-          <span>ESC or empty area closes panel</span>
         </div>
-
-        <OfficeDetailPanel item={selectedItem} onClose={closeDetailPanel} />
       </div>
     </div>
   );

@@ -1,0 +1,279 @@
+/* =========================
+   PHASE 8.16
+   OFFICE SCENE VIEWPORT, ZOOM & RESPONSIVE CANVAS
+========================= */
+
+.office-viewport-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    background: rgba(8, 15, 32, 0.58);
+  }
+  
+  .office-viewport-control-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+  
+  .office-viewport-control-group button {
+    border-radius: 999px;
+    padding: 7px 10px;
+    color: #bfdbfe;
+    background: rgba(37, 99, 235, 0.16);
+    border: 1px solid rgba(96, 165, 250, 0.22);
+    font-size: 10.5px;
+    font-weight: 800;
+    white-space: nowrap;
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      transform 0.18s ease,
+      color 0.18s ease;
+  }
+  
+  .office-viewport-control-group button:hover {
+    color: #ffffff;
+    background: rgba(37, 99, 235, 0.26);
+    border-color: rgba(96, 165, 250, 0.34);
+    transform: translateY(-1px);
+  }
+  
+  .office-viewport-controls small {
+    color: #94a3b8;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  
+  /* Scrollable canvas viewport */
+  .office-scene-viewport {
+    position: relative;
+    width: 100%;
+    height: min(720px, calc(100vh - 245px));
+    min-height: 540px;
+    overflow: auto;
+    background:
+      radial-gradient(circle at center, rgba(96, 165, 250, 0.08), transparent 34%),
+      rgba(2, 6, 23, 0.42);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(96, 165, 250, 0.34) transparent;
+  }
+  
+  .office-scene-viewport::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .office-scene-viewport::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(96, 165, 250, 0.34);
+  }
+  
+  .office-scene-viewport::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  
+  .office-stage {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+  }
+  
+  /* Force the Office Scene to stay as a fixed visual canvas */
+  .office-scene-viewport .office-scene {
+    position: relative !important;
+    display: block !important;
+    overflow: hidden !important;
+    max-width: none !important;
+    transition: transform 0.22s ease;
+  }
+  
+  /* Prevent older responsive grid rules from breaking scene map */
+  .office-scene-viewport .office-scene-bg,
+  .office-scene-viewport .office-server-core,
+  .office-scene-viewport .office-room,
+  .office-scene-viewport .office-source-card,
+  .office-scene-viewport .office-resource-card,
+  .office-scene-viewport .office-flow-channel-layer,
+  .office-scene-viewport .office-mini-toolbar,
+  .office-scene-viewport .office-legend,
+  .office-scene-viewport .office-activity-log,
+  .office-scene-viewport .office-help-bar,
+  .office-scene-viewport .office-detail-panel,
+  .office-scene-viewport .office-empty-agents {
+    position: absolute !important;
+  }
+  
+  /* Always keep flow visible inside viewport, including tablet/mobile */
+  .office-scene-viewport .office-flow-channel-layer {
+    display: block !important;
+  }
+  
+  /* Re-apply final node positions for viewport mode */
+  .office-scene-viewport .source-whatsapp {
+    left: 5% !important;
+    top: 34% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 210px !important;
+    max-width: 210px !important;
+  }
+  
+  .office-scene-viewport .source-manual {
+    left: 5% !important;
+    top: 64% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 210px !important;
+    max-width: 210px !important;
+  }
+  
+  .office-scene-viewport .office-server-core {
+    left: 50.5% !important;
+    top: 45% !important;
+  }
+  
+  .office-scene-viewport .room-design {
+    left: 43% !important;
+    top: 67% !important;
+  }
+  
+  .office-scene-viewport .resource-skill {
+    left: 29% !important;
+    top: 67% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 220px !important;
+    max-width: 220px !important;
+  }
+  
+  .office-scene-viewport .resource-output {
+    right: 7% !important;
+    top: 62% !important;
+    left: auto !important;
+    bottom: auto !important;
+    width: 245px !important;
+    max-width: 245px !important;
+  }
+  
+  /* Keep room size consistent in viewport */
+  .office-scene-viewport .office-room.registered {
+    width: 240px !important;
+    height: 170px !important;
+    transform: scale(0.86);
+    transform-origin: top left;
+  }
+  
+  .office-scene-viewport .room-design .room-label {
+    top: -8px !important;
+    left: 32px !important;
+    max-width: 210px;
+  }
+  
+  .office-scene-viewport .room-design .mini-task-card {
+    right: -18px !important;
+    bottom: -2px !important;
+  }
+  
+  /* Mobile/tablet: do not turn scene into cards; use scrollable map */
+  @media (max-width: 1200px) {
+    .office-scene-viewport {
+      height: 68vh;
+      min-height: 500px;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+    }
+  
+    .office-stage {
+      margin: 0;
+    }
+  
+    .office-scene-viewport .office-scene {
+      width: 1600px !important;
+      height: 700px !important;
+      min-height: 700px !important;
+    }
+  
+    .office-scene-viewport .office-flow-channel-layer {
+      display: block !important;
+    }
+  
+    .office-scene-viewport .office-mini-toolbar,
+    .office-scene-viewport .office-legend,
+    .office-scene-viewport .office-detail-panel,
+    .office-scene-viewport .office-activity-log,
+    .office-scene-viewport .office-help-bar {
+      position: absolute !important;
+    }
+  
+    .office-scene-viewport .office-source-card,
+    .office-scene-viewport .office-resource-card,
+    .office-scene-viewport .office-room {
+      width: auto;
+    }
+  
+    .office-viewport-controls {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  
+    .office-viewport-controls small {
+      max-width: 520px;
+    }
+  }
+  
+  /* Mobile tuning */
+  @media (max-width: 700px) {
+    .office-scene-viewport {
+      height: 70vh;
+      min-height: 460px;
+    }
+  
+    .office-viewport-control-group {
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+  
+    .office-viewport-control-group button {
+      flex: 0 0 auto;
+      font-size: 10px;
+      padding: 6px 9px;
+    }
+  
+    .office-viewport-controls small {
+      font-size: 10.5px;
+    }
+  }
+  
+  /* M365 Light support */
+  :root[data-theme="m365-light"] .office-viewport-controls {
+    background: #f8fafc;
+    border-bottom-color: rgba(15, 23, 42, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .office-viewport-control-group button {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-color: rgba(37, 99, 235, 0.14);
+  }
+  
+  :root[data-theme="m365-light"] .office-viewport-control-group button:hover {
+    color: #1d4ed8;
+    background: #dbeafe;
+    border-color: rgba(37, 99, 235, 0.22);
+  }
+  
+  :root[data-theme="m365-light"] .office-viewport-controls small {
+    color: #64748b;
+  }
+  
+  :root[data-theme="m365-light"] .office-scene-viewport {
+    background:
+      radial-gradient(circle at center, rgba(37, 99, 235, 0.08), transparent 34%),
+      #eef2f7;
+  }

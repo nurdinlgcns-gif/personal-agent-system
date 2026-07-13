@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import "./services/socket";
 import "./App.css";
@@ -28,6 +28,9 @@ import { FloatingTaskAssistant } from "./components/manual/FloatingTaskAssistant
 import { OfficeView } from "./views/OfficeView";
 
 function App() {
+  const location = useLocation();
+  const isOfficeRoute = location.pathname === "/office";
+
   const {
     connectionStatus,
     socketId,
@@ -241,35 +244,41 @@ function App() {
     <div className="dashboard-shell">
       <Sidebar />
 
-      <main className="dashboard-main">
+      <main
+        className={`dashboard-main ${
+          isOfficeRoute ? "office-route-main" : "overview-route-main"
+        }`}
+      >
         <TopHeader connectionStatus={connectionStatus} socketId={socketId} />
 
-        {snapshotError && (
-          <div className="snapshot-alert">
-            Snapshot error: {snapshotError}
-          </div>
-        )}
+        <div className="dashboard-status-layer" aria-live="polite">
+          {snapshotError && (
+            <div className="snapshot-alert">
+              Snapshot error: {snapshotError}
+            </div>
+          )}
 
-        {isInitialLoading && (
-          <div className="dashboard-loading-banner">
-            <span className="loading-spinner" />
-            Loading dashboard snapshot...
-          </div>
-        )}
+          {isInitialLoading && (
+            <div className="dashboard-loading-banner">
+              <span className="loading-spinner" />
+              Loading dashboard snapshot...
+            </div>
+          )}
 
-        {isSilentRefreshing && (
-          <div className="silent-refresh-indicator">
-            <span className="loading-dot" />
-            Syncing latest data...
-          </div>
-        )}
+          {isSilentRefreshing && (
+            <div className="silent-refresh-indicator">
+              <span className="loading-dot" />
+              Syncing latest data...
+            </div>
+          )}
 
-        {isProcessing && (
-          <div className="processing-banner">
-            <span className="processing-dot" />
-            Agent task is currently processing...
-          </div>
-        )}
+          {isProcessing && (
+            <div className="processing-banner">
+              <span className="processing-dot" />
+              Agent task is currently processing...
+            </div>
+          )}
+        </div>
 
         <Routes>
           <Route

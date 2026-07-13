@@ -1,0 +1,105 @@
+/* =========================
+   PHASE 8.17
+   OFFICE SCENE RENDER STABILITY
+   Prevent full-scene flicker during realtime task updates
+========================= */
+
+.office-route-main .office-view,
+.office-route-main .office-scene-shell,
+.office-route-main .office-scene-viewport,
+.office-route-main .office-stage,
+.office-route-main .office-scene {
+  min-width: 0;
+}
+
+/* Isolate scene repaint */
+.office-route-main .office-scene-shell {
+  contain: layout paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.office-route-main .office-scene-viewport {
+  contain: layout paint;
+  scrollbar-gutter: stable both-edges;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.office-route-main .office-stage {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Stop big full-scene pseudo overlays from repainting entire scene */
+.office-route-main .office-scene::after,
+.office-route-main .office-scene.office-latest-in_progress::after,
+.office-route-main .office-scene.office-latest-working::after,
+.office-route-main .office-scene.office-latest-done::after,
+.office-route-main .office-scene.office-latest-error::after {
+  content: none !important;
+  display: none !important;
+  animation: none !important;
+  background: none !important;
+}
+
+/* Avoid full container transitions on realtime state update */
+.office-route-main .office-scene-shell,
+.office-route-main .office-scene-viewport,
+.office-route-main .office-stage,
+.office-route-main .office-scene {
+  transition: none !important;
+}
+
+/* Keep localized elements stable */
+.office-route-main .office-flow-channel-layer,
+.office-route-main .office-server-core,
+.office-route-main .office-room,
+.office-route-main .office-source-card,
+.office-route-main .office-resource-card,
+.office-route-main .office-activity-log,
+.office-route-main .office-detail-panel {
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+/* Do not brighten whole scene during processing */
+.office-route-main .office-scene.is-processing {
+  filter: none !important;
+}
+
+/* Keep status layer floating, not pushing layout */
+.office-route-main .dashboard-status-layer {
+  position: absolute;
+  top: 84px;
+  right: 24px;
+  z-index: 140;
+  width: min(380px, calc(100% - 48px));
+  margin: 0;
+  pointer-events: none;
+}
+
+.office-route-main .dashboard-status-layer > * {
+  margin: 0;
+  pointer-events: auto;
+}
+
+.dashboard-status-layer:empty {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .office-route-main .dashboard-status-layer {
+    top: 76px;
+    right: 14px;
+    width: min(330px, calc(100% - 28px));
+  }
+}
+
+@media (max-width: 560px) {
+  .office-route-main .dashboard-status-layer {
+    top: 92px;
+    right: 10px;
+    width: calc(100% - 20px);
+  }
+}
