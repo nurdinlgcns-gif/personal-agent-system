@@ -1,0 +1,101 @@
+/* =========================
+   PHASE 8.17
+   OFFICE ANTI-FLICKER COMPATIBILITY LAYER
+   Kept as a dedicated file for Office QA consistency.
+   Main render stabilization lives in office-render-stability.css.
+========================= */
+
+/* Office route status overlays should not push layout */
+.office-route-main {
+    position: relative;
+  }
+  
+  .office-route-main .dashboard-status-layer {
+    position: absolute;
+    top: 84px;
+    right: 24px;
+    z-index: 140;
+    width: min(380px, calc(100% - 48px));
+    margin: 0;
+    pointer-events: none;
+  }
+  
+  .office-route-main .dashboard-status-layer > * {
+    margin: 0;
+    pointer-events: auto;
+    box-shadow:
+      0 18px 42px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(14px);
+  }
+  
+  /* Empty status layer should not reserve space */
+  .dashboard-status-layer:empty {
+    display: none;
+  }
+  
+  /* Prevent Office Scene layout shift during status changes */
+  .office-route-main .office-view,
+  .office-route-main .office-scene-shell,
+  .office-route-main .office-scene-viewport,
+  .office-route-main .office-stage,
+  .office-route-main .office-scene {
+    min-width: 0;
+  }
+  
+  /* Lightweight GPU paint stability */
+  .office-route-main .office-scene-shell,
+  .office-route-main .office-scene-viewport,
+  .office-route-main .office-stage,
+  .office-route-main .office-scene {
+    backface-visibility: hidden;
+  }
+  
+  /* Banners fade in without moving Office layout */
+  .office-route-main .processing-banner,
+  .office-route-main .silent-refresh-indicator,
+  .office-route-main .dashboard-loading-banner,
+  .office-route-main .snapshot-alert {
+    animation: officeStatusFadeIn 0.18s ease-out;
+  }
+  
+  @keyframes officeStatusFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Tablet/mobile overlay placement */
+  @media (max-width: 900px) {
+    .office-route-main .dashboard-status-layer {
+      top: 76px;
+      right: 14px;
+      width: min(330px, calc(100% - 28px));
+    }
+  
+    .office-route-main .dashboard-status-layer > * {
+      font-size: 11.5px;
+      padding: 9px 11px;
+    }
+  }
+  
+  @media (max-width: 560px) {
+    .office-route-main .dashboard-status-layer {
+      top: 92px;
+      right: 10px;
+      width: calc(100% - 20px);
+    }
+  }
+  
+  /* M365 Light support */
+  :root[data-theme="m365-light"] .office-route-main .dashboard-status-layer > * {
+    box-shadow:
+      0 18px 42px rgba(15, 23, 42, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }

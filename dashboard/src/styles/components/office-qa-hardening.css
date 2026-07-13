@@ -1,0 +1,149 @@
+/* =========================
+   PHASE 8.19
+   OFFICE SCENE QA HARDENING
+   Final small safety layer after Office Scene stabilization
+========================= */
+
+/* Keep Office module from causing global horizontal overflow */
+.office-view,
+.office-scene-shell,
+.office-scene-viewport,
+.office-stage,
+.office-scene {
+  max-width: 100%;
+}
+
+/* Stabilize Office scene shell */
+.office-route-main .office-scene-shell {
+  overflow: hidden;
+}
+
+/* Keep viewport scrollbars stable */
+.office-route-main .office-scene-viewport {
+  scrollbar-gutter: stable both-edges;
+}
+
+/* Prevent accidental text selection while interacting with scene controls */
+.office-route-main .office-mini-toolbar,
+.office-route-main .office-legend,
+.office-route-main .office-flow-channel-layer,
+.office-route-main .office-server-core,
+.office-route-main .office-room,
+.office-route-main .office-source-card,
+.office-route-main .office-resource-card {
+  user-select: none;
+}
+
+/* But detail and log content should remain readable/selectable if needed */
+.office-route-main .office-detail-panel,
+.office-route-main .office-activity-log {
+  user-select: text;
+}
+
+/* Keep toolbar usable above canvas layers */
+.office-route-main .office-mini-toolbar {
+  z-index: 92 !important;
+}
+
+/* Keep legend usable but below toolbar/detail */
+.office-route-main .office-legend {
+  z-index: 88 !important;
+}
+
+/* Keep activity log draggable and above connectors */
+.office-route-main .office-activity-log {
+  z-index: 86 !important;
+}
+
+/* Detail panel must stay above Office overlays */
+.office-route-main .office-detail-panel {
+  z-index: 110 !important;
+}
+
+/* Floating Assistant should stay above Office Scene */
+.floating-task-button,
+.floating-task-panel {
+  z-index: 160 !important;
+}
+
+/* Keep connector SVG purely visual */
+.office-flow-channel-layer {
+  pointer-events: none !important;
+}
+
+/* Ensure buttons inside Office keep pointer events */
+.office-clickable,
+.office-mini-toolbar button,
+.office-activity-log button,
+.office-detail-panel button,
+.office-viewport-control-group button {
+  pointer-events: auto;
+}
+
+/* Improve visible focus for accessibility */
+.office-route-main button:focus-visible,
+.office-route-main a:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.9);
+  outline-offset: 3px;
+}
+
+/* Prevent very long generated text from exploding overlay cards */
+.office-source-card small,
+.office-resource-card small,
+.office-floating-label small,
+.office-activity-item small,
+.office-detail-row strong,
+.office-detail-body p {
+  overflow-wrap: anywhere;
+}
+
+/* Keep Office status overlay from blocking whole page */
+.office-route-main .dashboard-status-layer {
+  pointer-events: none;
+}
+
+.office-route-main .dashboard-status-layer > * {
+  pointer-events: auto;
+}
+
+/* Tablet/mobile: keep Office canvas behavior hard-locked */
+@media (max-width: 1200px) {
+  .office-route-main .office-scene-viewport .office-scene {
+    display: block !important;
+  }
+
+  .office-route-main .office-scene-viewport .office-server-core,
+  .office-route-main .office-scene-viewport .office-mini-toolbar,
+  .office-route-main .office-scene-viewport .office-legend,
+  .office-route-main .office-scene-viewport .office-activity-log,
+  .office-route-main .office-scene-viewport .office-flow-channel-layer {
+    display: block !important;
+    position: absolute !important;
+  }
+}
+
+/* Small mobile safeguard */
+@media (max-width: 560px) {
+  .office-route-main .office-viewport-controls {
+    gap: 8px;
+  }
+
+  .office-route-main .office-viewport-controls small {
+    display: none;
+  }
+}
+
+/* M365 Light support */
+:root[data-theme="m365-light"] .office-route-main button:focus-visible,
+:root[data-theme="m365-light"] .office-route-main a:focus-visible {
+  outline-color: rgba(37, 99, 235, 0.85);
+}
+
+/* Reduced motion final guard */
+@media (prefers-reduced-motion: reduce) {
+  .office-route-main *,
+  .office-route-main *::before,
+  .office-route-main *::after {
+    scroll-behavior: auto !important;
+  }
+}

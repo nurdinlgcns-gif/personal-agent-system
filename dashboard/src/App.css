@@ -1,12 +1,17 @@
 @import "./styles/dashboard.css";
+
+/* Core components */
 @import "./styles/components/floating-assistant.css";
 @import "./styles/components/skill-library.css";
 @import "./styles/components/agent-status.css";
 @import "./styles/components/agent-preview.css";
-@import "./styles/themes/office-blue.css";
-@import "./styles/themes/theme-system.css";
-@import "./styles/themes/m365-light.css";
 @import "./styles/components/final-ux-polish.css";
+
+/* Sidebar */
+@import "./styles/components/sidebar-fixed-layout.css";
+@import "./styles/components/sidebar-collapsible.css";
+
+/* Office Scene base */
 @import "./styles/components/office.css";
 @import "./styles/components/office-element-polish.css";
 @import "./styles/components/office-position-map.css";
@@ -18,9 +23,16 @@
 @import "./styles/components/office-toolbar-legend.css";
 @import "./styles/components/office-final-review.css";
 @import "./styles/components/office-flow-channels.css";
-@import "./styles/components/sidebar-fixed-layout.css";
-@import "./styles/components/sidebar-collapsible.css";
 @import "./styles/components/office-viewport-zoom.css";
 @import "./styles/components/office-activity-log-responsive.css";
 @import "./styles/components/office-mobile-canvas-fix.css";
+
+/* Office Scene stability and final override */
+@import "./styles/components/office-anti-flicker.css";
 @import "./styles/components/office-render-stability.css";
+@import "./styles/components/office-qa-hardening.css";
+
+/* Themes */
+@import "./styles/themes/office-blue.css";
+@import "./styles/themes/theme-system.css";
+@import "./styles/themes/m365-light.css";
