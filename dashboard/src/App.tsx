@@ -26,6 +26,7 @@ import { WhatsAppPanel } from "./components/whatsapp/WhatsAppPanel";
 import { SkillLibraryPanel } from "./components/skills/SkillLibraryPanel";
 import { FloatingTaskAssistant } from "./components/manual/FloatingTaskAssistant";
 import { OfficeView } from "./views/OfficeView";
+import { SettingsView } from "./views/SettingsView";
 
 function App() {
   const location = useLocation();
@@ -342,6 +343,8 @@ function App() {
               />
             }
           />
+
+          <Route path="/settings" element={<SettingsView />} />
 
           <Route path="/dashboard" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -68,3 +68,20 @@ model Skill {
 
   agent       Agent    @relation(fields: [agentId], references: [id])
 }
+
+model LlmProvider {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  type            String
+  baseUrl         String?
+  apiKeyEncrypted String?
+  apiKeyPreview   String?
+  defaultModel    String   @default("auto")
+  enabled         Boolean  @default(true)
+
+  capabilitiesJson String @default("[]")
+  modelAliasesJson String @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

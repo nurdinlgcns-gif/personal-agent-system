@@ -43,6 +43,7 @@ const navItems: Array<{
   {
     label: "Settings",
     icon: "⚙",
+    path: "/settings",
   },
 ];
 

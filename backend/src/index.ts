@@ -10,6 +10,8 @@ import { initWebSocket } from "./websocket";
 import { findAllAgents } from "./repositories/agentRepository";
 import { findRecentTasks,getTaskSummary } from "./repositories/taskRepository";
 import { findAllSkills } from "./repositories/skillRepository";
+import { llmRoutes } from "./routes/llmRoutes";
+import { llmProviderRegistryRoutes } from "./routes/llmProviderRegistryRoutes";
 
 validateEnv();
 
@@ -17,7 +19,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
+app.use("/api/llm", llmRoutes);
+app.use("/api/llm/registry", llmProviderRegistryRoutes);
 app.get("/health", (req, res) => {
   res.json({
     app: "personal-agent-system",
