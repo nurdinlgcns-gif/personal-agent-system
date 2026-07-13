@@ -1,0 +1,264 @@
+/* =========================
+   PHASE 8.21
+   AGENT OFFICE FOCUS MODE
+   Highlight selected element and dim unrelated nodes
+========================= */
+
+/* Focus mode activates when any office element is selected */
+.office-scene:has(.office-selected-element) .office-room,
+.office-scene:has(.office-selected-element) .office-server-core,
+.office-scene:has(.office-selected-element) .office-source-card,
+.office-scene:has(.office-selected-element) .office-resource-card,
+.office-scene:has(.office-selected-element) .office-activity-log {
+  opacity: 0.34;
+  filter: grayscale(0.32) brightness(0.78);
+  transition:
+    opacity 0.22s ease,
+    filter 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+/* Keep selected element fully visible */
+.office-scene:has(.office-selected-element) .office-selected-element {
+  opacity: 1 !important;
+  filter: none !important;
+  z-index: 95 !important;
+}
+
+/* Selected room should look focused and intentional */
+.office-scene:has(.office-selected-element) .office-room.office-selected-element .room-floor {
+  border-color: rgba(96, 165, 250, 0.58);
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.42),
+    0 0 34px rgba(96, 165, 250, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.office-scene:has(.office-selected-element) .office-room.office-selected-element .office-floating-label {
+  opacity: 1;
+  border-color: rgba(96, 165, 250, 0.48);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.32),
+    0 0 26px rgba(96, 165, 250, 0.18);
+}
+
+/* Selected cards */
+.office-scene:has(.office-selected-element) .office-source-card.office-selected-element,
+.office-scene:has(.office-selected-element) .office-resource-card.office-selected-element {
+  opacity: 1 !important;
+  filter: none !important;
+  border-color: rgba(96, 165, 250, 0.6);
+  box-shadow:
+    0 20px 54px rgba(0, 0, 0, 0.38),
+    0 0 34px rgba(96, 165, 250, 0.26);
+}
+
+/* =========================
+   CONTEXTUAL FOCUS GROUPS
+   Keep related nodes visible depending on selected node
+========================= */
+
+/* If focusing an agent, keep Server, Skill, and Output visible */
+.office-scene:has(.office-room.office-selected-element) .office-server-core,
+.office-scene:has(.office-room.office-selected-element) .resource-skill,
+.office-scene:has(.office-room.office-selected-element) .resource-output {
+  opacity: 0.92;
+  filter: saturate(1.05) brightness(0.98);
+}
+
+/* If focusing Skill Shelf, keep design-agent visible */
+.office-scene:has(.resource-skill.office-selected-element) .room-design {
+  opacity: 0.92;
+  filter: saturate(1.05) brightness(0.98);
+}
+
+/* If focusing Output Board, keep Server visible */
+.office-scene:has(.resource-output.office-selected-element) .office-server-core {
+  opacity: 0.92;
+  filter: saturate(1.05) brightness(0.98);
+}
+
+/* If focusing WhatsApp Source, keep Server visible */
+.office-scene:has(.source-whatsapp.office-selected-element) .office-server-core {
+  opacity: 0.92;
+  filter: saturate(1.05) brightness(0.98);
+}
+
+/* If focusing Manual Console, keep Server visible */
+.office-scene:has(.source-manual.office-selected-element) .office-server-core {
+  opacity: 0.92;
+  filter: saturate(1.05) brightness(0.98);
+}
+
+/* If focusing Server Room, keep all major connected nodes visible */
+.office-scene:has(.office-server-core.office-selected-element) .source-whatsapp,
+.office-scene:has(.office-server-core.office-selected-element) .source-manual,
+.office-scene:has(.office-server-core.office-selected-element) .room-design,
+.office-scene:has(.office-server-core.office-selected-element) .resource-output,
+.office-scene:has(.office-server-core.office-selected-element) .resource-skill {
+  opacity: 0.92;
+  filter: saturate(1.05) brightness(0.98);
+}
+
+/* =========================
+   FLOW CONNECTOR FOCUS
+========================= */
+
+/* In focus mode, quiet all connectors first */
+.office-scene:has(.office-selected-element) .office-flow-duct,
+.office-scene:has(.office-selected-element) .office-flow-data,
+.office-scene:has(.office-selected-element) .office-flow-node {
+  opacity: 0.14;
+  transition:
+    opacity 0.22s ease,
+    stroke-width 0.22s ease,
+    filter 0.22s ease;
+}
+
+/* Focus design-agent: show agent-server and skill-agent paths */
+.office-scene:has(.office-room.office-selected-element) .duct-agent-server,
+.office-scene:has(.office-room.office-selected-element) .duct-skill-agent,
+.office-scene:has(.office-room.office-selected-element) .data-agent-server,
+.office-scene:has(.office-room.office-selected-element) .data-skill-agent,
+.office-scene:has(.office-room.office-selected-element) .agent-server-anchor,
+.office-scene:has(.office-room.office-selected-element) .agent-skill-anchor,
+.office-scene:has(.office-room.office-selected-element) .skill-anchor,
+.office-scene:has(.office-room.office-selected-element) .server-agent-anchor {
+  opacity: 0.95 !important;
+  stroke-width: 5;
+}
+
+/* Focus Skill Shelf: show Skill -> Agent */
+.office-scene:has(.resource-skill.office-selected-element) .duct-skill-agent,
+.office-scene:has(.resource-skill.office-selected-element) .data-skill-agent,
+.office-scene:has(.resource-skill.office-selected-element) .skill-anchor,
+.office-scene:has(.resource-skill.office-selected-element) .agent-skill-anchor {
+  opacity: 0.96 !important;
+  stroke-width: 5;
+}
+
+/* Focus Output Board: show Server -> Output */
+.office-scene:has(.resource-output.office-selected-element) .duct-server-output,
+.office-scene:has(.resource-output.office-selected-element) .data-server-output,
+.office-scene:has(.resource-output.office-selected-element) .server-output-anchor,
+.office-scene:has(.resource-output.office-selected-element) .output-anchor {
+  opacity: 0.96 !important;
+  stroke-width: 5;
+}
+
+/* Focus WhatsApp Source: show WhatsApp -> Server */
+.office-scene:has(.source-whatsapp.office-selected-element) .duct-whatsapp-server,
+.office-scene:has(.source-whatsapp.office-selected-element) .data-whatsapp-server,
+.office-scene:has(.source-whatsapp.office-selected-element) .whatsapp-anchor,
+.office-scene:has(.source-whatsapp.office-selected-element) .server-whatsapp-anchor {
+  opacity: 0.96 !important;
+  stroke-width: 5;
+}
+
+/* Focus Manual Console: show Manual -> Server */
+.office-scene:has(.source-manual.office-selected-element) .duct-manual-server,
+.office-scene:has(.source-manual.office-selected-element) .data-manual-server,
+.office-scene:has(.source-manual.office-selected-element) .manual-anchor,
+.office-scene:has(.source-manual.office-selected-element) .server-manual-anchor {
+  opacity: 0.96 !important;
+  stroke-width: 5;
+}
+
+/* Focus Server Room: show all server-related paths */
+.office-scene:has(.office-server-core.office-selected-element) .duct-whatsapp-server,
+.office-scene:has(.office-server-core.office-selected-element) .duct-manual-server,
+.office-scene:has(.office-server-core.office-selected-element) .duct-agent-server,
+.office-scene:has(.office-server-core.office-selected-element) .duct-server-output,
+.office-scene:has(.office-server-core.office-selected-element) .data-whatsapp-server,
+.office-scene:has(.office-server-core.office-selected-element) .data-manual-server,
+.office-scene:has(.office-server-core.office-selected-element) .data-agent-server,
+.office-scene:has(.office-server-core.office-selected-element) .data-server-output,
+.office-scene:has(.office-server-core.office-selected-element) .server-anchor,
+.office-scene:has(.office-server-core.office-selected-element) .whatsapp-anchor,
+.office-scene:has(.office-server-core.office-selected-element) .manual-anchor,
+.office-scene:has(.office-server-core.office-selected-element) .agent-server-anchor,
+.office-scene:has(.office-server-core.office-selected-element) .output-anchor {
+  opacity: 0.9 !important;
+  stroke-width: 5;
+}
+
+/* Keep connector layer visually present */
+.office-scene:has(.office-selected-element) .office-flow-channel-layer {
+  opacity: 1 !important;
+}
+
+/* =========================
+   DETAIL OPEN BALANCE
+========================= */
+
+.office-scene.detail-open:has(.office-selected-element) .office-detail-panel {
+  opacity: 1;
+  filter: none;
+}
+
+/* Do not dim toolbar/legend/help while focus is active */
+.office-scene:has(.office-selected-element) .office-mini-toolbar,
+.office-scene:has(.office-selected-element) .office-legend,
+.office-scene:has(.office-selected-element) .office-help-bar,
+.office-scene:has(.office-selected-element) .office-detail-panel {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Activity log should be quieter but still usable */
+.office-scene:has(.office-selected-element) .office-activity-log {
+  opacity: 0.78;
+  filter: saturate(0.9) brightness(0.92);
+}
+
+.office-scene:has(.office-selected-element) .office-activity-log:hover {
+  opacity: 1;
+  filter: none;
+}
+
+/* =========================
+   M365 LIGHT SUPPORT
+========================= */
+
+:root[data-theme="m365-light"] .office-scene:has(.office-selected-element) .office-room,
+:root[data-theme="m365-light"] .office-scene:has(.office-selected-element) .office-server-core,
+:root[data-theme="m365-light"] .office-scene:has(.office-selected-element) .office-source-card,
+:root[data-theme="m365-light"] .office-scene:has(.office-selected-element) .office-resource-card,
+:root[data-theme="m365-light"] .office-scene:has(.office-selected-element) .office-activity-log {
+  opacity: 0.42;
+  filter: grayscale(0.22) brightness(0.95);
+}
+
+:root[data-theme="m365-light"] .office-scene:has(.office-selected-element) .office-selected-element {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* =========================
+   RESPONSIVE CANVAS
+========================= */
+
+@media (max-width: 1200px) {
+  .office-scene:has(.office-selected-element) .office-room,
+  .office-scene:has(.office-selected-element) .office-server-core,
+  .office-scene:has(.office-selected-element) .office-source-card,
+  .office-scene:has(.office-selected-element) .office-resource-card {
+    transition:
+      opacity 0.18s ease,
+      filter 0.18s ease;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .office-scene:has(.office-selected-element) .office-room,
+  .office-scene:has(.office-selected-element) .office-server-core,
+  .office-scene:has(.office-selected-element) .office-source-card,
+  .office-scene:has(.office-selected-element) .office-resource-card,
+  .office-scene:has(.office-selected-element) .office-flow-duct,
+  .office-scene:has(.office-selected-element) .office-flow-data,
+  .office-scene:has(.office-selected-element) .office-flow-node {
+    transition: none !important;
+  }
+}
