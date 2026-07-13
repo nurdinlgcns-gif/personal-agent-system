@@ -1,0 +1,341 @@
+/* =========================
+   PHASE 8.20
+   MULTI-AGENT OFFICE LAYOUT READINESS
+   Stable role-based visual slots for future registered agents
+========================= */
+
+/* 
+  Goal:
+  - Single agent layout remains stable.
+  - Multi-agent layout has predictable visual slots.
+  - Agent rooms do not overlap source/server/skill/output nodes.
+  - Office canvas remains scrollable/zoomable.
+*/
+
+/* =========================
+   SINGLE AGENT SAFETY
+========================= */
+
+@media (min-width: 1201px) {
+    .office-scene.single-agent-scene .room-design {
+      left: 43% !important;
+      top: 67% !important;
+      transform: scale(0.86);
+      transform-origin: top left;
+    }
+  
+    .office-scene.single-agent-scene .resource-skill {
+      left: 29% !important;
+      top: 67% !important;
+      right: auto !important;
+      bottom: auto !important;
+      width: 220px !important;
+      max-width: 220px !important;
+    }
+  
+    .office-scene.single-agent-scene .resource-output {
+      right: 7% !important;
+      top: 62% !important;
+      left: auto !important;
+      bottom: auto !important;
+      width: 245px !important;
+      max-width: 245px !important;
+    }
+  }
+  
+  /* =========================
+     MULTI AGENT GRID LAYOUT
+  ========================= */
+  
+  @media (min-width: 1201px) {
+    /*
+      When more than one real agent exists:
+      - shrink rooms
+      - place them on predictable grid slots
+      - keep design-agent as primary lower-center operational room
+    */
+  
+    .office-scene:not(.single-agent-scene) .office-room.registered {
+      transform: scale(0.74) !important;
+      transform-origin: top left;
+    }
+  
+    /* Primary agent slot */
+    .office-scene:not(.single-agent-scene) .room-design {
+      left: 43% !important;
+      top: 67% !important;
+    }
+  
+    /* Upper-left knowledge/research slot */
+    .office-scene:not(.single-agent-scene) .room-research {
+      left: 29% !important;
+      top: 24% !important;
+      right: auto !important;
+      bottom: auto !important;
+    }
+  
+    /* Upper-right engineering/code slot */
+    .office-scene:not(.single-agent-scene) .room-code {
+      left: 65% !important;
+      top: 24% !important;
+      right: auto !important;
+      bottom: auto !important;
+    }
+  
+    /* Mid-left writing/content slot */
+    .office-scene:not(.single-agent-scene) .room-writer {
+      left: 30% !important;
+      top: 47% !important;
+      right: auto !important;
+      bottom: auto !important;
+    }
+  
+    /* Mid-right visual/image slot */
+    .office-scene:not(.single-agent-scene) .room-image {
+      left: 65% !important;
+      top: 47% !important;
+      right: auto !important;
+      bottom: auto !important;
+    }
+  
+    /* Lower-right QA slot */
+    .office-scene:not(.single-agent-scene) .room-qa {
+      left: 64% !important;
+      top: 68% !important;
+      right: auto !important;
+      bottom: auto !important;
+    }
+  
+    /* Keep Skill Shelf close to primary design-agent */
+    .office-scene:not(.single-agent-scene) .resource-skill {
+      left: 29% !important;
+      top: 67% !important;
+      right: auto !important;
+      bottom: auto !important;
+      width: 220px !important;
+      max-width: 220px !important;
+    }
+  
+    /* Keep Output Board on right side */
+    .office-scene:not(.single-agent-scene) .resource-output {
+      right: 7% !important;
+      top: 62% !important;
+      left: auto !important;
+      bottom: auto !important;
+      width: 245px !important;
+      max-width: 245px !important;
+    }
+  
+    /* Labels become smaller in multi-agent mode */
+    .office-scene:not(.single-agent-scene) .office-floating-label.room-label {
+      max-width: 176px !important;
+      padding: 8px 9px;
+    }
+  
+    .office-scene:not(.single-agent-scene) .office-floating-label.room-label strong {
+      font-size: 11px;
+    }
+  
+    .office-scene:not(.single-agent-scene) .office-floating-label.room-label small {
+      font-size: 9.5px;
+      -webkit-line-clamp: 2;
+    }
+  
+    /* Mini task cards become compact */
+    .office-scene:not(.single-agent-scene) .mini-task-card {
+      width: 98px;
+      padding: 6px 7px;
+    }
+  
+    .office-scene:not(.single-agent-scene) .mini-task-card strong {
+      font-size: 9.8px;
+    }
+  
+    .office-scene:not(.single-agent-scene) .mini-task-card small {
+      font-size: 8.8px;
+    }
+  }
+  
+  /* =========================
+     MULTI AGENT LABEL PLACEMENT
+  ========================= */
+  
+  @media (min-width: 1201px) {
+    .office-scene:not(.single-agent-scene) .room-design .room-label {
+      top: -8px !important;
+      left: 30px !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-research .room-label {
+      top: -30px !important;
+      left: -8px !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-code .room-label {
+      top: -30px !important;
+      left: 8px !important;
+      right: auto !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-writer .room-label {
+      top: -28px !important;
+      left: -8px !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-image .room-label {
+      top: -28px !important;
+      left: 8px !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-qa .room-label {
+      top: -30px !important;
+      left: 8px !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-design .mini-task-card {
+      right: -18px !important;
+      bottom: -2px !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-research .mini-task-card,
+    .office-scene:not(.single-agent-scene) .room-writer .mini-task-card {
+      right: -10px !important;
+      bottom: 0 !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-code .mini-task-card,
+    .office-scene:not(.single-agent-scene) .room-image .mini-task-card,
+    .office-scene:not(.single-agent-scene) .room-qa .mini-task-card {
+      right: -8px !important;
+      bottom: 0 !important;
+    }
+  }
+  
+  /* =========================
+     MULTI AGENT VISUAL CLARITY
+  ========================= */
+  
+  .office-scene:not(.single-agent-scene) .office-room.registered {
+    filter: saturate(0.96) brightness(0.98);
+  }
+  
+  .office-scene:not(.single-agent-scene) .office-room.registered.active-room,
+  .office-scene:not(.single-agent-scene) .office-room.registered.working {
+    filter: saturate(1.08) brightness(1.1);
+  }
+  
+  .office-scene:not(.single-agent-scene) .office-room.registered:hover {
+    filter: saturate(1.1) brightness(1.12);
+  }
+  
+  /* Reduce plant/object density visually in multi mode */
+  .office-scene:not(.single-agent-scene) .room-plant {
+    opacity: 0.54;
+  }
+  
+  /* Keep connector layer below draggable UI but above scene floor */
+  .office-scene:not(.single-agent-scene) .office-flow-channel-layer {
+    z-index: 24 !important;
+  }
+  
+  /* =========================
+     VIEWPORT CANVAS OVERRIDES
+     This must override office-viewport-zoom fixed positions.
+  ========================= */
+  
+  .office-scene-viewport .office-scene:not(.single-agent-scene) .office-room.registered {
+    transform: scale(0.74) !important;
+    transform-origin: top left;
+  }
+  
+  .office-scene-viewport .office-scene:not(.single-agent-scene) .room-design {
+    left: 43% !important;
+    top: 67% !important;
+  }
+  
+  .office-scene-viewport .office-scene:not(.single-agent-scene) .room-research {
+    left: 29% !important;
+    top: 24% !important;
+  }
+  
+  .office-scene-viewport .office-scene:not(.single-agent-scene) .room-code {
+    left: 65% !important;
+    top: 24% !important;
+  }
+  
+  .office-scene-viewport .office-scene:not(.single-agent-scene) .room-writer {
+    left: 30% !important;
+    top: 47% !important;
+  }
+  
+  .office-scene-viewport .office-scene:not(.single-agent-scene) .room-image {
+    left: 65% !important;
+    top: 47% !important;
+  }
+  
+  .office-scene-viewport .office-scene:not(.single-agent-scene) .room-qa {
+    left: 64% !important;
+    top: 68% !important;
+  }
+  
+  /* =========================
+     LARGE DESKTOP
+  ========================= */
+  
+  @media (min-width: 1500px) {
+    .office-scene:not(.single-agent-scene) .office-room.registered,
+    .office-scene-viewport .office-scene:not(.single-agent-scene) .office-room.registered {
+      transform: scale(0.78) !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-research,
+    .office-scene-viewport .office-scene:not(.single-agent-scene) .room-research {
+      left: 29.5% !important;
+      top: 24% !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-code,
+    .office-scene-viewport .office-scene:not(.single-agent-scene) .room-code {
+      left: 65.5% !important;
+      top: 24% !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-writer,
+    .office-scene-viewport .office-scene:not(.single-agent-scene) .room-writer {
+      left: 30% !important;
+      top: 47% !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-image,
+    .office-scene-viewport .office-scene:not(.single-agent-scene) .room-image {
+      left: 65.5% !important;
+      top: 47% !important;
+    }
+  
+    .office-scene:not(.single-agent-scene) .room-qa,
+    .office-scene-viewport .office-scene:not(.single-agent-scene) .room-qa {
+      left: 64.5% !important;
+      top: 68% !important;
+    }
+  }
+  
+  /* =========================
+     TABLET / MOBILE
+     Canvas remains fixed-size and scrollable, so multi-agent positions stay absolute.
+  ========================= */
+  
+  @media (max-width: 1200px) {
+    .office-scene-viewport .office-scene:not(.single-agent-scene) .office-room.registered {
+      transform: scale(0.74) !important;
+    }
+  
+    .office-scene-viewport .office-scene:not(.single-agent-scene) .office-floating-label.room-label {
+      max-width: 176px !important;
+    }
+  }
+  
+  @media (max-width: 700px) {
+    .office-scene-viewport .office-scene:not(.single-agent-scene) .office-room.registered {
+      transform: scale(0.72) !important;
+    }
+  }
