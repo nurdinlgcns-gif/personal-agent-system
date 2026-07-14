@@ -14,6 +14,7 @@ import { llmRoutes } from "./routes/llmRoutes";
 import { llmProviderRegistryRoutes } from "./routes/llmProviderRegistryRoutes";
 import { extractManualTaskModelPreference } from "./services/llm/manualTaskModelPreference";
 import { resolveRuntimeProvider } from "./services/llm/dynamicProviderRuntime";
+import { storeLatestTaskRuntimeMetadata } from "./services/llm/taskRuntimeMetadataService";
 
 validateEnv();
 
@@ -89,8 +90,17 @@ app.post("/tasks", async (req, res) => {
       source: "manual",
     });
 
+    const updatedTaskWithRuntimeMetadata =
+      await storeLatestTaskRuntimeMetadata({
+        inputText,
+        agentName,
+        source: "manual",
+        runtimeProvider: resolvedRuntimeProvider,
+      });
+
     return res.json({
       result,
+      task: updatedTaskWithRuntimeMetadata,
       runtimeProvider: {
         providerId: resolvedRuntimeProvider.provider.id,
         providerName: resolvedRuntimeProvider.provider.name,
@@ -147,6 +157,12 @@ app.get("/tasks/recent", async (req, res) => {
         outputText: task.outputText,
         status: task.status,
         source: task.source,
+        runtimeProviderId: task.runtimeProviderId,
+        runtimeProviderName: task.runtimeProviderName,
+        runtimeProviderType: task.runtimeProviderType,
+        runtimeModel: task.runtimeModel,
+        runtimeMode: task.runtimeMode,
+        runtimeResolvedFrom: task.runtimeResolvedFrom,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt,
       })),

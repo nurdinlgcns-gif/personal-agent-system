@@ -1,0 +1,164 @@
+/* =========================
+   PHASE 8.33.2
+   RUNTIME METADATA DISPLAY
+========================= */
+
+.recent-tasks-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .recent-tasks-table {
+    width: 100%;
+    min-width: 920px;
+    border-collapse: collapse;
+  }
+  
+  .recent-tasks-table th {
+    padding: 12px 10px;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 900;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.34px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  }
+  
+  .recent-tasks-table td {
+    padding: 12px 10px;
+    vertical-align: top;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  }
+  
+  .task-agent-cell,
+  .task-input-cell,
+  .runtime-meta-cell {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+  
+  .task-agent-cell strong {
+    color: #f8fafc;
+    font-size: 12px;
+  }
+  
+  .task-agent-cell small,
+  .task-time-cell,
+  .runtime-meta-cell small {
+    color: #94a3b8;
+    font-size: 10px;
+  }
+  
+  .task-input-cell span {
+    max-width: 340px;
+    color: #cbd5e1;
+    font-size: 12px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .task-status-pill,
+  .task-source-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 5px 8px;
+    font-size: 9.5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  
+  .task-status-pill.done {
+    color: #bbf7d0;
+    background: rgba(34, 197, 94, 0.13);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+  
+  .task-status-pill.in_progress,
+  .task-status-pill.pending {
+    color: #fed7aa;
+    background: rgba(245, 158, 11, 0.13);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+  
+  .task-status-pill.error {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.13);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+  
+  .task-source-pill {
+    color: #bfdbfe;
+    background: rgba(37, 99, 235, 0.14);
+    border: 1px solid rgba(96, 165, 250, 0.18);
+  }
+  
+  .runtime-meta-cell {
+    min-width: 170px;
+  }
+  
+  .runtime-meta-cell strong {
+    color: #e2e8f0;
+    font-size: 11.5px;
+    overflow-wrap: anywhere;
+  }
+  
+  .runtime-meta-cell span {
+    color: #bfdbfe;
+    font-size: 10.5px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+  
+  .empty-table-state {
+    display: grid;
+    gap: 5px;
+    padding: 18px;
+    text-align: center;
+  }
+  
+  .empty-table-state strong {
+    color: #f8fafc;
+  }
+  
+  .empty-table-state span {
+    color: #94a3b8;
+    font-size: 12px;
+  }
+  
+  /* Light theme */
+  :root[data-theme="m365-light"] .recent-tasks-table th {
+    color: #64748b;
+    border-bottom-color: rgba(15, 23, 42, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .recent-tasks-table td {
+    border-bottom-color: rgba(15, 23, 42, 0.06);
+  }
+  
+  :root[data-theme="m365-light"] .task-agent-cell strong,
+  :root[data-theme="m365-light"] .runtime-meta-cell strong,
+  :root[data-theme="m365-light"] .empty-table-state strong {
+    color: #111827;
+  }
+  
+  :root[data-theme="m365-light"] .task-input-cell span,
+  :root[data-theme="m365-light"] .runtime-meta-cell span {
+    color: #334155;
+  }
+  
+  :root[data-theme="m365-light"] .task-agent-cell small,
+  :root[data-theme="m365-light"] .task-time-cell,
+  :root[data-theme="m365-light"] .runtime-meta-cell small,
+  :root[data-theme="m365-light"] .empty-table-state span {
+    color: #64748b;
+  }
+  

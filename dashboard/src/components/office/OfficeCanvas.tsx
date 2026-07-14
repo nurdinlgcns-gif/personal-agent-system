@@ -336,6 +336,7 @@ function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
         {
           label: "State",
           value: "waiting",
+          
         },
       ],
     };

@@ -39,6 +39,14 @@ model Task {
   outputText String?
   status     String   @default("pending")
   source     String   @default("manual")
+
+  runtimeProviderId   String?
+  runtimeProviderName String?
+  runtimeProviderType String?
+  runtimeModel        String?
+  runtimeMode         String?
+  runtimeResolvedFrom String?
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
