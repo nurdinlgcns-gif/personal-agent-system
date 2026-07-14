@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { sendManualTask } from "../../services/api";
+import {
+  fetchDynamicLlmProviders,
+  type DynamicLlmProvider,
+  type LlmModelMode,
+} from "../../services/llmApi";
 import type { AgentSnapshot, SkillSnapshot } from "../../types/api";
 
 type FloatingTaskAssistantProps = {
@@ -27,6 +32,16 @@ type MentionQuery = {
   endIndex: number;
 };
 
+type RuntimeModelSelection = {
+  id: string;
+  providerId: string | null;
+  providerName: string;
+  providerType: string;
+  model: string;
+  mode: LlmModelMode;
+  label: string;
+};
+
 const PREFERRED_AGENT_ORDER = [
   "design-agent",
   "writer-agent",
@@ -35,6 +50,18 @@ const PREFERRED_AGENT_ORDER = [
   "research-agent",
   "qa-agent",
 ];
+
+const MODEL_SELECTION_STORAGE_KEY = "floating-assistant-model-selection";
+
+const AUTO_MODEL_SELECTION: RuntimeModelSelection = {
+  id: "auto",
+  providerId: null,
+  providerName: "Auto",
+  providerType: "auto",
+  model: "auto",
+  mode: "auto",
+  label: "Auto",
+};
 
 function createMessage(
   role: ChatMessage["role"],
@@ -142,9 +169,11 @@ function buildSuggestions(
   return suggestions.slice(0, 6);
 }
 
-function getMentionQuery(message: string, cursorPosition: number): MentionQuery | null {
+function getMentionQuery(
+  message: string,
+  cursorPosition: number
+): MentionQuery | null {
   const textBeforeCursor = message.slice(0, cursorPosition);
-
   const match = textBeforeCursor.match(/(^|\s)@([\w-]*)$/);
 
   if (!match) {
@@ -154,7 +183,8 @@ function getMentionQuery(message: string, cursorPosition: number): MentionQuery 
   const fullMatch = match[0];
   const query = match[2] || "";
   const atIndexInMatch = fullMatch.lastIndexOf("@");
-  const startIndex = textBeforeCursor.length - fullMatch.length + atIndexInMatch;
+  const startIndex =
+    textBeforeCursor.length - fullMatch.length + atIndexInMatch;
 
   return {
     query,
@@ -165,6 +195,63 @@ function getMentionQuery(message: string, cursorPosition: number): MentionQuery 
 
 function hasAgentMention(message: string) {
   return /(^|\s)@[\w-]+(\s|$)/i.test(message.trim());
+}
+
+function normalizeMode(mode?: string): LlmModelMode {
+  if (
+    mode === "auto" ||
+    mode === "fast" ||
+    mode === "deep" ||
+    mode === "creative"
+  ) {
+    return mode;
+  }
+
+  return "auto";
+}
+
+function buildRuntimeModelSelections(
+  providers: DynamicLlmProvider[]
+): RuntimeModelSelection[] {
+  const selections: RuntimeModelSelection[] = [AUTO_MODEL_SELECTION];
+
+  providers
+    .filter((provider) => provider.enabled)
+    .forEach((provider) => {
+      if (provider.modelAliases.length === 0) {
+        selections.push({
+          id: `${provider.id}:${provider.defaultModel || "auto"}:auto`,
+          providerId: provider.id,
+          providerName: provider.name,
+          providerType: provider.type,
+          model: provider.defaultModel || "auto",
+          mode: "auto",
+          label: `${provider.name} · ${provider.defaultModel || "auto"}`,
+        });
+
+        return;
+      }
+
+      provider.modelAliases.forEach((modelAlias) => {
+        const mode = normalizeMode(modelAlias.mode);
+
+        selections.push({
+          id: `${provider.id}:${modelAlias.id}:${mode}`,
+          providerId: provider.id,
+          providerName: provider.name,
+          providerType: provider.type,
+          model: modelAlias.id,
+          mode,
+          label: `${provider.name} · ${modelAlias.label || modelAlias.id}`,
+        });
+      });
+    });
+
+  return selections;
+}
+
+function getSavedModelSelectionId() {
+  return localStorage.getItem(MODEL_SELECTION_STORAGE_KEY) || "auto";
 }
 
 export function FloatingTaskAssistant({
@@ -206,8 +293,29 @@ export function FloatingTaskAssistant({
   const [mentionQuery, setMentionQuery] = useState<MentionQuery | null>(null);
   const [activeMentionIndex, setActiveMentionIndex] = useState(0);
 
+  const [runtimeProviders, setRuntimeProviders] = useState<
+    DynamicLlmProvider[]
+  >([]);
+  const [isModelRegistryLoading, setIsModelRegistryLoading] = useState(false);
+  const [modelRegistryError, setModelRegistryError] = useState<string | null>(
+    null
+  );
+  const [selectedModelSelectionId, setSelectedModelSelectionId] = useState(
+    getSavedModelSelectionId
+  );
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const modelSelections = useMemo(
+    () => buildRuntimeModelSelections(runtimeProviders),
+    [runtimeProviders]
+  );
+
+  const selectedModelSelection =
+    modelSelections.find(
+      (selection) => selection.id === selectedModelSelectionId
+    ) || AUTO_MODEL_SELECTION;
 
   const mentionAgents = useMemo(() => {
     if (!mentionQuery) {
@@ -221,7 +329,39 @@ export function FloatingTaskAssistant({
       .slice(0, 6);
   }, [mentionQuery, sortedAgents]);
 
-  const shouldShowMentionPopup = mentionQuery !== null && mentionAgents.length > 0;
+  const shouldShowMentionPopup =
+    mentionQuery !== null && mentionAgents.length > 0;
+
+  async function loadRuntimeProviders() {
+    try {
+      setIsModelRegistryLoading(true);
+      setModelRegistryError(null);
+
+      const response = await fetchDynamicLlmProviders();
+      setRuntimeProviders(response.providers);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to load model registry";
+
+      setModelRegistryError(message);
+    } finally {
+      setIsModelRegistryLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadRuntimeProviders();
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    loadRuntimeProviders();
+  }, [isOpen]);
 
   useEffect(() => {
     setMessages((currentMessages) => {
@@ -277,6 +417,22 @@ export function FloatingTaskAssistant({
       return currentIndex;
     });
   }, [mentionAgents.length, shouldShowMentionPopup]);
+
+  useEffect(() => {
+    const selectedExists = modelSelections.some(
+      (selection) => selection.id === selectedModelSelectionId
+    );
+
+    if (!selectedExists) {
+      setSelectedModelSelectionId("auto");
+      localStorage.setItem(MODEL_SELECTION_STORAGE_KEY, "auto");
+    }
+  }, [modelSelections, selectedModelSelectionId]);
+
+  function handleModelSelectionChange(nextSelectionId: string) {
+    setSelectedModelSelectionId(nextSelectionId);
+    localStorage.setItem(MODEL_SELECTION_STORAGE_KEY, nextSelectionId);
+  }
 
   function updateMentionQuery(nextMessage: string, cursorPosition: number) {
     const nextMentionQuery = getMentionQuery(nextMessage, cursorPosition);
@@ -350,11 +506,25 @@ export function FloatingTaskAssistant({
       setMessage("");
       setMentionQuery(null);
 
-      const response = await sendManualTask(trimmedMessage);
+      const response = await sendManualTask({
+        inputText: trimmedMessage,
+        modelPreference: {
+          providerId: selectedModelSelection.providerId,
+          provider: selectedModelSelection.providerType,
+          model: selectedModelSelection.model,
+          mode: selectedModelSelection.mode,
+        },
+      });
+
+      const runtimeText = response.runtimeProvider
+        ? `\n\nRuntime: ${response.runtimeProvider.providerName || "auto"} / ${
+            response.runtimeProvider.model || "auto"
+          } (${response.runtimeProvider.mode || "auto"})`
+        : "";
 
       setMessages((currentMessages) => [
         ...currentMessages,
-        createMessage("assistant", response.result),
+        createMessage("assistant", `${response.result}${runtimeText}`),
       ]);
 
       await onTaskSent();
@@ -481,6 +651,46 @@ export function FloatingTaskAssistant({
             Connected to backend orchestrator
           </div>
 
+          <div className="floating-task-model-selector">
+            <div>
+              <label htmlFor="floating-task-model-select">Runtime Model</label>
+              <small>
+                Agent via @mention. Provider/model preference is sent with this
+                task.
+              </small>
+            </div>
+
+            <select
+              id="floating-task-model-select"
+              value={selectedModelSelection.id}
+              onChange={(event) =>
+                handleModelSelectionChange(event.target.value)
+              }
+              disabled={isModelRegistryLoading}
+            >
+              {modelSelections.map((selection) => (
+                <option key={selection.id} value={selection.id}>
+                  {selection.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="floating-task-model-preview">
+            <span>
+              {isModelRegistryLoading
+                ? "Loading provider registry..."
+                : modelRegistryError
+                  ? "Provider registry unavailable"
+                  : `${selectedModelSelection.providerName} · ${selectedModelSelection.model}`}
+            </span>
+
+            <small>
+              Type: {selectedModelSelection.providerType} · Mode:{" "}
+              {selectedModelSelection.mode}
+            </small>
+          </div>
+
           <div className="floating-task-messages">
             {messages.map((chatMessage) => (
               <div
@@ -535,9 +745,7 @@ export function FloatingTaskAssistant({
             <div className="floating-task-input-wrap">
               {shouldShowMentionPopup && (
                 <div className="floating-task-mention-popover">
-                  <div className="mention-popover-title">
-                    Select agent
-                  </div>
+                  <div className="mention-popover-title">Select agent</div>
 
                   {mentionAgents.map((agent, index) => (
                     <button

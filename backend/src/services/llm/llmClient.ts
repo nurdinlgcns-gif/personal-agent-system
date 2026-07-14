@@ -1,85 +1,86 @@
-import {
-    getDefaultLlmModel,
-    getDefaultLlmProvider,
-    isAnthropicConfigured,
-    isGoogleConfigured,
-    resolveModelMode,
-    resolveProviderByModel,
-  } from "../../config/llmProviders";
-  import { runAnthropicCompletion } from "./anthropicClient";
-  import { runGoogleCompletion } from "./googleClient";
-  import type { LlmProvider, LlmRequest, LlmResponse } from "./llmTypes";
-  
-  function resolveRuntimeProvider(request: LlmRequest): LlmProvider {
-    const requestedProvider = request.preference?.provider;
-  
-    if (requestedProvider && requestedProvider !== "auto") {
-      return requestedProvider;
-    }
-  
-    const providerByModel = resolveProviderByModel(request.preference?.model);
-  
-    if (providerByModel !== "auto") {
-      return providerByModel;
-    }
-  
-    const defaultProvider = getDefaultLlmProvider();
-  
-    if (defaultProvider !== "auto") {
-      return defaultProvider;
-    }
-  
-    if (isAnthropicConfigured()) {
-      return "anthropic";
-    }
-  
-    if (isGoogleConfigured()) {
-      return "google";
-    }
-  
-    return "anthropic";
+import { runAnthropicCompletion } from "./anthropicClient";
+import { resolveRuntimeProvider } from "./dynamicProviderRuntime";
+import { runGoogleCompletion } from "./googleClient";
+import type { LlmRequest, LlmResponse } from "./llmTypes";
+
+function buildDynamicMockResponse(
+  request: LlmRequest,
+  resolved: Awaited<ReturnType<typeof resolveRuntimeProvider>>
+): LlmResponse {
+  const { provider, model, mode } = resolved;
+
+  const capabilityText =
+    provider.capabilities.length > 0
+      ? provider.capabilities.join(", ")
+      : "no capabilities declared";
+
+  return {
+    provider: provider.type,
+    providerId: provider.id,
+    providerName: provider.name,
+    providerType: provider.type,
+    model,
+    mode,
+    isMock: true,
+    resolvedFrom: provider.source,
+    outputText:
+      `[MOCK ${provider.name}] Runtime provider resolver selected "${provider.name}" ` +
+      `(${provider.type}) with model "${model}" for agent "${request.agentName}". ` +
+      `Capabilities: ${capabilityText}. Real provider call will be implemented in the next runtime integration phase.`,
+  };
+}
+
+export async function runLlmCompletion(
+  request: LlmRequest
+): Promise<LlmResponse> {
+  const resolved = await resolveRuntimeProvider(request);
+  const { provider, model } = resolved;
+
+  if (provider.source === "registry") {
+    return buildDynamicMockResponse(request, resolved);
   }
-  
-  function resolveRuntimeModel(request: LlmRequest, provider: LlmProvider) {
-    const requestedModel = request.preference?.model;
-  
-    if (requestedModel && requestedModel !== "auto") {
-      return requestedModel;
-    }
-  
-    const defaultModel = getDefaultLlmModel();
-  
-    if (defaultModel && defaultModel !== "auto") {
-      return defaultModel;
-    }
-  
-    if (provider === "google") {
-      return "gemini-default";
-    }
-  
-    return "claude-default";
+
+  if (provider.type === "google") {
+    const result = await runGoogleCompletion(
+      {
+        ...request,
+        preference: {
+          ...request.preference,
+          provider: provider.type,
+          model,
+          mode: resolved.mode,
+        },
+      },
+      model
+    );
+
+    return {
+      ...result,
+      providerId: provider.id,
+      providerName: provider.name,
+      providerType: provider.type,
+      resolvedFrom: provider.source,
+    };
   }
-  
-  export async function runLlmCompletion(
-    request: LlmRequest
-  ): Promise<LlmResponse> {
-    const provider = resolveRuntimeProvider(request);
-    const model = resolveRuntimeModel(request, provider);
-    const mode = request.preference?.mode || resolveModelMode(model);
-  
-    const normalizedRequest: LlmRequest = {
+
+  const result = await runAnthropicCompletion(
+    {
       ...request,
       preference: {
         ...request.preference,
-        provider,
+        provider: provider.type,
         model,
-        mode,
+        mode: resolved.mode,
       },
-    };
-  
-    if (provider === "google") {
-      return runGoogleCompletion(normalizedRequest, model);
-    }
-  
-    return runAnthropicCompletion(normalizedRequest, model);
-  }
+    },
+    model
+  );
+
+  return {
+    ...result,
+    providerId: provider.id,
+    providerName: provider.name,
+    providerType: provider.type,
+    resolvedFrom: provider.source,
+  };
+}

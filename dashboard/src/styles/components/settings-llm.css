@@ -1,6 +1,6 @@
 /* =========================
-   PHASE 8.26
-   SETTINGS UI - LLM PROVIDER STATUS
+   PHASE 8.26 / 8.28 / 8.28.1
+   SETTINGS UI - PROVIDER REGISTRY CLARITY POLISH
 ========================= */
 
 .settings-view {
@@ -44,14 +44,58 @@
   
   .settings-hero-card p {
     margin: 10px 0 0;
-    max-width: 680px;
+    max-width: 760px;
     color: #94a3b8;
     font-size: 13px;
     line-height: 1.65;
   }
   
+  .provider-strategy-note {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  
+  .provider-strategy-note > div {
+    padding: 16px;
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at top left, rgba(34, 197, 94, 0.09), transparent 34%),
+      rgba(8, 15, 32, 0.72);
+    border: 1px solid rgba(34, 197, 94, 0.15);
+  }
+  
+  .provider-strategy-note span {
+    display: inline-flex;
+    margin-bottom: 7px;
+    color: #86efac;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.34px;
+  }
+  
+  .provider-strategy-note strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 15px;
+  }
+  
+  .provider-strategy-note p {
+    margin: 8px 0 0;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  
+  .provider-strategy-note code {
+    color: #bfdbfe;
+  }
+  
   .settings-refresh-button,
-  .llm-preview-button {
+  .llm-preview-button,
+  .llm-registry-actions button,
+  .llm-provider-modal footer button {
     flex: 0 0 auto;
     border-radius: 999px;
     padding: 9px 13px;
@@ -69,7 +113,9 @@
   }
   
   .settings-refresh-button:hover,
-  .llm-preview-button:hover {
+  .llm-preview-button:hover,
+  .llm-registry-actions button:hover,
+  .llm-provider-modal footer button:hover {
     color: #ffffff;
     background: rgba(37, 99, 235, 0.28);
     border-color: rgba(96, 165, 250, 0.38);
@@ -77,7 +123,9 @@
   }
   
   .settings-refresh-button:disabled,
-  .llm-preview-button:disabled {
+  .llm-preview-button:disabled,
+  .llm-registry-actions button:disabled,
+  .llm-provider-modal footer button:disabled {
     opacity: 0.58;
     cursor: not-allowed;
     transform: none;
@@ -138,13 +186,56 @@
     line-height: 1.2;
   }
   
-  .llm-provider-grid {
+  .llm-settings-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 6px;
+  }
+  
+  .llm-settings-section-header span {
+    display: inline-flex;
+    margin-bottom: 6px;
+    color: #93c5fd;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.34px;
+  }
+  
+  .llm-settings-section-header h2 {
+    margin: 0;
+    color: #f8fafc;
+    font-size: 20px;
+  }
+  
+  .llm-settings-section-header p {
+    margin: 6px 0 0;
+    max-width: 760px;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  
+  .llm-settings-section-header.primary-registry {
+    padding: 16px;
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.13), transparent 34%),
+      rgba(8, 15, 32, 0.66);
+    border: 1px solid rgba(96, 165, 250, 0.14);
+  }
+  
+  .llm-provider-grid,
+  .llm-registry-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
   }
   
-  .llm-provider-card {
+  .llm-provider-card,
+  .llm-registry-card {
     display: grid;
     gap: 14px;
     padding: 18px;
@@ -158,16 +249,40 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.045);
   }
   
-  .llm-provider-card.claude {
+  .env-provider-card {
+    opacity: 0.94;
+    border-style: dashed;
+  }
+  
+  .llm-provider-card.claude,
+  .llm-registry-card.claude {
     background:
       radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 36%),
       rgba(8, 15, 32, 0.78);
   }
   
-  .llm-provider-card.gemini {
+  .llm-provider-card.gemini,
+  .llm-registry-card.gemini {
     background:
       radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 36%),
       rgba(8, 15, 32, 0.78);
+  }
+  
+  .llm-registry-card.local {
+    background:
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.13), transparent 36%),
+      rgba(8, 15, 32, 0.78);
+  }
+  
+  .llm-registry-card.fal {
+    background:
+      radial-gradient(circle at top right, rgba(236, 72, 153, 0.14), transparent 36%),
+      rgba(8, 15, 32, 0.78);
+  }
+  
+  .llm-registry-card.disabled {
+    opacity: 0.72;
+    filter: saturate(0.72);
   }
   
   .llm-provider-card-header {
@@ -187,7 +302,8 @@
     letter-spacing: 0.34px;
   }
   
-  .llm-provider-card h2 {
+  .llm-provider-card h2,
+  .llm-registry-card h2 {
     margin: 0;
     color: #f8fafc;
     font-size: 18px;
@@ -256,6 +372,12 @@
     gap: 8px;
   }
   
+  .llm-model-list.compact {
+    max-height: 260px;
+    overflow: auto;
+    padding-right: 3px;
+  }
+  
   .llm-model-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -292,7 +414,41 @@
     text-transform: uppercase;
   }
   
-  .llm-preview-result {
+  .llm-capability-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  
+  .llm-capability-list span {
+    border-radius: 999px;
+    padding: 6px 9px;
+    color: #c4b5fd;
+    background: rgba(124, 58, 237, 0.14);
+    border: 1px solid rgba(167, 139, 250, 0.18);
+    font-size: 10px;
+    font-weight: 900;
+  }
+  
+  .llm-registry-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .llm-registry-actions button.danger {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.13);
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+  
+  .llm-registry-actions button.danger:hover {
+    color: #ffffff;
+    background: rgba(239, 68, 68, 0.24);
+  }
+  
+  .llm-preview-result,
+  .llm-registry-empty-card {
     display: grid;
     gap: 11px;
     padding: 18px;
@@ -311,13 +467,15 @@
     letter-spacing: 0.34px;
   }
   
-  .llm-preview-result strong {
+  .llm-preview-result strong,
+  .llm-registry-empty-card strong {
     display: block;
     margin-top: 4px;
     color: #f8fafc;
   }
   
-  .llm-preview-result p {
+  .llm-preview-result p,
+  .llm-registry-empty-card p {
     margin: 0;
     color: #e2e8f0;
     font-size: 13px;
@@ -328,12 +486,159 @@
     color: #94a3b8;
   }
   
+  /* Modal */
+  .llm-provider-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 220;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    background: rgba(2, 6, 23, 0.74);
+    backdrop-filter: blur(14px);
+  }
+  
+  .llm-provider-modal {
+    width: min(760px, 100%);
+    max-height: min(760px, calc(100vh - 44px));
+    overflow: auto;
+    display: grid;
+    gap: 16px;
+    padding: 18px;
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.16), transparent 34%),
+      rgba(8, 15, 32, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+  }
+  
+  .llm-provider-modal header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  
+  .llm-provider-modal header span {
+    color: #93c5fd;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.34px;
+  }
+  
+  .llm-provider-modal header h2 {
+    margin: 5px 0 0;
+    color: #f8fafc;
+    font-size: 22px;
+  }
+  
+  .llm-provider-modal header button {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    color: #cbd5e1;
+    background: rgba(15, 23, 42, 0.62);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    font-size: 20px;
+    cursor: pointer;
+  }
+  
+  .llm-provider-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+  }
+  
+  .llm-provider-form-grid label {
+    display: grid;
+    gap: 7px;
+  }
+  
+  .llm-provider-form-grid label.wide {
+    grid-column: 1 / -1;
+  }
+  
+  .llm-provider-form-grid label > span,
+  .llm-provider-checkbox span {
+    color: #cbd5e1;
+    font-size: 11px;
+    font-weight: 900;
+  }
+  
+  .llm-provider-form-grid input,
+  .llm-provider-form-grid select,
+  .llm-provider-form-grid textarea {
+    width: 100%;
+    border-radius: 13px;
+    padding: 10px 11px;
+    color: #f8fafc;
+    background: rgba(2, 6, 23, 0.72);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    outline: none;
+    font-family: inherit;
+    font-size: 12px;
+  }
+  
+  .llm-provider-form-grid textarea {
+    resize: vertical;
+    min-height: 110px;
+  }
+  
+  .llm-provider-form-grid input:focus,
+  .llm-provider-form-grid select:focus,
+  .llm-provider-form-grid textarea:focus {
+    border-color: rgba(96, 165, 250, 0.55);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
+  }
+  
+  .llm-provider-form-grid small {
+    color: #94a3b8;
+    font-size: 10px;
+  }
+  
+  .llm-provider-checkbox {
+    grid-column: 1 / -1;
+    display: inline-flex !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 9px !important;
+  }
+  
+  .llm-provider-checkbox input {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .llm-provider-modal footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .llm-provider-modal footer button.secondary {
+    color: #cbd5e1;
+    background: rgba(15, 23, 42, 0.78);
+    border-color: rgba(148, 163, 184, 0.16);
+  }
+  
+  .llm-provider-modal footer button.primary {
+    color: #ffffff;
+    background: rgba(37, 99, 235, 0.34);
+    border-color: rgba(96, 165, 250, 0.42);
+  }
+  
   /* Light theme */
   :root[data-theme="m365-light"] .settings-hero-card,
   :root[data-theme="m365-light"] .settings-summary-card,
   :root[data-theme="m365-light"] .llm-provider-card,
+  :root[data-theme="m365-light"] .llm-registry-card,
   :root[data-theme="m365-light"] .llm-preview-result,
-  :root[data-theme="m365-light"] .settings-loading-card {
+  :root[data-theme="m365-light"] .llm-registry-empty-card,
+  :root[data-theme="m365-light"] .settings-loading-card,
+  :root[data-theme="m365-light"] .provider-strategy-note > div,
+  :root[data-theme="m365-light"] .llm-settings-section-header.primary-registry {
     background: #ffffff;
     border-color: rgba(15, 23, 42, 0.08);
     box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
@@ -341,20 +646,27 @@
   
   :root[data-theme="m365-light"] .settings-hero-card h1,
   :root[data-theme="m365-light"] .settings-summary-card strong,
+  :root[data-theme="m365-light"] .llm-settings-section-header h2,
   :root[data-theme="m365-light"] .llm-provider-card h2,
+  :root[data-theme="m365-light"] .llm-registry-card h2,
   :root[data-theme="m365-light"] .llm-provider-meta-grid strong,
   :root[data-theme="m365-light"] .llm-model-row strong,
   :root[data-theme="m365-light"] .llm-preview-result strong,
-  :root[data-theme="m365-light"] .llm-preview-result p {
+  :root[data-theme="m365-light"] .llm-preview-result p,
+  :root[data-theme="m365-light"] .llm-registry-empty-card strong,
+  :root[data-theme="m365-light"] .llm-registry-empty-card p,
+  :root[data-theme="m365-light"] .provider-strategy-note strong {
     color: #111827;
   }
   
   :root[data-theme="m365-light"] .settings-hero-card p,
   :root[data-theme="m365-light"] .settings-summary-card span,
+  :root[data-theme="m365-light"] .llm-settings-section-header p,
   :root[data-theme="m365-light"] .llm-provider-description,
   :root[data-theme="m365-light"] .llm-provider-meta-grid span,
   :root[data-theme="m365-light"] .llm-model-row small,
-  :root[data-theme="m365-light"] .llm-preview-result small {
+  :root[data-theme="m365-light"] .llm-preview-result small,
+  :root[data-theme="m365-light"] .provider-strategy-note p {
     color: #64748b;
   }
   
@@ -364,9 +676,30 @@
     border-color: rgba(15, 23, 42, 0.08);
   }
   
+  :root[data-theme="m365-light"] .llm-provider-modal {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .llm-provider-modal header h2,
+  :root[data-theme="m365-light"] .llm-provider-form-grid label > span,
+  :root[data-theme="m365-light"] .llm-provider-checkbox span {
+    color: #111827;
+  }
+  
+  :root[data-theme="m365-light"] .llm-provider-form-grid input,
+  :root[data-theme="m365-light"] .llm-provider-form-grid select,
+  :root[data-theme="m365-light"] .llm-provider-form-grid textarea {
+    color: #111827;
+    background: #f8fafc;
+    border-color: rgba(37, 99, 235, 0.14);
+  }
+  
   @media (max-width: 1100px) {
     .llm-provider-grid,
-    .settings-summary-grid {
+    .llm-registry-grid,
+    .settings-summary-grid,
+    .provider-strategy-note {
       grid-template-columns: 1fr;
     }
   
@@ -376,12 +709,25 @@
   }
   
   @media (max-width: 700px) {
-    .settings-hero-card {
+    .settings-hero-card,
+    .llm-settings-section-header {
       flex-direction: column;
-      padding: 18px;
+      align-items: stretch;
     }
   
     .settings-refresh-button {
+      width: 100%;
+    }
+  
+    .llm-provider-form-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .llm-provider-modal footer {
+      flex-direction: column;
+    }
+  
+    .llm-provider-modal footer button {
       width: 100%;
     }
   }

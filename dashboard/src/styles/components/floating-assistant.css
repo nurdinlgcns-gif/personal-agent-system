@@ -522,3 +522,125 @@
     font-size: 11.5px;
   }
 }
+
+/* =========================
+   PHASE 8.31
+   FLOATING ASSISTANT MODEL SELECTOR
+   Agent by @mention, model by registry selector
+========================= */
+
+.floating-task-model-selector {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 220px);
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at top left, rgba(96, 165, 250, 0.1), transparent 34%),
+    rgba(15, 23, 42, 0.52);
+  border: 1px solid rgba(96, 165, 250, 0.16);
+}
+
+.floating-task-model-selector label {
+  display: block;
+  color: #bfdbfe;
+  font-size: 10.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.34px;
+}
+
+.floating-task-model-selector small {
+  display: block;
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.floating-task-model-selector select {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  border-radius: 11px;
+  padding: 0 10px;
+  color: #f8fafc;
+  background: rgba(2, 6, 23, 0.78);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  outline: none;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.floating-task-model-selector select:focus {
+  border-color: rgba(96, 165, 250, 0.55);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
+}
+
+.floating-task-model-selector select:disabled {
+  opacity: 0.66;
+  cursor: wait;
+}
+
+.floating-task-model-preview {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 13px;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.13);
+}
+
+.floating-task-model-preview span {
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.floating-task-model-preview small {
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+/* Light theme */
+:root[data-theme="m365-light"] .floating-task-model-selector {
+  background: #f8fafc;
+  border-color: rgba(37, 99, 235, 0.12);
+}
+
+:root[data-theme="m365-light"] .floating-task-model-selector label {
+  color: #1d4ed8;
+}
+
+:root[data-theme="m365-light"] .floating-task-model-selector small {
+  color: #64748b;
+}
+
+:root[data-theme="m365-light"] .floating-task-model-selector select {
+  color: #111827;
+  background: #ffffff;
+  border-color: rgba(37, 99, 235, 0.16);
+}
+
+:root[data-theme="m365-light"] .floating-task-model-preview {
+  background: #eff6ff;
+  border-color: rgba(37, 99, 235, 0.12);
+}
+
+:root[data-theme="m365-light"] .floating-task-model-preview span {
+  color: #111827;
+}
+
+:root[data-theme="m365-light"] .floating-task-model-preview small {
+  color: #64748b;
+}
+
+@media (max-width: 560px) {
+  .floating-task-model-selector {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

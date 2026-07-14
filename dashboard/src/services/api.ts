@@ -1,84 +1,148 @@
 import type {
-    AgentsStatusResponse,
-    RecentTasksResponse,
-    ManualTaskResponse,
-    SkillsResponse,
-    DashboardSummaryResponse,
-  } from "../types/api";
-  
-  const API_BASE_URL = "http://localhost:3000";
-  
-  export async function fetchAgentsStatus() {
-    const response = await fetch(`${API_BASE_URL}/agents/status`);
-  
-    if (!response.ok) {
-      throw new Error("Failed to fetch agents status");
-    }
-  
-    const data: AgentsStatusResponse = await response.json();
-    return data.agents;
+  AgentsStatusResponse,
+  RecentTasksResponse,
+  ManualTaskResponse,
+  SkillsResponse,
+  DashboardSummaryResponse,
+} from "../types/api";
+
+const API_BASE_URL = "http://localhost:3000";
+
+export type ManualTaskModelPreference = {
+  providerId?: string | null;
+  provider?: string;
+  model?: string;
+  mode?: "auto" | "fast" | "deep" | "creative";
+};
+
+export type ManualTaskPayload = {
+  inputText: string;
+  modelPreference?: ManualTaskModelPreference;
+};
+
+export type ManualTaskResponseWithRuntime = ManualTaskResponse & {
+  ok?: boolean;
+  runtimeProvider?: {
+    providerId?: string | null;
+    providerName?: string;
+    providerType?: string;
+    model?: string;
+    mode?: string;
+    resolvedFrom?: string;
+  };
+};
+
+async function readErrorMessage(response: Response, fallbackMessage: string) {
+  const errorText = await response.text();
+
+  if (!errorText) {
+    return `${fallbackMessage}. HTTP ${response.status}`;
   }
-  
-  export async function fetchRecentTasks(limit = 10) {
-    const response = await fetch(`${API_BASE_URL}/tasks/recent?limit=${limit}`);
-  
-    if (!response.ok) {
-      throw new Error("Failed to fetch recent tasks");
-    }
-  
-    const data: RecentTasksResponse = await response.json();
-    return data.tasks;
+
+  try {
+    const parsedError = JSON.parse(errorText) as {
+      message?: string;
+      error?: string;
+    };
+
+    return (
+      parsedError.message ||
+      parsedError.error ||
+      `${fallbackMessage}. HTTP ${response.status}: ${errorText}`
+    );
+  } catch {
+    return `${fallbackMessage}. HTTP ${response.status}: ${errorText}`;
   }
-  
-  export async function sendManualTask(message: string) {
+}
+
+export async function fetchAgentsStatus() {
+  const response = await fetch(`${API_BASE_URL}/agents/status`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch agents status");
+  }
+
+  const data: AgentsStatusResponse = await response.json();
+  return data.agents;
+}
+
+export async function fetchRecentTasks(limit = 10) {
+  const response = await fetch(`${API_BASE_URL}/tasks/recent?limit=${limit}`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch recent tasks");
+  }
+
+  const data: RecentTasksResponse = await response.json();
+  return data.tasks;
+}
+
+export async function sendManualTask(
+  payload: string | ManualTaskPayload
+): Promise<ManualTaskResponseWithRuntime> {
+  const inputText = typeof payload === "string" ? payload : payload.inputText;
+
+  const requestBody =
+    typeof payload === "string"
+      ? {
+          message: inputText,
+          inputText,
+        }
+      : {
+          message: inputText,
+          inputText,
+          modelPreference: payload.modelPreference,
+        };
+
   const response = await fetch(`${API_BASE_URL}/tasks`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      message,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-
-    throw new Error(
-      `Failed to send manual task. HTTP ${response.status}: ${errorText}`
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to send manual task"
     );
+
+    throw new Error(errorMessage);
   }
 
-  const data: ManualTaskResponse = await response.json();
+  const data: ManualTaskResponseWithRuntime = await response.json();
   return data;
+}
+
+export async function fetchSkills() {
+  const response = await fetch(`${API_BASE_URL}/skills`);
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to fetch skills"
+    );
+
+    throw new Error(errorMessage);
   }
 
-  export async function fetchSkills() {
-    const response = await fetch(`${API_BASE_URL}/skills`);
-  
-    if (!response.ok) {
-      const errorText = await response.text();
-  
-      throw new Error(
-        `Failed to fetch skills. HTTP ${response.status}: ${errorText}`
-      );
-    }
-  
-    const data: SkillsResponse = await response.json();
-    return data.skills;
+  const data: SkillsResponse = await response.json();
+  return data.skills;
+}
+
+export async function fetchDashboardSummary() {
+  const response = await fetch(`${API_BASE_URL}/dashboard/summary`);
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to fetch dashboard summary"
+    );
+
+    throw new Error(errorMessage);
   }
 
-  export async function fetchDashboardSummary() {
-    const response = await fetch(`${API_BASE_URL}/dashboard/summary`);
-  
-    if (!response.ok) {
-      const errorText = await response.text();
-  
-      throw new Error(
-        `Failed to fetch dashboard summary. HTTP ${response.status}: ${errorText}`
-      );
-    }
-  
-    const data: DashboardSummaryResponse = await response.json();
-    return data.summary;
-  }
+  const data: DashboardSummaryResponse = await response.json();
+  return data.summary;
+}
