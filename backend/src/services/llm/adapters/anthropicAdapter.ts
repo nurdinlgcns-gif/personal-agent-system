@@ -143,13 +143,18 @@ export const anthropicAdapter: ProviderRuntimeAdapter = {
         resolvedFrom: input.provider.source,
       };
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown Anthropic error";
-
-      return createAdapterMockResponse(
-        input,
-        `Anthropic runtime error: ${message}`
-      );
-    }
+        const message =
+          error instanceof Error ? error.message : "Unknown Anthropic error";
+      
+        const cause =
+          error instanceof Error && "cause" in error
+            ? JSON.stringify(error.cause)
+            : "";
+      
+        return createAdapterMockResponse(
+          input,
+          `Anthropic runtime error: ${message}${cause ? ` | cause: ${cause}` : ""}`
+        );
+      }
   },
 };
