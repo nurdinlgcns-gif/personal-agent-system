@@ -2131,3 +2131,36 @@ button {
   }
 
 }
+
+/* =========================
+   PHASE 8.33.2
+   RECENT TASKS RUNTIME METADATA
+   Minimal patch, preserve existing table layout
+========================= */
+
+.task-source-runtime-cell {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.task-source-main {
+  color: inherit;
+}
+
+.task-runtime-mini {
+  display: block;
+  max-width: 170px;
+  color: #93c5fd;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:root[data-theme="m365-light"] .task-runtime-mini {
+  color: #2563eb;
+}
+

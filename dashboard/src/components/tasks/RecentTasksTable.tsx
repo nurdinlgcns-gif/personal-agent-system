@@ -6,6 +6,30 @@ type RecentTasksTableProps = {
   isRefreshing: boolean;
 };
 
+function getRuntimeLabel(task: TaskSnapshot) {
+  if (!task.runtimeProviderName && !task.runtimeModel) {
+    return "Runtime auto";
+  }
+
+  const providerName =
+    task.runtimeProviderName || task.runtimeProviderType || "Runtime";
+
+  const modelName = task.runtimeModel || "auto";
+
+  return `${providerName} · ${modelName}`;
+}
+
+function getRuntimeDetail(task: TaskSnapshot) {
+  if (!task.runtimeProviderName && !task.runtimeModel) {
+    return "No runtime metadata";
+  }
+
+  const mode = task.runtimeMode || "auto";
+  const resolvedFrom = task.runtimeResolvedFrom || "unknown";
+
+  return `${mode} · ${resolvedFrom}`;
+}
+
 export function RecentTasksTable({
   tasks,
   onRefresh,
@@ -42,18 +66,35 @@ export function RecentTasksTable({
           <div className="empty-state table-empty-state">
             <div className="empty-state-icon">▦</div>
             <strong>No recent tasks found</strong>
-            <p>Tasks from WhatsApp, Postman, or Floating Assistant will appear here.</p>
+            <p>
+              Tasks from WhatsApp, Postman, or Floating Assistant will appear
+              here.
+            </p>
           </div>
         ) : (
           tasks.slice(0, 8).map((task) => (
             <div key={task.id} className="table-row task-table-row">
               <span title={task.id}>{task.id.slice(0, 8)}</span>
+
               <span>{task.agentName}</span>
-              <span>{task.source}</span>
+
+              <span className="task-source-runtime-cell">
+                <span className="task-source-main">{task.source}</span>
+
+                <span
+                  className="task-runtime-mini"
+                  title={getRuntimeDetail(task)}
+                >
+                  {getRuntimeLabel(task)}
+                </span>
+              </span>
+
               <span>
                 <b className={`task-status ${task.status}`}>{task.status}</b>
               </span>
+
               <span title={task.inputText}>{task.inputText}</span>
+
               <span>{new Date(task.createdAt).toLocaleTimeString()}</span>
             </div>
           ))

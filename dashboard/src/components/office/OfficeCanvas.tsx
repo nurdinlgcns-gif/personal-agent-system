@@ -323,6 +323,51 @@ function getActivityLabel(task: TaskSnapshot) {
   return `${task.agentName} update`;
 }
 
+function getRuntimeProviderLabel(task?: TaskSnapshot) {
+  if (!task) {
+    return "-";
+  }
+
+  return task.runtimeProviderName || task.runtimeProviderType || "-";
+}
+
+function getRuntimeModelLabel(task?: TaskSnapshot) {
+  if (!task) {
+    return "-";
+  }
+
+  return task.runtimeModel || "-";
+}
+
+function getRuntimeModeLabel(task?: TaskSnapshot) {
+  if (!task) {
+    return "-";
+  }
+
+  return task.runtimeMode || "-";
+}
+
+function getRuntimeResolvedFromLabel(task?: TaskSnapshot) {
+  if (!task) {
+    return "-";
+  }
+
+  return task.runtimeResolvedFrom || "-";
+}
+
+function getRuntimeActivityLabel(task: TaskSnapshot) {
+  if (!task.runtimeProviderName && !task.runtimeModel) {
+    return "runtime auto";
+  }
+
+  const providerName =
+    task.runtimeProviderName || task.runtimeProviderType || "runtime";
+
+  const modelName = task.runtimeModel || "auto";
+
+  return `${providerName} · ${modelName}`;
+}
+
 function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
   if (!task) {
     return {
@@ -334,9 +379,44 @@ function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
       body: "Tasks from WhatsApp, Manual Console, or backend automation will appear here.",
       metadata: [
         {
-          label: "State",
-          value: "waiting",
-          
+          label: "Task ID",
+          value: task.id,
+        },
+        {
+          label: "Source",
+          value: task.source,
+        },
+        {
+          label: "Status",
+          value: task.status,
+        },
+        {
+          label: "Runtime Provider",
+          value: getRuntimeProviderLabel(task),
+        },
+        {
+          label: "Runtime Type",
+          value: task.runtimeProviderType || "-",
+        },
+        {
+          label: "Runtime Model",
+          value: getRuntimeModelLabel(task),
+        },
+        {
+          label: "Runtime Mode",
+          value: getRuntimeModeLabel(task),
+        },
+        {
+          label: "Resolved From",
+          value: getRuntimeResolvedFromLabel(task),
+        },
+        {
+          label: "Created",
+          value: formatTime(task.createdAt),
+        },
+        {
+          label: "Updated",
+          value: formatTime(task.updatedAt),
         },
       ],
     };
@@ -849,6 +929,26 @@ export function OfficeCanvas({
           label: "Status",
           value: task?.status || "waiting",
         },
+        {
+          label: "Runtime Provider",
+          value: getRuntimeProviderLabel(task),
+        },
+        {
+          label: "Runtime Type",
+          value: task?.runtimeProviderType || "-",
+        },
+        {
+          label: "Runtime Model",
+          value: getRuntimeModelLabel(task),
+        },
+        {
+          label: "Runtime Mode",
+          value: getRuntimeModeLabel(task),
+        },
+        {
+          label: "Resolved From",
+          value: getRuntimeResolvedFromLabel(task),
+        },
       ],
     });
   }
@@ -1307,8 +1407,9 @@ export function OfficeCanvas({
                         <div>
                           <strong>{getActivityLabel(task)}</strong>
                           <small>
-                            {task.source} · {formatShortTime(task.updatedAt)}
-                          </small>
+                            {task.source} · {getRuntimeActivityLabel(task)} ·{" "}
+                          {formatShortTime(task.updatedAt)}
+                        </small>
                         </div>
                       </button>
                     ))

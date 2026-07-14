@@ -5,7 +5,6 @@ import {
   isAnthropicConfigured,
   isGoogleConfigured,
 } from "../../config/llmProviders";
-import { decryptProviderSecret } from "./providerCrypto";
 import type {
   LlmModelMode,
   LlmProvider,
@@ -15,11 +14,10 @@ import type {
 
 const prisma = new PrismaClient();
 
-type RuntimeRegistryProvider = RuntimeResolvedProvider & {
-  apiKey: string;
-};
-
-function safeJsonParse<TValue>(value: string | null | undefined, fallback: TValue) {
+function safeJsonParse<TValue>(
+  value: string | null | undefined,
+  fallback: TValue
+) {
   if (!value) {
     return fallback;
   }
@@ -59,30 +57,17 @@ function normalizeMode(mode?: string): LlmModelMode {
   return "auto";
 }
 
-function safeDecryptProviderSecret(encryptedSecret?: string | null) {
-  if (!encryptedSecret) {
-    return "";
-  }
-
-  try {
-    return decryptProviderSecret(encryptedSecret);
-  } catch {
-    return "";
-  }
-}
-
 function toRuntimeProvider(provider: {
   id: string;
   name: string;
   type: string;
   baseUrl: string | null;
-  apiKeyEncrypted: string | null;
   apiKeyPreview: string | null;
   defaultModel: string;
   enabled: boolean;
   capabilitiesJson: string;
   modelAliasesJson: string;
-}): RuntimeRegistryProvider {
+}): RuntimeResolvedProvider {
   const modelAliases = safeJsonParse<
     Array<{
       id: string;
@@ -105,7 +90,6 @@ function toRuntimeProvider(provider: {
       ...alias,
       mode: normalizeMode(alias.mode),
     })),
-    apiKey: safeDecryptProviderSecret(provider.apiKeyEncrypted),
     source: "registry",
   };
 }
@@ -129,7 +113,7 @@ export async function listEnabledRuntimeProviders() {
 }
 
 function matchProviderPreference(
-  provider: RuntimeRegistryProvider,
+  provider: RuntimeResolvedProvider,
   requestedProvider?: string,
   requestedProviderId?: string
 ) {
@@ -150,7 +134,7 @@ function matchProviderPreference(
   );
 }
 
-function providerHasModel(provider: RuntimeRegistryProvider, model?: string) {
+function providerHasModel(provider: RuntimeResolvedProvider, model?: string) {
   if (!model || model === "auto") {
     return false;
   }
@@ -163,7 +147,7 @@ function providerHasModel(provider: RuntimeRegistryProvider, model?: string) {
 }
 
 function resolveModelFromProvider(
-  provider: RuntimeRegistryProvider,
+  provider: RuntimeResolvedProvider,
   requestedModel?: string
 ) {
   if (requestedModel && requestedModel !== "auto") {
@@ -178,7 +162,7 @@ function resolveModelFromProvider(
 }
 
 function resolveModeFromProvider(
-  provider: RuntimeRegistryProvider,
+  provider: RuntimeResolvedProvider,
   model: string,
   requestedMode?: LlmModelMode
 ): LlmModelMode {
@@ -195,7 +179,12 @@ function buildBuiltInFallback(): RuntimeResolvedProvider {
   const defaultProvider = getDefaultLlmProvider();
   const defaultModel = getDefaultLlmModel();
 
-  if (defaultProvider === "google" || (defaultProvider === "auto" && !isAnthropicConfigured() && isGoogleConfigured())) {
+  if (
+    defaultProvider === "google" ||
+    (defaultProvider === "auto" &&
+      !isAnthropicConfigured() &&
+      isGoogleConfigured())
+  ) {
     return {
       id: null,
       name: "Google Built-in Fallback",
@@ -258,7 +247,11 @@ export async function resolveRuntimeProvider(
 
   if (providerByPreference) {
     const model = resolveModelFromProvider(providerByPreference, requestedModel);
-    const mode = resolveModeFromProvider(providerByPreference, model, requestedMode);
+    const mode = resolveModeFromProvider(
+      providerByPreference,
+      model,
+      requestedMode
+    );
 
     return {
       provider: providerByPreference,
@@ -286,7 +279,11 @@ export async function resolveRuntimeProvider(
 
   if (firstEnabledProvider) {
     const model = resolveModelFromProvider(firstEnabledProvider, requestedModel);
-    const mode = resolveModeFromProvider(firstEnabledProvider, model, requestedMode);
+    const mode = resolveModeFromProvider(
+      firstEnabledProvider,
+      model,
+      requestedMode
+    );
 
     return {
       provider: firstEnabledProvider,
