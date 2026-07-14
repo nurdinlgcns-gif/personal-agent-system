@@ -41,6 +41,7 @@ export type ManualTaskRuntimeProvider = {
   model?: string;
   mode?: string;
   resolvedFrom?: string;
+  isMock?: boolean;
 };
 
 export type ManualTaskResponse = {

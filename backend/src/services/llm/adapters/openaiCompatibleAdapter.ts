@@ -1,3 +1,9 @@
+import {
+  buildGuardedSystemPrompt,
+  buildGuardedUserPrompt,
+  cleanRuntimeOutput,
+  getRuntimeGenerationConfig,
+} from "../runtimeOutputGuardrails";
 import type { ProviderRuntimeAdapter } from "./llmAdapterTypes";
 import {
   createAdapterMockResponse,
@@ -53,6 +59,11 @@ export const openAiCompatibleAdapter: ProviderRuntimeAdapter = {
       headers.Authorization = `Bearer ${input.apiKey}`;
     }
 
+    const generationConfig = getRuntimeGenerationConfig(
+      input.request.inputText,
+      input.mode
+    );
+
     try {
       const response = await fetchWithTimeout(url, {
         method: "POST",
@@ -62,14 +73,15 @@ export const openAiCompatibleAdapter: ProviderRuntimeAdapter = {
           messages: [
             {
               role: "system",
-              content: input.request.systemPrompt,
+              content: buildGuardedSystemPrompt(input.request.systemPrompt),
             },
             {
               role: "user",
-              content: input.request.inputText,
+              content: buildGuardedUserPrompt(input.request.inputText),
             },
           ],
-          temperature: input.mode === "creative" ? 0.9 : 0.3,
+          max_tokens: generationConfig.maxOutputTokens,
+          temperature: generationConfig.temperature,
         }),
       });
 
@@ -79,11 +91,14 @@ export const openAiCompatibleAdapter: ProviderRuntimeAdapter = {
         return createAdapterMockResponse(
           input,
           data.error?.message ||
-            `OpenAI-compatible request failed with HTTP ${response.status}`
+          `OpenAI-compatible request failed with HTTP ${response.status}`
         );
       }
 
-      const outputText = extractOpenAiCompatibleText(data);
+      const outputText = cleanRuntimeOutput(
+        input.request.inputText,
+        extractOpenAiCompatibleText(data)
+      );
 
       if (!outputText) {
         return createAdapterMockResponse(

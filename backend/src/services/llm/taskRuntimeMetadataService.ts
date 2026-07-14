@@ -1,25 +1,22 @@
 import { PrismaClient } from "@prisma/client";
-import type { RuntimeResolvedProvider } from "./llmTypes";
+import type { LlmResponse } from "./llmTypes";
 
 const prisma = new PrismaClient();
 
-export type StoreTaskRuntimeMetadataInput = {
+export type StoreTaskRuntimeResultInput = {
   inputText: string;
   agentName: string;
   source: string;
-  runtimeProvider: {
-    provider: RuntimeResolvedProvider;
-    model: string;
-    mode: string;
-  };
+  outputText: string;
+  runtimeResult: LlmResponse;
 };
 
 function removeLeadingAgentMention(inputText: string) {
   return inputText.replace(/^@[\w-]+\s*/i, "").trim();
 }
 
-export async function storeLatestTaskRuntimeMetadata(
-  input: StoreTaskRuntimeMetadataInput
+export async function storeLatestTaskRuntimeResult(
+  input: StoreTaskRuntimeResultInput
 ) {
   const cleanedInputText = removeLeadingAgentMention(input.inputText);
 
@@ -52,12 +49,14 @@ export async function storeLatestTaskRuntimeMetadata(
       id: latestMatchingTask.id,
     },
     data: {
-      runtimeProviderId: input.runtimeProvider.provider.id,
-      runtimeProviderName: input.runtimeProvider.provider.name,
-      runtimeProviderType: input.runtimeProvider.provider.type,
-      runtimeModel: input.runtimeProvider.model,
-      runtimeMode: input.runtimeProvider.mode,
-      runtimeResolvedFrom: input.runtimeProvider.provider.source,
+      outputText: input.outputText,
+      runtimeProviderId: input.runtimeResult.providerId || null,
+      runtimeProviderName: input.runtimeResult.providerName || null,
+      runtimeProviderType:
+        input.runtimeResult.providerType || input.runtimeResult.provider,
+      runtimeModel: input.runtimeResult.model,
+      runtimeMode: input.runtimeResult.mode,
+      runtimeResolvedFrom: input.runtimeResult.resolvedFrom || null,
     },
   });
 }

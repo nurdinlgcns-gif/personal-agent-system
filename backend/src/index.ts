@@ -13,8 +13,8 @@ import { findAllSkills } from "./repositories/skillRepository";
 import { llmRoutes } from "./routes/llmRoutes";
 import { llmProviderRegistryRoutes } from "./routes/llmProviderRegistryRoutes";
 import { extractManualTaskModelPreference } from "./services/llm/manualTaskModelPreference";
-import { resolveRuntimeProvider } from "./services/llm/dynamicProviderRuntime";
-import { storeLatestTaskRuntimeMetadata } from "./services/llm/taskRuntimeMetadataService";
+import { runLlmCompletion } from "./services/llm/llmClient";
+import { storeLatestTaskRuntimeResult } from "./services/llm/taskRuntimeMetadataService";
 
 validateEnv();
 
@@ -58,6 +58,16 @@ function extractAgentNameFromMessage(message: string) {
   return agentMentionMatch?.[1] || "design-agent";
 }
 
+function buildManualSystemPrompt(agentName: string) {
+  return [
+    `You are ${agentName}.`,
+    "Answer the user's request directly and clearly.",
+    "Keep the response practical and useful.",
+    "Do not expose internal reasoning.",
+    "If the user requests a short answer, keep it short.",
+  ].join(" ");
+}
+
 app.post("/tasks", async (req, res) => {
   try {
     const inputText = extractInputText(req.body);
@@ -79,35 +89,49 @@ app.post("/tasks", async (req, res) => {
     const agentName = extractAgentNameFromMessage(inputText);
     const modelPreference = extractManualTaskModelPreference(req.body);
 
-    const resolvedRuntimeProvider = await resolveRuntimeProvider({
+    /*
+      Keep existing orchestrator behavior as safe fallback.
+      This also preserves current task creation, socket events, and routing behavior.
+    */
+    const fallbackResult = await routeTask(inputText, {
+      source: "manual",
+    });
+
+    /*
+      Adapter runtime output:
+      - If real provider succeeds: use real output.
+      - If provider returns mock/fallback: preserve old routeTask output.
+    */
+    const runtimeResult = await runLlmCompletion({
       agentName,
-      systemPrompt: "You are a helpful agent.",
+      systemPrompt: buildManualSystemPrompt(agentName),
       inputText,
       preference: modelPreference,
     });
 
-    const result = await routeTask(inputText, {
+    const finalOutputText = runtimeResult.isMock
+      ? fallbackResult
+      : runtimeResult.outputText;
+
+    const updatedTaskWithRuntimeMetadata = await storeLatestTaskRuntimeResult({
+      inputText,
+      agentName,
       source: "manual",
+      outputText: finalOutputText,
+      runtimeResult,
     });
 
-    const updatedTaskWithRuntimeMetadata =
-      await storeLatestTaskRuntimeMetadata({
-        inputText,
-        agentName,
-        source: "manual",
-        runtimeProvider: resolvedRuntimeProvider,
-      });
-
     return res.json({
-      result,
+      result: finalOutputText,
       task: updatedTaskWithRuntimeMetadata,
       runtimeProvider: {
-        providerId: resolvedRuntimeProvider.provider.id,
-        providerName: resolvedRuntimeProvider.provider.name,
-        providerType: resolvedRuntimeProvider.provider.type,
-        model: resolvedRuntimeProvider.model,
-        mode: resolvedRuntimeProvider.mode,
-        resolvedFrom: resolvedRuntimeProvider.provider.source,
+        providerId: runtimeResult.providerId || null,
+        providerName: runtimeResult.providerName || runtimeResult.provider,
+        providerType: runtimeResult.providerType || runtimeResult.provider,
+        model: runtimeResult.model,
+        mode: runtimeResult.mode,
+        resolvedFrom: runtimeResult.resolvedFrom,
+        isMock: runtimeResult.isMock,
       },
     });
   } catch (error) {

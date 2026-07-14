@@ -1,3 +1,9 @@
+import {
+  buildGuardedSystemPrompt,
+  buildGuardedUserPrompt,
+  cleanRuntimeOutput,
+  getRuntimeGenerationConfig,
+} from "../runtimeOutputGuardrails";
 import type { ProviderRuntimeAdapter } from "./llmAdapterTypes";
 import {
   createAdapterMockResponse,
@@ -26,15 +32,27 @@ const GOOGLE_ALIAS_IDS = [
 
 function resolveGoogleRuntimeModel(model: string) {
   if (model === "gemini-fast") {
-    return process.env.GOOGLE_FAST_MODEL || process.env.GOOGLE_RUNTIME_MODEL || "";
+    return (
+      process.env.GOOGLE_FAST_MODEL ||
+      process.env.GOOGLE_RUNTIME_MODEL ||
+      ""
+    );
   }
 
   if (model === "gemini-deep") {
-    return process.env.GOOGLE_DEEP_MODEL || process.env.GOOGLE_RUNTIME_MODEL || "";
+    return (
+      process.env.GOOGLE_DEEP_MODEL ||
+      process.env.GOOGLE_RUNTIME_MODEL ||
+      ""
+    );
   }
 
   if (model === "gemini-creative") {
-    return process.env.GOOGLE_CREATIVE_MODEL || process.env.GOOGLE_RUNTIME_MODEL || "";
+    return (
+      process.env.GOOGLE_CREATIVE_MODEL ||
+      process.env.GOOGLE_RUNTIME_MODEL ||
+      ""
+    );
   }
 
   if (model === "gemini-default") {
@@ -74,7 +92,7 @@ export const googleAdapter: ProviderRuntimeAdapter = {
     if (!runtimeModel || isAliasModel(runtimeModel)) {
       return createAdapterMockResponse(
         input,
-        `Google real model ID is not configured for alias "${input.model}". Set GOOGLE_RUNTIME_MODEL or use a real Gemini model ID in the provider registry`
+        `Google real model ID is not configured for alias "${input.model}". Set GOOGLE_RUNTIME_MODEL or use a real Gemini/Gemma model ID in the provider registry`
       );
     }
 
@@ -86,6 +104,11 @@ export const googleAdapter: ProviderRuntimeAdapter = {
       runtimeModel
     )}:generateContent?key=${encodeURIComponent(input.apiKey)}`;
 
+    const generationConfig = getRuntimeGenerationConfig(
+      input.request.inputText,
+      input.mode
+    );
+
     try {
       const response = await fetchWithTimeout(url, {
         method: "POST",
@@ -96,7 +119,7 @@ export const googleAdapter: ProviderRuntimeAdapter = {
           systemInstruction: {
             parts: [
               {
-                text: input.request.systemPrompt,
+                text: buildGuardedSystemPrompt(input.request.systemPrompt),
               },
             ],
           },
@@ -105,11 +128,15 @@ export const googleAdapter: ProviderRuntimeAdapter = {
               role: "user",
               parts: [
                 {
-                  text: input.request.inputText,
+                  text: buildGuardedUserPrompt(input.request.inputText),
                 },
               ],
             },
           ],
+          generationConfig: {
+            maxOutputTokens: generationConfig.maxOutputTokens,
+            temperature: generationConfig.temperature,
+          },
         }),
       });
 
@@ -119,16 +146,19 @@ export const googleAdapter: ProviderRuntimeAdapter = {
         return createAdapterMockResponse(
           input,
           data.error?.message ||
-            `Google Gemini request failed with HTTP ${response.status}`
+          `Google Gemini/Gemma request failed with HTTP ${response.status}`
         );
       }
 
-      const outputText = extractGoogleText(data);
+      const outputText = cleanRuntimeOutput(
+        input.request.inputText,
+        extractGoogleText(data)
+      );
 
       if (!outputText) {
         return createAdapterMockResponse(
           input,
-          "Google Gemini response did not contain text output"
+          "Google Gemini/Gemma response did not contain text output"
         );
       }
 
@@ -147,7 +177,10 @@ export const googleAdapter: ProviderRuntimeAdapter = {
       const message =
         error instanceof Error ? error.message : "Unknown Google runtime error";
 
-      return createAdapterMockResponse(input, `Google runtime error: ${message}`);
+      return createAdapterMockResponse(
+        input,
+        `Google runtime error: ${message}`
+      );
     }
   },
 };
