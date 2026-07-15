@@ -8,6 +8,7 @@ import { env } from "../../config/env";
 import { logger } from "../../utils/logger";
 import { runLlmCompletion } from "../llm/llmClient";
 import { storeLatestTaskRuntimeResult } from "../llm/taskRuntimeMetadataService";
+import { formatWhatsAppRuntimeReply } from "./whatsappRuntimeGuardrails";
 
 type WhatsAppHandleResult = {
   shouldReply: boolean;
@@ -58,8 +59,10 @@ function buildWhatsAppSystemPrompt(agentName: string) {
     "Answer the user's request directly and clearly.",
     "Keep the response concise, practical, and easy to read on mobile.",
     "Do not expose internal reasoning.",
-    "Do not include metadata or runtime details.",
+    "Do not include metadata, runtime details, provider details, or model details.",
+    "Do not include labels such as Topic, Language, Constraint, Format, Analysis, Reasoning, Final, Output, or Answer.",
     "If the user asks for a short answer, keep it short.",
+    "If the user asks for one sentence, return exactly one sentence and nothing else.",
   ].join(" ");
 }
 
@@ -179,9 +182,11 @@ export async function handleIncomingWhatsAppMessage(
       },
     });
 
-    const finalReply = runtimeResult.isMock
+    const rawFinalReply = runtimeResult.isMock
       ? fallbackResult
       : runtimeResult.outputText;
+
+    const finalReply = formatWhatsAppRuntimeReply(text, rawFinalReply);
 
     await storeLatestTaskRuntimeResult({
       inputText: text,
@@ -196,6 +201,8 @@ export async function handleIncomingWhatsAppMessage(
         runtimeResult.providerName || runtimeResult.provider
       } / ${runtimeResult.model} / mock=${runtimeResult.isMock}`
     );
+
+    logger.wa(`WhatsApp final reply length: ${finalReply.length}`);
 
     return {
       shouldReply: true,

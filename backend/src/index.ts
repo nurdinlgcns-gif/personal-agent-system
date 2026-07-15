@@ -12,9 +12,11 @@ import { findRecentTasks, getTaskSummary } from "./repositories/taskRepository";
 import { findAllSkills } from "./repositories/skillRepository";
 import { llmRoutes } from "./routes/llmRoutes";
 import { llmProviderRegistryRoutes } from "./routes/llmProviderRegistryRoutes";
+import { agentGovernanceRoutes } from "./routes/agentGovernanceRoutes";
 import { extractManualTaskModelPreference } from "./services/llm/manualTaskModelPreference";
 import { runLlmCompletion } from "./services/llm/llmClient";
 import { storeLatestTaskRuntimeResult } from "./services/llm/taskRuntimeMetadataService";
+import { checkAgentCapability } from "./services/agents/agentCapabilityGuard";
 
 validateEnv();
 
@@ -25,6 +27,7 @@ app.use(express.json());
 
 app.use("/api/llm", llmRoutes);
 app.use("/api/llm/registry", llmProviderRegistryRoutes);
+app.use("/api/agent-governance", agentGovernanceRoutes);
 
 app.get("/health", (req, res) => {
   res.json({
@@ -68,6 +71,16 @@ function buildManualSystemPrompt(agentName: string) {
   ].join(" ");
 }
 
+function buildCapabilityBoundaryResponse(input: {
+  agentName: string;
+  refusalMessage?: string;
+}) {
+  return (
+    input.refusalMessage ||
+    `Maaf, @${input.agentName} belum punya capability yang sesuai untuk request ini. Coba arahkan ke agent yang lebih tepat.`
+  );
+}
+
 app.post("/tasks", async (req, res) => {
   try {
     const inputText = extractInputText(req.body);
@@ -87,6 +100,46 @@ app.post("/tasks", async (req, res) => {
     }
 
     const agentName = extractAgentNameFromMessage(inputText);
+
+    /**
+     * Phase 8.38.2
+     * Manual task capability boundary.
+     *
+     * If the target agent is not allowed to handle the request,
+     * return a polite refusal and DO NOT call routeTask() or the LLM runtime.
+     * This keeps agent behavior aligned with its declared contract.
+     */
+    const capabilityCheck = checkAgentCapability({
+      agentName,
+      inputText,
+    });
+
+    if (!capabilityCheck.allowed) {
+      const boundaryResponse = buildCapabilityBoundaryResponse({
+        agentName,
+        refusalMessage: capabilityCheck.refusalMessage,
+      });
+
+      logger.task(
+        `Manual task blocked by capability guard: ${agentName} | ${capabilityCheck.reason}`
+      );
+
+      return res.json({
+        result: boundaryResponse,
+        task: null,
+        runtimeProvider: null,
+        capabilityBoundary: {
+          allowed: capabilityCheck.allowed,
+          agentName: capabilityCheck.agentName,
+          reason: capabilityCheck.reason,
+          confidence: capabilityCheck.confidence,
+          matchedAllowedKeywords: capabilityCheck.matchedAllowedKeywords,
+          matchedDeniedKeywords: capabilityCheck.matchedDeniedKeywords,
+          suggestedAgents: capabilityCheck.suggestedAgents,
+        },
+      });
+    }
+
     const modelPreference = extractManualTaskModelPreference(req.body);
 
     /*
@@ -132,6 +185,15 @@ app.post("/tasks", async (req, res) => {
         mode: runtimeResult.mode,
         resolvedFrom: runtimeResult.resolvedFrom,
         isMock: runtimeResult.isMock,
+      },
+      capabilityBoundary: {
+        allowed: capabilityCheck.allowed,
+        agentName: capabilityCheck.agentName,
+        reason: capabilityCheck.reason,
+        confidence: capabilityCheck.confidence,
+        matchedAllowedKeywords: capabilityCheck.matchedAllowedKeywords,
+        matchedDeniedKeywords: capabilityCheck.matchedDeniedKeywords,
+        suggestedAgents: capabilityCheck.suggestedAgents,
       },
     });
   } catch (error) {
