@@ -1,6 +1,7 @@
 const DEFAULT_MAX_WHATSAPP_REPLY_LENGTH = 1200;
 const SHORT_REPLY_MAX_LENGTH = 420;
 const ONE_SENTENCE_MAX_LENGTH = 260;
+const BOUNDARY_REPLY_MAX_LENGTH = 900;
 
 function removeLeadingAgentMention(inputText: string) {
   return inputText.replace(/^@[\w-]+\s*/i, "").trim();
@@ -67,8 +68,7 @@ function looksLikeMetaLine(line: string) {
     normalizedLine.includes("labels") ||
     normalizedLine.includes("whatsapp style") ||
     normalizedLine.includes("short and direct") ||
-    normalizedLine.includes("direct to the point") ||
-    normalizedLine.includes("@design-agent")
+    normalizedLine.includes("direct to the point")
   );
 }
 
@@ -186,10 +186,7 @@ function buildSafeFallback(inputText: string) {
     return "Nikmati kopi susu creamy yang bikin harimu lebih semangat dalam setiap tegukan.";
   }
 
-  if (
-    cleanedInputText.includes("buah") ||
-    cleanedInputText.includes("fruit")
-  ) {
+  if (cleanedInputText.includes("buah") || cleanedInputText.includes("fruit")) {
     return "Nikmati buah segar pilihan yang kaya vitamin dan siap menemani harimu lebih sehat.";
   }
 
@@ -234,4 +231,16 @@ export function formatWhatsAppRuntimeReply(
     cleanedOutput,
     DEFAULT_MAX_WHATSAPP_REPLY_LENGTH
   );
+}
+
+export function formatWhatsAppBoundaryReply(outputText: string) {
+  const cleanedOutput = normalizeWhitespace(
+    stripRuntimeMetadata(stripMarkdownWrapper(outputText))
+  );
+
+  if (!cleanedOutput) {
+    return "Maaf, request ini belum sesuai dengan capability agent yang dipilih. Coba arahkan ke agent yang lebih tepat.";
+  }
+
+  return truncateAtSentenceBoundary(cleanedOutput, BOUNDARY_REPLY_MAX_LENGTH);
 }

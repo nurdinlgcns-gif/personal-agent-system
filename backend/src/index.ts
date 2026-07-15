@@ -16,8 +16,7 @@ import { agentGovernanceRoutes } from "./routes/agentGovernanceRoutes";
 import { extractManualTaskModelPreference } from "./services/llm/manualTaskModelPreference";
 import { runLlmCompletion } from "./services/llm/llmClient";
 import { storeLatestTaskRuntimeResult } from "./services/llm/taskRuntimeMetadataService";
-import { checkAgentCapability } from "./services/agents/agentCapabilityGuard";
-
+import { checkAgentCapabilityDynamic } from "./services/agents/agentCapabilityGuard";
 validateEnv();
 
 const app = express();
@@ -109,7 +108,7 @@ app.post("/tasks", async (req, res) => {
      * return a polite refusal and DO NOT call routeTask() or the LLM runtime.
      * This keeps agent behavior aligned with its declared contract.
      */
-    const capabilityCheck = checkAgentCapability({
+    const capabilityCheck = await checkAgentCapabilityDynamic({
       agentName,
       inputText,
     });

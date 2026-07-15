@@ -93,3 +93,30 @@ model LlmProvider {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model AgentCapabilityContract {
+  id                  String   @id @default(cuid())
+  agentName           String   @unique
+  displayName         String
+  role                String
+  description         String
+  strictBoundary      Boolean  @default(true)
+  unknownIntentPolicy String   @default("clarify_or_refuse")
+
+  allowedDomainsJson        String @default("[]")
+  deniedDomainsJson         String @default("[]")
+  allowedKeywordsJson       String @default("[]")
+  deniedKeywordsJson        String @default("[]")
+  softAllowedKeywordsJson   String @default("[]")
+  safeSmallTalkKeywordsJson String @default("[]")
+  primarySkillsJson         String @default("[]")
+  fallbackAgentsJson        String @default("[]")
+
+  refusalStyle         String @default("polite_redirect")
+  refusalMessage       String
+  unknownIntentMessage String
+
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -8,7 +8,11 @@ import { env } from "../../config/env";
 import { logger } from "../../utils/logger";
 import { runLlmCompletion } from "../llm/llmClient";
 import { storeLatestTaskRuntimeResult } from "../llm/taskRuntimeMetadataService";
-import { formatWhatsAppRuntimeReply } from "./whatsappRuntimeGuardrails";
+import {
+  formatWhatsAppBoundaryReply,
+  formatWhatsAppRuntimeReply,
+} from "./whatsappRuntimeGuardrails";
+import { checkAgentCapabilityDynamic } from "../agents/agentCapabilityGuard";
 
 type WhatsAppHandleResult = {
   shouldReply: boolean;
@@ -64,6 +68,16 @@ function buildWhatsAppSystemPrompt(agentName: string) {
     "If the user asks for a short answer, keep it short.",
     "If the user asks for one sentence, return exactly one sentence and nothing else.",
   ].join(" ");
+}
+
+function buildCapabilityBoundaryResponse(input: {
+  agentName: string;
+  refusalMessage?: string;
+}) {
+  return (
+    input.refusalMessage ||
+    `Maaf, @${input.agentName} belum punya capability yang sesuai untuk request ini. Coba arahkan ke agent yang lebih tepat.`
+  );
 }
 
 export async function handleIncomingWhatsAppMessage(
@@ -157,6 +171,48 @@ export async function handleIncomingWhatsAppMessage(
     const agentName = extractAgentNameFromMessage(text);
 
     /**
+     * Phase 8.38.3
+     * WhatsApp capability boundary.
+     *
+     * Jika request tidak sesuai contract agent:
+     * - jangan panggil routeTask()
+     * - jangan panggil LLM runtime
+     * - jangan create task
+     * - balas refusal halus ke WhatsApp
+     */
+    const capabilityCheck = await checkAgentCapabilityDynamic({
+      agentName,
+      inputText: text,
+    });
+
+    if (!capabilityCheck.allowed) {
+      const boundaryResponse = buildCapabilityBoundaryResponse({
+        agentName,
+        refusalMessage: capabilityCheck.refusalMessage,
+      });
+
+      const finalBoundaryReply = formatWhatsAppBoundaryReply(boundaryResponse);
+
+      logger.wa(
+        `WhatsApp task blocked by capability guard: ${agentName} | ${capabilityCheck.reason}`
+      );
+
+      logger.wa(
+        `WhatsApp capability guard denied keywords: ${
+          capabilityCheck.matchedDeniedKeywords.length > 0
+            ? capabilityCheck.matchedDeniedKeywords.join(", ")
+            : "-"
+        }`
+      );
+
+      return {
+        shouldReply: true,
+        chatId,
+        text: finalBoundaryReply,
+      };
+    }
+
+    /**
      * Keep existing WhatsApp orchestration as safe fallback.
      * routeTask() tetap bikin task, update agent status, dan broadcast event.
      */
@@ -200,6 +256,10 @@ export async function handleIncomingWhatsAppMessage(
       `WhatsApp runtime provider: ${
         runtimeResult.providerName || runtimeResult.provider
       } / ${runtimeResult.model} / mock=${runtimeResult.isMock}`
+    );
+
+    logger.wa(
+      `WhatsApp capability guard: allowed=${capabilityCheck.allowed} confidence=${capabilityCheck.confidence}`
     );
 
     logger.wa(`WhatsApp final reply length: ${finalReply.length}`);
