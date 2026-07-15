@@ -6,6 +6,8 @@ import {
 } from "../../orchestrator/security";
 import { env } from "../../config/env";
 import { logger } from "../../utils/logger";
+import { runLlmCompletion } from "../llm/llmClient";
+import { storeLatestTaskRuntimeResult } from "../llm/taskRuntimeMetadataService";
 
 type WhatsAppHandleResult = {
   shouldReply: boolean;
@@ -41,6 +43,24 @@ function isStatusBroadcast(msg: any): boolean {
 
 function getMessageId(msg: any): string {
   return msg.key.id || "-";
+}
+
+function extractAgentNameFromMessage(message: string) {
+  const agentMentionMatch = message.match(/@([\w-]+)/);
+
+  return agentMentionMatch?.[1] || "design-agent";
+}
+
+function buildWhatsAppSystemPrompt(agentName: string) {
+  return [
+    `You are ${agentName}.`,
+    "You are replying to a WhatsApp message.",
+    "Answer the user's request directly and clearly.",
+    "Keep the response concise, practical, and easy to read on mobile.",
+    "Do not expose internal reasoning.",
+    "Do not include metadata or runtime details.",
+    "If the user asks for a short answer, keep it short.",
+  ].join(" ");
 }
 
 export async function handleIncomingWhatsAppMessage(
@@ -131,15 +151,56 @@ export async function handleIncomingWhatsAppMessage(
   logger.wa("Agent request detected");
 
   try {
-    const result = await routeTask(text, {
-        source: "whatsapp",
-        senderId: senderNumber,
-      });
+    const agentName = extractAgentNameFromMessage(text);
+
+    /**
+     * Keep existing WhatsApp orchestration as safe fallback.
+     * routeTask() tetap bikin task, update agent status, dan broadcast event.
+     */
+    const fallbackResult = await routeTask(text, {
+      source: "whatsapp",
+      senderId: senderNumber,
+    });
+
+    /**
+     * Runtime adapter output:
+     * - WhatsApp belum punya model selector, jadi pakai auto/default registry.
+     * - Kalau provider real sukses, final reply pakai output adapter.
+     * - Kalau provider mock/error, fallback ke routeTask lama.
+     */
+    const runtimeResult = await runLlmCompletion({
+      agentName,
+      systemPrompt: buildWhatsAppSystemPrompt(agentName),
+      inputText: text,
+      preference: {
+        provider: "auto",
+        model: "auto",
+        mode: "auto",
+      },
+    });
+
+    const finalReply = runtimeResult.isMock
+      ? fallbackResult
+      : runtimeResult.outputText;
+
+    await storeLatestTaskRuntimeResult({
+      inputText: text,
+      agentName,
+      source: "whatsapp",
+      outputText: finalReply,
+      runtimeResult,
+    });
+
+    logger.wa(
+      `WhatsApp runtime provider: ${
+        runtimeResult.providerName || runtimeResult.provider
+      } / ${runtimeResult.model} / mock=${runtimeResult.isMock}`
+    );
 
     return {
       shouldReply: true,
       chatId,
-      text: result,
+      text: finalReply,
     };
   } catch (error) {
     logger.error("Failed to process WhatsApp message", error);
