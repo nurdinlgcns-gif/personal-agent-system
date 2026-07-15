@@ -1,0 +1,502 @@
+/* =========================
+   PHASE 8.39.2.1
+   AGENTS GOVERNANCE READ-ONLY UI
+========================= */
+
+.agents-governance-view {
+    display: grid;
+    gap: 18px;
+    padding-bottom: 32px;
+  }
+  
+  .agents-governance-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 22px;
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 34%),
+      rgba(8, 15, 32, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow:
+      0 22px 60px rgba(0, 0, 0, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  .agents-governance-eyebrow {
+    display: inline-flex;
+    margin-bottom: 9px;
+    color: #93c5fd;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.36px;
+  }
+  
+  .agents-governance-hero h1 {
+    margin: 0;
+    color: #f8fafc;
+    font-size: clamp(24px, 3vw, 34px);
+    line-height: 1.08;
+  }
+  
+  .agents-governance-hero p {
+    margin: 10px 0 0;
+    max-width: 780px;
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+  
+  .agents-governance-hero button,
+  .agent-section-title button,
+  .agent-test-shortcuts button {
+    border-radius: 999px;
+    padding: 9px 13px;
+    color: #bfdbfe;
+    background: rgba(37, 99, 235, 0.18);
+    border: 1px solid rgba(96, 165, 250, 0.26);
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      transform 0.18s ease,
+      color 0.18s ease;
+  }
+  
+  .agents-governance-hero button:hover,
+  .agent-section-title button:hover,
+  .agent-test-shortcuts button:hover {
+    color: #ffffff;
+    background: rgba(37, 99, 235, 0.28);
+    border-color: rgba(96, 165, 250, 0.38);
+    transform: translateY(-1px);
+  }
+  
+  .agents-governance-hero button:disabled,
+  .agent-section-title button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .agent-governance-error,
+  .agent-governance-loading,
+  .agent-governance-empty {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    color: #cbd5e1;
+    font-size: 12px;
+  }
+  
+  .agent-governance-error {
+    border-color: rgba(239, 68, 68, 0.28);
+    background: rgba(127, 29, 29, 0.22);
+  }
+  
+  .agent-governance-error strong {
+    color: #fecaca;
+  }
+  
+  .agents-governance-layout {
+    display: grid;
+    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  
+  .agent-contract-list {
+    display: grid;
+    gap: 10px;
+  }
+  
+  .agent-contract-card {
+    width: 100%;
+    display: grid;
+    gap: 12px;
+    padding: 15px;
+    border-radius: 18px;
+    text-align: left;
+    background: rgba(8, 15, 32, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    cursor: pointer;
+  }
+  
+  .agent-contract-card.active {
+    border-color: rgba(96, 165, 250, 0.42);
+    background:
+      radial-gradient(circle at top right, rgba(96, 165, 250, 0.17), transparent 34%),
+      rgba(8, 15, 32, 0.82);
+  }
+  
+  .agent-contract-eyebrow {
+    display: inline-flex;
+    margin-bottom: 5px;
+    color: #93c5fd;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.32px;
+  }
+  
+  .agent-contract-card strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 14px;
+  }
+  
+  .agent-contract-card p {
+    margin: 6px 0 0;
+    color: #94a3b8;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  
+  .agent-contract-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  
+  .agent-contract-meta-row span,
+  .agent-boundary-badge,
+  .agent-check-confidence {
+    border-radius: 999px;
+    padding: 6px 9px;
+    color: #bfdbfe;
+    background: rgba(37, 99, 235, 0.14);
+    border: 1px solid rgba(96, 165, 250, 0.18);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+  
+  .agent-contract-detail {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+  }
+  
+  .agent-contract-main-card,
+  .agent-keyword-group,
+  .agent-governance-check-card,
+  .agent-check-result {
+    padding: 18px;
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at top right, rgba(96, 165, 250, 0.12), transparent 36%),
+      rgba(8, 15, 32, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    box-shadow:
+      0 18px 44px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  }
+  
+  .agent-contract-detail-header,
+  .agent-section-title,
+  .agent-check-result-header,
+  .agent-keyword-group-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  
+  .agent-contract-detail-header span,
+  .agent-section-title span,
+  .agent-check-result-header span,
+  .agent-message-preview-grid span {
+    color: #93c5fd;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.34px;
+  }
+  
+  .agent-contract-detail-header h2,
+  .agent-section-title h3 {
+    margin: 5px 0 0;
+    color: #f8fafc;
+  }
+  
+  .agent-contract-detail-header p {
+    margin: 8px 0 0;
+    max-width: 720px;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  
+  .agent-contract-info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+  
+  .agent-contract-info-grid div {
+    min-width: 0;
+    padding: 11px;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.62);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+  }
+  
+  .agent-contract-info-grid span {
+    display: block;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 800;
+  }
+  
+  .agent-contract-info-grid strong {
+    display: block;
+    margin-top: 6px;
+    color: #f8fafc;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+  
+  .agent-message-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+  
+  .agent-message-preview-grid div {
+    padding: 13px;
+    border-radius: 16px;
+    background: rgba(2, 6, 23, 0.34);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+  }
+  
+  .agent-message-preview-grid p {
+    margin: 8px 0 0;
+    color: #cbd5e1;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  
+  .agent-keyword-section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  
+  .agent-keyword-group-header strong {
+    color: #f8fafc;
+    font-size: 13px;
+  }
+  
+  .agent-keyword-group-header span {
+    border-radius: 999px;
+    padding: 4px 7px;
+    color: #94a3b8;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    font-size: 10px;
+    font-weight: 900;
+  }
+  
+  .agent-empty-mini {
+    margin: 12px 0 0;
+    color: #94a3b8;
+    font-size: 11px;
+  }
+  
+  .agent-keyword-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 12px;
+  }
+  
+  .agent-keyword-cloud span {
+    border-radius: 999px;
+    padding: 6px 9px;
+    color: #cbd5e1;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.13);
+    font-size: 10px;
+    font-weight: 800;
+  }
+  
+  .agent-keyword-cloud.allowed span {
+    color: #bbf7d0;
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.2);
+  }
+  
+  .agent-keyword-cloud.denied span {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.22);
+  }
+  
+  .agent-keyword-cloud.soft span {
+    color: #fef3c7;
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.2);
+  }
+  
+  .agent-keyword-cloud.smalltalk span {
+    color: #ddd6fe;
+    background: rgba(124, 58, 237, 0.12);
+    border-color: rgba(167, 139, 250, 0.18);
+  }
+  
+  .agent-governance-check-card {
+    display: grid;
+    gap: 13px;
+  }
+  
+  .agent-governance-check-card textarea {
+    width: 100%;
+    border-radius: 14px;
+    padding: 12px;
+    color: #f8fafc;
+    background: rgba(2, 6, 23, 0.72);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  
+  .agent-governance-check-card textarea:focus {
+    border-color: rgba(96, 165, 250, 0.55);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
+  }
+  
+  .agent-test-shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .agent-check-result.allowed {
+    border-color: rgba(34, 197, 94, 0.25);
+  }
+  
+  .agent-check-result.denied {
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+  
+  .agent-check-result-header strong {
+    display: block;
+    margin-top: 5px;
+    color: #f8fafc;
+    font-size: 17px;
+  }
+  
+  .agent-check-result p {
+    margin: 10px 0 0;
+    color: #cbd5e1;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  
+  .agent-refusal-preview {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(127, 29, 29, 0.16);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+  }
+  
+  .agent-check-matches {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+  
+  :root[data-theme="m365-light"] .agents-governance-hero,
+  :root[data-theme="m365-light"] .agent-contract-card,
+  :root[data-theme="m365-light"] .agent-contract-main-card,
+  :root[data-theme="m365-light"] .agent-keyword-group,
+  :root[data-theme="m365-light"] .agent-governance-check-card,
+  :root[data-theme="m365-light"] .agent-check-result,
+  :root[data-theme="m365-light"] .agent-governance-loading,
+  :root[data-theme="m365-light"] .agent-governance-empty {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .agents-governance-hero h1,
+  :root[data-theme="m365-light"] .agent-contract-card strong,
+  :root[data-theme="m365-light"] .agent-contract-detail-header h2,
+  :root[data-theme="m365-light"] .agent-section-title h3,
+  :root[data-theme="m365-light"] .agent-contract-info-grid strong,
+  :root[data-theme="m365-light"] .agent-keyword-group-header strong,
+  :root[data-theme="m365-light"] .agent-check-result-header strong {
+    color: #111827;
+  }
+  
+  :root[data-theme="m365-light"] .agents-governance-hero p,
+  :root[data-theme="m365-light"] .agent-contract-card p,
+  :root[data-theme="m365-light"] .agent-contract-detail-header p,
+  :root[data-theme="m365-light"] .agent-message-preview-grid p,
+  :root[data-theme="m365-light"] .agent-check-result p,
+  :root[data-theme="m365-light"] .agent-contract-info-grid span {
+    color: #64748b;
+  }
+  
+  :root[data-theme="m365-light"] .agent-contract-info-grid div,
+  :root[data-theme="m365-light"] .agent-message-preview-grid div {
+    background: #f8fafc;
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .agent-governance-check-card textarea {
+    color: #111827;
+    background: #f8fafc;
+    border-color: rgba(37, 99, 235, 0.14);
+  }
+  
+  @media (max-width: 1180px) {
+    .agents-governance-layout {
+      grid-template-columns: 1fr;
+    }
+  
+    .agent-contract-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  
+    .agent-contract-info-grid,
+    .agent-message-preview-grid,
+    .agent-keyword-section,
+    .agent-check-matches {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 760px) {
+    .agents-governance-hero {
+      flex-direction: column;
+    }
+  
+    .agents-governance-hero button {
+      width: 100%;
+    }
+  
+    .agent-contract-list {
+      grid-template-columns: 1fr;
+    }
+  
+    .agent-contract-detail-header,
+    .agent-section-title,
+    .agent-check-result-header {
+      flex-direction: column;
+    }
+  }

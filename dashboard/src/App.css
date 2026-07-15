@@ -8,6 +8,7 @@
 @import "./styles/components/agent-preview.css";
 @import "./styles/components/final-ux-polish.css";
 /*@import "./styles/components/runtime-metadata-display.css";*/
+@import "./styles/components/agents-governance.css";
 
 /* Sidebar */
 @import "./styles/components/sidebar-fixed-layout.css";

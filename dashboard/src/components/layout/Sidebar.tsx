@@ -23,6 +23,7 @@ const navItems: Array<{
   {
     label: "Agents",
     icon: "◈",
+    path: "/agents",
   },
   {
     label: "Tasks",
