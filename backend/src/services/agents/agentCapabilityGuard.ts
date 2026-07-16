@@ -239,25 +239,87 @@ function evaluateAgentCapability(input: {
    * Denied keywords must win before small talk.
    * Example: "vehicle" should not be allowed just because it contains "hi".
    */
-  if (matchedDeniedKeywords.length > 0 && matchedAllowedKeywords.length === 0) {
-    return makeResult({
-      allowed: false,
-      agentName: input.agentName,
-      reason: "Request matched denied keywords and no allowed keywords.",
-      confidence: "high",
-      matchedAllowedKeywords,
-      matchedDeniedKeywords,
-      matchedSoftAllowedKeywords,
-      matchedSmallTalkKeywords,
-      suggestedAgents: contract.fallbackAgents,
-      refusalMessage: buildPoliteRefusalMessage({
-        contract,
+    /**
+   * Hard boundary rule:
+   * For strict agents, denied keywords must take precedence over allowed keywords.
+   *
+   * Example:
+   * "@design-agent buatkan promosi kopi generate gambar"
+   *
+   * This contains allowed keywords:
+   * - promosi
+   *
+   * But also denied keywords:
+   * - gambar
+   * - generate gambar
+   *
+   * Since design-agent is not an image generation agent, the request must be denied
+   * and redirected to image-agent, even if it also contains copywriting keywords.
+   */
+    if (matchedDeniedKeywords.length > 0 && contract.strictBoundary) {
+      const confidence: "high" | "medium" =
+        matchedAllowedKeywords.length > 0 ? "medium" : "high";
+  
+      return makeResult({
+        allowed: false,
+        agentName: input.agentName,
+        reason:
+          matchedAllowedKeywords.length > 0
+            ? "Request matched denied keywords. For strict agents, denied domains take precedence over allowed keywords."
+            : "Request matched denied keywords and no allowed keywords.",
+        confidence,
+        matchedAllowedKeywords,
         matchedDeniedKeywords,
-      }),
-      contract,
-    });
-  }
-
+        matchedSoftAllowedKeywords,
+        matchedSmallTalkKeywords,
+        suggestedAgents: contract.fallbackAgents,
+        refusalMessage: buildPoliteRefusalMessage({
+          contract,
+          matchedDeniedKeywords,
+        }),
+        contract,
+      });
+    }
+  
+    if (matchedDeniedKeywords.length > 0 && matchedAllowedKeywords.length === 0) {
+      return makeResult({
+        allowed: false,
+        agentName: input.agentName,
+        reason: "Request matched denied keywords and no allowed keywords.",
+        confidence: "high",
+        matchedAllowedKeywords,
+        matchedDeniedKeywords,
+        matchedSoftAllowedKeywords,
+        matchedSmallTalkKeywords,
+        suggestedAgents: contract.fallbackAgents,
+        refusalMessage: buildPoliteRefusalMessage({
+          contract,
+          matchedDeniedKeywords,
+        }),
+        contract,
+      });
+    }
+  
+    if (matchedDeniedKeywords.length > matchedAllowedKeywords.length) {
+      return makeResult({
+        allowed: false,
+        agentName: input.agentName,
+        reason:
+          "Request appears more aligned with denied domains than allowed domains.",
+        confidence: "medium",
+        matchedAllowedKeywords,
+        matchedDeniedKeywords,
+        matchedSoftAllowedKeywords,
+        matchedSmallTalkKeywords,
+        suggestedAgents: contract.fallbackAgents,
+        refusalMessage: buildPoliteRefusalMessage({
+          contract,
+          matchedDeniedKeywords,
+        }),
+        contract,
+      });
+    }
+  
   if (matchedDeniedKeywords.length > matchedAllowedKeywords.length) {
     return makeResult({
       allowed: false,

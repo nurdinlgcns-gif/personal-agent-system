@@ -41,6 +41,22 @@ export type AgentCapabilityCheckResult = {
   contract: AgentCapabilityContract | null;
 };
 
+export type UpdateAgentCapabilityContractPayload = Partial<{
+  displayName: string;
+  role: string;
+  description: string;
+  strictBoundary: boolean;
+  unknownIntentPolicy: AgentUnknownIntentPolicy;
+  allowedKeywords: string[];
+  deniedKeywords: string[];
+  softAllowedKeywords: string[];
+  safeSmallTalkKeywords: string[];
+  fallbackAgents: string[];
+  refusalStyle: AgentRefusalStyle;
+  refusalMessage: string;
+  unknownIntentMessage: string;
+}>;
+
 async function readErrorMessage(response: Response, fallbackMessage: string) {
   const errorText = await response.text();
 
@@ -78,6 +94,36 @@ export async function fetchAgentCapabilityContracts() {
 
   const data: AgentCapabilityContractsResponse = await response.json();
   return data.contracts;
+}
+
+export async function updateAgentCapabilityContract(
+  agentName: string,
+  payload: UpdateAgentCapabilityContractPayload
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/agent-governance/contracts/${encodeURIComponent(
+      agentName
+    )}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to update agent capability contract"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const data: AgentCapabilityContract = await response.json();
+  return data;
 }
 
 export async function checkAgentCapability(payload: {

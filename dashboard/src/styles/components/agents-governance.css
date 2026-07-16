@@ -500,3 +500,344 @@
       flex-direction: column;
     }
   }
+
+  /* =========================
+   PHASE 8.39.2.2
+   EDIT CAPABILITY KEYWORDS UI
+========================= */
+
+.agent-governance-editor-card {
+    display: grid;
+    gap: 13px;
+    padding: 18px;
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at top left, rgba(34, 197, 94, 0.1), transparent 34%),
+      rgba(8, 15, 32, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    box-shadow:
+      0 18px 44px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  }
+  
+  .agent-editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  
+  .agent-editor-note {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  
+  .agent-editor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+  }
+  
+  .agent-editor-field {
+    display: grid;
+    gap: 8px;
+  }
+  
+  .agent-editor-field.fallback {
+    grid-column: 1 / -1;
+  }
+  
+  .agent-editor-field span {
+    color: #bfdbfe;
+    font-size: 10.5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.32px;
+  }
+  
+  .agent-editor-field textarea {
+    width: 100%;
+    min-height: 160px;
+    border-radius: 14px;
+    padding: 12px;
+    color: #f8fafc;
+    background: rgba(2, 6, 23, 0.72);
+    border: 1px solid rgba(96, 165, 250, 0.18);
+    outline: none;
+    resize: vertical;
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      "Liberation Mono",
+      "Courier New",
+      monospace;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+  
+  .agent-editor-field textarea:focus {
+    border-color: rgba(96, 165, 250, 0.55);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
+  }
+  
+  .agent-editor-field.allowed textarea {
+    border-color: rgba(34, 197, 94, 0.22);
+  }
+  
+  .agent-editor-field.denied textarea {
+    border-color: rgba(239, 68, 68, 0.22);
+  }
+  
+  .agent-editor-field.fallback textarea {
+    min-height: 90px;
+    border-color: rgba(96, 165, 250, 0.2);
+  }
+  
+  .agent-editor-success {
+    padding: 10px 12px;
+    border-radius: 14px;
+    color: #bbf7d0;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.22);
+    font-size: 12px;
+    font-weight: 800;
+  }
+  
+  :root[data-theme="m365-light"] .agent-governance-editor-card {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .agent-editor-note {
+    color: #64748b;
+  }
+  
+  :root[data-theme="m365-light"] .agent-editor-field span {
+    color: #2563eb;
+  }
+  
+  :root[data-theme="m365-light"] .agent-editor-field textarea {
+    color: #111827;
+    background: #f8fafc;
+    border-color: rgba(37, 99, 235, 0.14);
+  }
+  
+  @media (max-width: 920px) {
+    .agent-editor-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .agent-editor-actions {
+      justify-content: flex-start;
+    }
+  }
+
+  /* =========================
+   PHASE 8.39.2.4
+   BOUNDARY MESSAGES EDITOR UI
+========================= */
+
+.agent-governance-boundary-editor-card {
+    display: grid;
+    gap: 13px;
+    padding: 18px;
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at top right, rgba(124, 58, 237, 0.11), transparent 34%),
+      rgba(8, 15, 32, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    box-shadow:
+      0 18px 44px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  }
+  
+  .agent-boundary-controls-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  
+  .agent-boundary-toggle {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 16px;
+    background: rgba(2, 6, 23, 0.36);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+  }
+  
+  .agent-boundary-toggle span {
+    color: #bfdbfe;
+    font-size: 10.5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.32px;
+  }
+  
+  .agent-boundary-toggle select {
+    width: 100%;
+    border-radius: 12px;
+    padding: 10px 11px;
+    color: #f8fafc;
+    background: rgba(2, 6, 23, 0.78);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    outline: none;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  
+  .agent-boundary-toggle select:focus {
+    border-color: rgba(96, 165, 250, 0.55);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
+  }
+  
+  .agent-boundary-message-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+  }
+  
+  .agent-editor-field.boundary-message textarea {
+    min-height: 130px;
+    border-color: rgba(167, 139, 250, 0.2);
+    font-family: inherit;
+    font-size: 12px;
+  }
+  
+  :root[data-theme="m365-light"] .agent-governance-boundary-editor-card {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .agent-boundary-toggle {
+    background: #f8fafc;
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .agent-boundary-toggle span {
+    color: #2563eb;
+  }
+  
+  :root[data-theme="m365-light"] .agent-boundary-toggle select {
+    color: #111827;
+    background: #ffffff;
+    border-color: rgba(37, 99, 235, 0.14);
+  }
+  
+  @media (max-width: 980px) {
+    .agent-boundary-controls-grid,
+    .agent-boundary-message-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* =========================
+   PHASE 8.39.2.5
+   GOVERNANCE SAFETY UX POLISH
+========================= */
+
+.agent-enforcement-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  
+  .agent-enforcement-badge-row.hero-badges {
+    margin-top: 14px;
+  }
+  
+  .agent-enforcement-badge,
+  .agent-unsaved-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 6px 9px;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.28px;
+    white-space: nowrap;
+  }
+  
+  .agent-enforcement-badge {
+    color: #bbf7d0;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+  
+  .agent-unsaved-badge {
+    color: #fed7aa;
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.24);
+  }
+  
+  .has-unsaved-changes {
+    border-color: rgba(245, 158, 11, 0.32) !important;
+    box-shadow:
+      0 18px 44px rgba(0, 0, 0, 0.22),
+      0 0 0 1px rgba(245, 158, 11, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+  }
+  
+  .agent-boundary-safety-note {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 11px 12px;
+    border-radius: 14px;
+    color: #fed7aa;
+    background: rgba(245, 158, 11, 0.11);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  
+  .agent-boundary-safety-note strong {
+    color: #fef3c7;
+    white-space: nowrap;
+  }
+  
+  .agent-editor-actions button:disabled,
+  .agent-test-shortcuts button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .agent-contract-card .agent-contract-meta-row span:last-child {
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      color 0.18s ease;
+  }
+  
+  :root[data-theme="m365-light"] .agent-enforcement-badge {
+    color: #166534;
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(22, 163, 74, 0.2);
+  }
+  
+  :root[data-theme="m365-light"] .agent-unsaved-badge {
+    color: #92400e;
+    background: rgba(245, 158, 11, 0.14);
+    border-color: rgba(217, 119, 6, 0.22);
+  }
+  
+  :root[data-theme="m365-light"] .agent-boundary-safety-note {
+    color: #92400e;
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(217, 119, 6, 0.2);
+  }
+  
+  :root[data-theme="m365-light"] .agent-boundary-safety-note strong {
+    color: #78350f;
+  }

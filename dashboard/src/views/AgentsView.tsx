@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   checkAgentCapability,
   fetchAgentCapabilityContracts,
+  updateAgentCapabilityContract,
   type AgentCapabilityCheckResult,
   type AgentCapabilityContract,
+  type AgentUnknownIntentPolicy,
+  type AgentRefusalStyle,
 } from "../services/agentGovernanceApi";
 
 function getBoundaryLabel(contract: AgentCapabilityContract) {
@@ -24,6 +27,41 @@ function getConfidenceLabel(value?: string) {
   }
 
   return value;
+}
+
+function uniqueCleanList(items: string[]) {
+  return Array.from(
+    new Set(
+      items
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .map((item) => item.replace(/\s+/g, " "))
+    )
+  );
+}
+
+function parseKeywordText(value: string) {
+  return uniqueCleanList(
+    value
+      .split("\n")
+      .flatMap((line) => line.split(","))
+      .map((item) => item.trim())
+  );
+}
+
+function stringifyKeywordList(items: string[]) {
+  return items.join("\n");
+}
+
+function areStringListsEqual(left: string[], right: string[]) {
+  const leftClean = uniqueCleanList(left);
+  const rightClean = uniqueCleanList(right);
+
+  if (leftClean.length !== rightClean.length) {
+    return false;
+  }
+
+  return leftClean.every((item, index) => item === rightClean[index]);
 }
 
 function KeywordGroup({
@@ -58,10 +96,12 @@ function KeywordGroup({
 function ContractSummaryCard({
   contract,
   isActive,
+  hasUnsavedChanges,
   onClick,
 }: {
   contract: AgentCapabilityContract;
   isActive: boolean;
+  hasUnsavedChanges: boolean;
   onClick: () => void;
 }) {
   return (
@@ -79,8 +119,417 @@ function ContractSummaryCard({
       <div className="agent-contract-meta-row">
         <span>{getBoundaryLabel(contract)}</span>
         <span>{contract.fallbackAgents.length} fallback</span>
+        {isActive && hasUnsavedChanges && <span>Unsaved</span>}
       </div>
     </button>
+  );
+}
+
+function EditableKeywordsPanel({
+  selectedContract,
+  onSaved,
+  onDirtyChange,
+}: {
+  selectedContract: AgentCapabilityContract;
+  onSaved: (contract: AgentCapabilityContract) => void;
+  onDirtyChange: (value: boolean) => void;
+}) {
+  const [allowedKeywordsText, setAllowedKeywordsText] = useState(
+    stringifyKeywordList(selectedContract.allowedKeywords)
+  );
+  const [deniedKeywordsText, setDeniedKeywordsText] = useState(
+    stringifyKeywordList(selectedContract.deniedKeywords)
+  );
+  const [fallbackAgentsText, setFallbackAgentsText] = useState(
+    stringifyKeywordList(selectedContract.fallbackAgents)
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const parsedAllowedKeywords = parseKeywordText(allowedKeywordsText);
+  const parsedDeniedKeywords = parseKeywordText(deniedKeywordsText);
+  const parsedFallbackAgents = parseKeywordText(fallbackAgentsText);
+
+  const hasChanges =
+    !areStringListsEqual(parsedAllowedKeywords, selectedContract.allowedKeywords) ||
+    !areStringListsEqual(parsedDeniedKeywords, selectedContract.deniedKeywords) ||
+    !areStringListsEqual(parsedFallbackAgents, selectedContract.fallbackAgents);
+
+  useEffect(() => {
+    setAllowedKeywordsText(stringifyKeywordList(selectedContract.allowedKeywords));
+    setDeniedKeywordsText(stringifyKeywordList(selectedContract.deniedKeywords));
+    setFallbackAgentsText(stringifyKeywordList(selectedContract.fallbackAgents));
+    setSaveMessage(null);
+    setSaveError(null);
+    onDirtyChange(false);
+  }, [selectedContract, onDirtyChange]);
+
+  useEffect(() => {
+    onDirtyChange(hasChanges);
+  }, [hasChanges, onDirtyChange]);
+
+  async function handleSave() {
+    if (!hasChanges) {
+      setSaveMessage("No keyword changes to save.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setSaveError(null);
+      setSaveMessage(null);
+
+      const updatedContract = await updateAgentCapabilityContract(
+        selectedContract.agentName,
+        {
+          allowedKeywords: parsedAllowedKeywords,
+          deniedKeywords: parsedDeniedKeywords,
+          fallbackAgents: parsedFallbackAgents,
+        }
+      );
+
+      onSaved(updatedContract);
+      setSaveMessage("Capability keywords saved.");
+      onDirtyChange(false);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to save capability keywords.";
+
+      setSaveError(message);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  function handleReset() {
+    setAllowedKeywordsText(stringifyKeywordList(selectedContract.allowedKeywords));
+    setDeniedKeywordsText(stringifyKeywordList(selectedContract.deniedKeywords));
+    setFallbackAgentsText(stringifyKeywordList(selectedContract.fallbackAgents));
+    setSaveMessage(null);
+    setSaveError(null);
+    onDirtyChange(false);
+  }
+
+  function addVisualDeniedPreset() {
+    const nextDenied = uniqueCleanList([
+      ...parsedDeniedKeywords,
+      "gambar",
+      "image",
+      "generate gambar",
+      "visual",
+      "isometric",
+      "vehicle",
+      "render",
+      "3d",
+      "illustration",
+      "ilustrasi",
+      "prompt gambar",
+    ]);
+
+    const nextFallbackAgents = uniqueCleanList([
+      "image-agent",
+      ...parsedFallbackAgents,
+    ]);
+
+    setDeniedKeywordsText(stringifyKeywordList(nextDenied));
+    setFallbackAgentsText(stringifyKeywordList(nextFallbackAgents));
+    setSaveMessage(null);
+    setSaveError(null);
+  }
+
+  return (
+    <section
+      className={`agent-governance-editor-card ${
+        hasChanges ? "has-unsaved-changes" : ""
+      }`}
+    >
+      <div className="agent-section-title">
+        <div>
+          <span>Editable rules</span>
+          <h3>Capability Keywords Editor</h3>
+        </div>
+
+        <div className="agent-editor-actions">
+          <button type="button" onClick={addVisualDeniedPreset}>
+            Add Visual Denied Preset
+          </button>
+
+          <button type="button" onClick={handleReset} disabled={isSaving || !hasChanges}>
+            Reset
+          </button>
+
+          <button type="button" onClick={handleSave} disabled={isSaving || !hasChanges}>
+            {isSaving ? "Saving..." : hasChanges ? "Save Rules" : "Saved"}
+          </button>
+        </div>
+      </div>
+
+      <div className="agent-enforcement-badge-row">
+        <span className="agent-enforcement-badge">Enforced in Widget</span>
+        <span className="agent-enforcement-badge">Enforced in WhatsApp</span>
+        <span className="agent-enforcement-badge">Enforced in API</span>
+        {hasChanges && <span className="agent-unsaved-badge">Unsaved changes</span>}
+      </div>
+
+      <p className="agent-editor-note">
+        One keyword per line, or comma-separated. Saved rules are enforced by the
+        backend for Floating Assistant, WhatsApp, and direct API requests.
+      </p>
+
+      <div className="agent-editor-grid">
+        <label className="agent-editor-field allowed">
+          <span>Allowed Keywords</span>
+          <textarea
+            value={allowedKeywordsText}
+            onChange={(event) => setAllowedKeywordsText(event.target.value)}
+            rows={12}
+          />
+        </label>
+
+        <label className="agent-editor-field denied">
+          <span>Denied Keywords</span>
+          <textarea
+            value={deniedKeywordsText}
+            onChange={(event) => setDeniedKeywordsText(event.target.value)}
+            rows={12}
+          />
+        </label>
+
+        <label className="agent-editor-field fallback">
+          <span>Fallback Agents</span>
+          <textarea
+            value={fallbackAgentsText}
+            onChange={(event) => setFallbackAgentsText(event.target.value)}
+            rows={6}
+          />
+        </label>
+      </div>
+
+      {saveMessage && <div className="agent-editor-success">{saveMessage}</div>}
+
+      {saveError && <div className="agent-governance-error">{saveError}</div>}
+    </section>
+  );
+}
+
+function BoundaryMessagesEditorPanel({
+  selectedContract,
+  onSaved,
+  onDirtyChange,
+}: {
+  selectedContract: AgentCapabilityContract;
+  onSaved: (contract: AgentCapabilityContract) => void;
+  onDirtyChange: (value: boolean) => void;
+}) {
+  const [strictBoundary, setStrictBoundary] = useState(
+    selectedContract.strictBoundary
+  );
+  const [unknownIntentPolicy, setUnknownIntentPolicy] =
+    useState<AgentUnknownIntentPolicy>(selectedContract.unknownIntentPolicy);
+  const [refusalStyle, setRefusalStyle] = useState<AgentRefusalStyle>(
+    selectedContract.refusalStyle
+  );
+  const [refusalMessage, setRefusalMessage] = useState(
+    selectedContract.refusalMessage
+  );
+  const [unknownIntentMessage, setUnknownIntentMessage] = useState(
+    selectedContract.unknownIntentMessage
+  );
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const hasChanges =
+    strictBoundary !== selectedContract.strictBoundary ||
+    unknownIntentPolicy !== selectedContract.unknownIntentPolicy ||
+    refusalStyle !== selectedContract.refusalStyle ||
+    refusalMessage !== selectedContract.refusalMessage ||
+    unknownIntentMessage !== selectedContract.unknownIntentMessage;
+
+  useEffect(() => {
+    setStrictBoundary(selectedContract.strictBoundary);
+    setUnknownIntentPolicy(selectedContract.unknownIntentPolicy);
+    setRefusalStyle(selectedContract.refusalStyle);
+    setRefusalMessage(selectedContract.refusalMessage);
+    setUnknownIntentMessage(selectedContract.unknownIntentMessage);
+    setSaveMessage(null);
+    setSaveError(null);
+    onDirtyChange(false);
+  }, [selectedContract, onDirtyChange]);
+
+  useEffect(() => {
+    onDirtyChange(hasChanges);
+  }, [hasChanges, onDirtyChange]);
+
+  async function handleSave() {
+    if (!hasChanges) {
+      setSaveMessage("No boundary message changes to save.");
+      return;
+    }
+
+    if (selectedContract.strictBoundary && !strictBoundary) {
+      const shouldContinue = window.confirm(
+        "Disabling Strict Boundary can allow out-of-scope requests to pass through this agent. Continue?"
+      );
+
+      if (!shouldContinue) {
+        return;
+      }
+    }
+
+    try {
+      setIsSaving(true);
+      setSaveMessage(null);
+      setSaveError(null);
+
+      const updatedContract = await updateAgentCapabilityContract(
+        selectedContract.agentName,
+        {
+          strictBoundary,
+          unknownIntentPolicy,
+          refusalStyle,
+          refusalMessage,
+          unknownIntentMessage,
+        }
+      );
+
+      onSaved(updatedContract);
+      setSaveMessage("Boundary messages saved.");
+      onDirtyChange(false);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to save boundary messages.";
+
+      setSaveError(message);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  function handleReset() {
+    setStrictBoundary(selectedContract.strictBoundary);
+    setUnknownIntentPolicy(selectedContract.unknownIntentPolicy);
+    setRefusalStyle(selectedContract.refusalStyle);
+    setRefusalMessage(selectedContract.refusalMessage);
+    setUnknownIntentMessage(selectedContract.unknownIntentMessage);
+    setSaveMessage(null);
+    setSaveError(null);
+    onDirtyChange(false);
+  }
+
+  return (
+    <section
+      className={`agent-governance-boundary-editor-card ${
+        hasChanges ? "has-unsaved-changes" : ""
+      }`}
+    >
+      <div className="agent-section-title">
+        <div>
+          <span>Boundary behavior</span>
+          <h3>Boundary Messages Editor</h3>
+        </div>
+
+        <div className="agent-editor-actions">
+          <button type="button" onClick={handleReset} disabled={isSaving || !hasChanges}>
+            Reset
+          </button>
+
+          <button type="button" onClick={handleSave} disabled={isSaving || !hasChanges}>
+            {isSaving ? "Saving..." : hasChanges ? "Save Messages" : "Saved"}
+          </button>
+        </div>
+      </div>
+
+      <div className="agent-enforcement-badge-row">
+        <span className="agent-enforcement-badge">Runtime enforced</span>
+        <span className="agent-enforcement-badge">Widget + WhatsApp</span>
+        {hasChanges && <span className="agent-unsaved-badge">Unsaved changes</span>}
+      </div>
+
+      <p className="agent-editor-note">
+        These messages are used when the backend blocks an out-of-scope request.
+        The same behavior applies to Floating Assistant, WhatsApp, and direct API
+        requests.
+      </p>
+
+      <div className="agent-boundary-safety-note">
+        <strong>Safety note:</strong>
+        <span>
+          Keep Strict Boundary enabled for role-specific agents. Disable only if
+          this agent is intentionally allowed to handle broad or exploratory
+          requests.
+        </span>
+      </div>
+
+      <div className="agent-boundary-controls-grid">
+        <label className="agent-boundary-toggle">
+          <span>Strict Boundary</span>
+          <select
+            value={strictBoundary ? "true" : "false"}
+            onChange={(event) => setStrictBoundary(event.target.value === "true")}
+          >
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+        </label>
+
+        <label className="agent-boundary-toggle">
+          <span>Unknown Intent Policy</span>
+          <select
+            value={unknownIntentPolicy}
+            onChange={(event) =>
+              setUnknownIntentPolicy(event.target.value as AgentUnknownIntentPolicy)
+            }
+          >
+            <option value="clarify_or_refuse">Clarify or refuse</option>
+            <option value="allow">Allow</option>
+          </select>
+        </label>
+
+        <label className="agent-boundary-toggle">
+          <span>Refusal Style</span>
+          <select
+            value={refusalStyle}
+            onChange={(event) =>
+              setRefusalStyle(event.target.value as AgentRefusalStyle)
+            }
+          >
+            <option value="polite_redirect">Polite redirect</option>
+            <option value="polite_decline">Polite decline</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="agent-boundary-message-grid">
+        <label className="agent-editor-field boundary-message">
+          <span>Denied intent message</span>
+          <textarea
+            value={refusalMessage}
+            onChange={(event) => setRefusalMessage(event.target.value)}
+            rows={6}
+          />
+        </label>
+
+        <label className="agent-editor-field boundary-message">
+          <span>Unknown intent message</span>
+          <textarea
+            value={unknownIntentMessage}
+            onChange={(event) => setUnknownIntentMessage(event.target.value)}
+            rows={6}
+          />
+        </label>
+      </div>
+
+      {saveMessage && <div className="agent-editor-success">{saveMessage}</div>}
+
+      {saveError && <div className="agent-governance-error">{saveError}</div>}
+    </section>
   );
 }
 
@@ -257,6 +706,10 @@ export function AgentsView() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [keywordEditorDirty, setKeywordEditorDirty] = useState(false);
+  const [boundaryEditorDirty, setBoundaryEditorDirty] = useState(false);
+
+  const hasUnsavedChanges = keywordEditorDirty || boundaryEditorDirty;
 
   const selectedContract = useMemo(() => {
     if (contracts.length === 0) {
@@ -269,7 +722,34 @@ export function AgentsView() {
     );
   }, [contracts, selectedAgentName]);
 
+  useEffect(() => {
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      if (!hasUnsavedChanges) {
+        return;
+      }
+
+      event.preventDefault();
+      event.returnValue = "";
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]);
+
   async function loadContracts(isSilent = false) {
+    if (hasUnsavedChanges) {
+      const shouldContinue = window.confirm(
+        "There are unsaved governance changes. Refreshing will discard them. Continue?"
+      );
+
+      if (!shouldContinue) {
+        return;
+      }
+    }
+
     try {
       if (isSilent) {
         setIsRefreshing(true);
@@ -290,6 +770,9 @@ export function AgentsView() {
 
         return data[0]?.agentName || null;
       });
+
+      setKeywordEditorDirty(false);
+      setBoundaryEditorDirty(false);
     } catch (error) {
       const message =
         error instanceof Error
@@ -303,23 +786,63 @@ export function AgentsView() {
     }
   }
 
+  function handleContractSaved(updatedContract: AgentCapabilityContract) {
+    setContracts((currentContracts) =>
+      currentContracts.map((contract) =>
+        contract.agentName === updatedContract.agentName
+          ? updatedContract
+          : contract
+      )
+    );
+
+    setSelectedAgentName(updatedContract.agentName);
+  }
+
+  function handleSelectContract(agentName: string) {
+    if (agentName === selectedAgentName) {
+      return;
+    }
+
+    if (hasUnsavedChanges) {
+      const shouldContinue = window.confirm(
+        "There are unsaved governance changes. Switching agents will discard them. Continue?"
+      );
+
+      if (!shouldContinue) {
+        return;
+      }
+    }
+
+    setKeywordEditorDirty(false);
+    setBoundaryEditorDirty(false);
+    setSelectedAgentName(agentName);
+  }
+
   useEffect(() => {
     loadContracts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <section className="agents-governance-view">
       <div className="agents-governance-hero">
         <div>
-          <span className="agents-governance-eyebrow">
-            Agent Governance
-          </span>
+          <span className="agents-governance-eyebrow">Agent Governance</span>
           <h1>Agents Capability Control Center</h1>
           <p>
-            Monitor agent capability contracts, boundary rules, fallback agents,
-            and runtime governance checks. This page is read-only for now. Rule
-            editing will be enabled in the next phase.
+            Monitor and tune agent capability rules. Saved rules are enforced by
+            the backend for Floating Assistant, WhatsApp, and direct API
+            requests.
           </p>
+
+          <div className="agent-enforcement-badge-row hero-badges">
+            <span className="agent-enforcement-badge">Backend enforced</span>
+            <span className="agent-enforcement-badge">Widget protected</span>
+            <span className="agent-enforcement-badge">WhatsApp protected</span>
+            {hasUnsavedChanges && (
+              <span className="agent-unsaved-badge">Unsaved changes</span>
+            )}
+          </div>
         </div>
 
         <button
@@ -355,7 +878,11 @@ export function AgentsView() {
                 key={contract.agentName}
                 contract={contract}
                 isActive={selectedContract?.agentName === contract.agentName}
-                onClick={() => setSelectedAgentName(contract.agentName)}
+                hasUnsavedChanges={
+                  selectedContract?.agentName === contract.agentName &&
+                  hasUnsavedChanges
+                }
+                onClick={() => handleSelectContract(contract.agentName)}
               />
             ))}
           </aside>
@@ -413,6 +940,18 @@ export function AgentsView() {
                   </div>
                 </div>
               </section>
+
+              <EditableKeywordsPanel
+                selectedContract={selectedContract}
+                onSaved={handleContractSaved}
+                onDirtyChange={setKeywordEditorDirty}
+              />
+
+              <BoundaryMessagesEditorPanel
+                selectedContract={selectedContract}
+                onSaved={handleContractSaved}
+                onDirtyChange={setBoundaryEditorDirty}
+              />
 
               <section className="agent-keyword-section">
                 <KeywordGroup
