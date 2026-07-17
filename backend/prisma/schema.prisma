@@ -47,6 +47,15 @@ model Task {
   runtimeMode         String?
   runtimeResolvedFrom String?
 
+  governanceAllowed              Boolean?
+  governanceReason               String?
+  governanceConfidence           String?
+  governanceMatchedAllowedJson   String?
+  governanceMatchedDeniedJson    String?
+  governanceMatchedSoftJson      String?
+  governanceMatchedSmallTalkJson String?
+  governanceSuggestedAgentsJson  String?
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -59,6 +68,17 @@ model Memory {
   agentId   String
   content   String
   type      String   @default("general")
+
+  scope                 String  @default("agent")
+  ownerAgentName         String?
+  allowedAgentsJson      String  @default("[]")
+  linkedSkillNamesJson   String  @default("[]")
+  runtimeInjectable      Boolean @default(false)
+  ragEnabled             Boolean @default(false)
+  sensitivityLevel       String  @default("normal")
+  sourceType             String  @default("manual")
+  sourceRef              String?
+
   createdAt DateTime @default(now())
 
   agent     Agent    @relation(fields: [agentId], references: [id])

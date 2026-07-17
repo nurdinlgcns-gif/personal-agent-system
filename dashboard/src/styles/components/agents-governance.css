@@ -841,3 +841,123 @@
   :root[data-theme="m365-light"] .agent-boundary-safety-note strong {
     color: #78350f;
   }
+
+  /* =========================
+   PHASE 8.45
+   MEMORY RESOLVER PREVIEW IN GOVERNANCE
+========================= */
+
+.agent-memory-preview {
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 18px;
+    background:
+      radial-gradient(circle at top right, rgba(20, 184, 166, 0.1), transparent 35%),
+      rgba(2, 6, 23, 0.34);
+    border: 1px solid rgba(45, 212, 191, 0.16);
+  }
+  
+  .agent-memory-preview-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .agent-memory-preview-header span {
+    color: #5eead4;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.32px;
+  }
+  
+  .agent-memory-preview-header strong {
+    display: block;
+    margin-top: 4px;
+    color: #f8fafc;
+    font-size: 13px;
+  }
+  
+  .agent-memory-preview-empty {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 12px;
+  }
+  
+  .agent-memory-preview-list {
+    display: grid;
+    gap: 10px;
+  }
+  
+  .agent-memory-preview-item {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 15px;
+    background: rgba(15, 23, 42, 0.56);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+  }
+  
+  .agent-memory-preview-item-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  
+  .agent-memory-preview-item-header strong {
+    color: #f8fafc;
+    font-size: 12px;
+  }
+  
+  .agent-memory-preview-item-header span {
+    color: #99f6e4;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+  
+  .agent-memory-preview-item p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  
+  .agent-memory-preview-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  
+  .agent-memory-preview-pills span {
+    border-radius: 999px;
+    padding: 5px 8px;
+    color: #99f6e4;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(45, 212, 191, 0.18);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+  
+  :root[data-theme="m365-light"] .agent-memory-preview {
+    background: #f8fafc;
+    border-color: rgba(20, 184, 166, 0.14);
+  }
+  
+  :root[data-theme="m365-light"] .agent-memory-preview-header strong,
+  :root[data-theme="m365-light"] .agent-memory-preview-item-header strong {
+    color: #111827;
+  }
+  
+  :root[data-theme="m365-light"] .agent-memory-preview-item {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+  
+  :root[data-theme="m365-light"] .agent-memory-preview-item p {
+    color: #475569;
+  }

@@ -9,6 +9,8 @@
 @import "./styles/components/final-ux-polish.css";
 /*@import "./styles/components/runtime-metadata-display.css";*/
 @import "./styles/components/agents-governance.css";
+@import "./styles/components/skills-page.css";
+@import "./styles/components/memory-vault.css";
 
 /* Sidebar */
 @import "./styles/components/sidebar-fixed-layout.css";

@@ -5,6 +5,7 @@ import {
   updateDynamicAgentCapabilityContract,
 } from "../services/agents/dynamicAgentCapabilityContractService";
 import { checkAgentCapabilityDynamic } from "../services/agents/agentCapabilityGuard";
+import { resolveRuntimeMemoriesForAgent } from "../services/memory/memoryRuntimeScopeResolver";
 
 export const agentGovernanceRoutes = Router();
 
@@ -68,10 +69,36 @@ agentGovernanceRoutes.post("/check", async (request, response) => {
     return;
   }
 
-  const result = await checkAgentCapabilityDynamic({
+  const source =
+    request.body?.source === "whatsapp" ||
+    request.body?.source === "api" ||
+    request.body?.source === "system"
+      ? request.body.source
+      : "manual";
+
+  const maxMemoryResults =
+    typeof request.body?.maxMemoryResults === "number" &&
+    request.body.maxMemoryResults > 0
+      ? Math.min(request.body.maxMemoryResults, 10)
+      : 5;
+
+  const capabilityResult = await checkAgentCapabilityDynamic({
     agentName,
     inputText,
   });
 
-  response.json(result);
+  const memoryContext = capabilityResult.allowed
+    ? await resolveRuntimeMemoriesForAgent({
+        agentName,
+        inputText,
+        source,
+        matchedSkillNames: capabilityResult.matchedSkillNames,
+        maxResults: maxMemoryResults,
+      })
+    : null;
+
+  response.json({
+    ...capabilityResult,
+    memoryContext,
+  });
 });

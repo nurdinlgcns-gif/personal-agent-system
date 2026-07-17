@@ -13,11 +13,18 @@ import { findAllSkills } from "./repositories/skillRepository";
 import { llmRoutes } from "./routes/llmRoutes";
 import { llmProviderRegistryRoutes } from "./routes/llmProviderRegistryRoutes";
 import { agentGovernanceRoutes } from "./routes/agentGovernanceRoutes";
+import { memoryVaultRoutes } from "./routes/memoryVaultRoutes";
 import { extractManualTaskModelPreference } from "./services/llm/manualTaskModelPreference";
 import { runLlmCompletion } from "./services/llm/llmClient";
-import { storeLatestTaskRuntimeResult } from "./services/llm/taskRuntimeMetadataService";
+import {
+  storeGovernanceBlockedTask,
+  storeLatestTaskRuntimeResult,
+} from "./services/llm/taskRuntimeMetadataService";
 import { checkAgentCapabilityDynamic } from "./services/agents/agentCapabilityGuard";
 validateEnv();
+import { resolveRuntimeMemoriesForAgent } from "./services/memory/memoryRuntimeScopeResolver";
+import { buildRuntimeMemoryContextBlock } from "./services/memory/runtimeMemoryContextFormatter";
+import { formatManualRuntimeOutput } from "./services/llm/manualRuntimeOutputGuardrails";
 
 const app = express();
 
@@ -27,6 +34,7 @@ app.use(express.json());
 app.use("/api/llm", llmRoutes);
 app.use("/api/llm/registry", llmProviderRegistryRoutes);
 app.use("/api/agent-governance", agentGovernanceRoutes);
+app.use("/api/memory-vault", memoryVaultRoutes);
 
 app.get("/health", (req, res) => {
   res.json({
@@ -60,14 +68,32 @@ function extractAgentNameFromMessage(message: string) {
   return agentMentionMatch?.[1] || "design-agent";
 }
 
-function buildManualSystemPrompt(agentName: string) {
+function buildManualSystemPrompt(agentName: string, memoryContextBlock?: string) {
   return [
     `You are ${agentName}.`,
     "Answer the user's request directly and clearly.",
     "Keep the response practical and useful.",
     "Do not expose internal reasoning.",
     "If the user requests a short answer, keep it short.",
-  ].join(" ");
+    "Never mention internal runtime metadata, provider metadata, governance metadata, or memory retrieval metadata.",
+    "If runtime memory context is provided, use it silently only when it improves relevance.",
+    memoryContextBlock
+      ? [
+          "",
+          "Scoped runtime memory:",
+          memoryContextBlock,
+          "",
+          "Important memory handling rules:",
+          "1. Use memory only as background context.",
+          "2. Do not quote memory metadata.",
+          "3. Do not say that memory was retrieved.",
+          "4. Do not reveal Memory Vault internals.",
+          "5. If memory is unrelated, ignore it.",
+        ].join("\n")
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function buildCapabilityBoundaryResponse(input: {
@@ -119,14 +145,24 @@ app.post("/tasks", async (req, res) => {
         refusalMessage: capabilityCheck.refusalMessage,
       });
 
+      const blockedTask = await storeGovernanceBlockedTask({
+        inputText,
+        agentName,
+        source: "manual",
+        outputText: boundaryResponse,
+        capabilityCheck,
+      });
+
       logger.task(
         `Manual task blocked by capability guard: ${agentName} | ${capabilityCheck.reason}`
       );
 
       return res.json({
         result: boundaryResponse,
-        task: null,
+        task: blockedTask,
         runtimeProvider: null,
+        memoryContext: null,
+        runtimeMemoryContext: null,
         capabilityBoundary: {
           allowed: capabilityCheck.allowed,
           agentName: capabilityCheck.agentName,
@@ -134,12 +170,32 @@ app.post("/tasks", async (req, res) => {
           confidence: capabilityCheck.confidence,
           matchedAllowedKeywords: capabilityCheck.matchedAllowedKeywords,
           matchedDeniedKeywords: capabilityCheck.matchedDeniedKeywords,
+          matchedSoftAllowedKeywords: capabilityCheck.matchedSoftAllowedKeywords,
+          matchedSmallTalkKeywords: capabilityCheck.matchedSmallTalkKeywords,
           suggestedAgents: capabilityCheck.suggestedAgents,
         },
       });
     }
 
     const modelPreference = extractManualTaskModelPreference(req.body);
+    
+    const memoryContext = await resolveRuntimeMemoriesForAgent({
+      agentName,
+      inputText,
+      source: "manual",
+      matchedSkillNames: capabilityCheck.matchedSkillNames,
+      maxResults: 5,
+    });
+
+    const runtimeMemoryContext = buildRuntimeMemoryContextBlock(memoryContext, {
+      maxItems: 3,
+      maxTotalChars: 1500,
+      maxCharsPerMemory: 430,
+    });
+    
+    logger.task(
+      `Manual runtime memory context: injected=${runtimeMemoryContext.summary.injected} items=${runtimeMemoryContext.summary.itemCount} chars=${runtimeMemoryContext.summary.totalChars}`
+    );
 
     /*
       Keep existing orchestrator behavior as safe fallback.
@@ -156,7 +212,10 @@ app.post("/tasks", async (req, res) => {
     */
     const runtimeResult = await runLlmCompletion({
       agentName,
-      systemPrompt: buildManualSystemPrompt(agentName),
+      systemPrompt: buildManualSystemPrompt(
+        agentName,
+        runtimeMemoryContext.contextBlock
+      ),
       inputText,
       preference: modelPreference,
     });
@@ -165,17 +224,20 @@ app.post("/tasks", async (req, res) => {
       ? fallbackResult
       : runtimeResult.outputText;
 
-    const updatedTaskWithRuntimeMetadata = await storeLatestTaskRuntimeResult({
-      inputText,
-      agentName,
-      source: "manual",
-      outputText: finalOutputText,
-      runtimeResult,
-    });
+      const updatedTaskWithRuntimeMetadata = await storeLatestTaskRuntimeResult({
+        inputText,
+        agentName,
+        source: "manual",
+        outputText: finalOutputText,
+        runtimeResult,
+        capabilityCheck,
+      });
 
     return res.json({
       result: finalOutputText,
       task: updatedTaskWithRuntimeMetadata,
+      memoryContext,
+      runtimeMemoryContext: runtimeMemoryContext.summary,
       runtimeProvider: {
         providerId: runtimeResult.providerId || null,
         providerName: runtimeResult.providerName || runtimeResult.provider,
@@ -248,6 +310,14 @@ app.get("/tasks/recent", async (req, res) => {
         runtimeModel: task.runtimeModel,
         runtimeMode: task.runtimeMode,
         runtimeResolvedFrom: task.runtimeResolvedFrom,
+        governanceAllowed: task.governanceAllowed,
+        governanceReason: task.governanceReason,
+        governanceConfidence: task.governanceConfidence,
+        governanceMatchedAllowedJson: task.governanceMatchedAllowedJson,
+        governanceMatchedDeniedJson: task.governanceMatchedDeniedJson,
+        governanceMatchedSoftJson: task.governanceMatchedSoftJson,
+        governanceMatchedSmallTalkJson: task.governanceMatchedSmallTalkJson,
+        governanceSuggestedAgentsJson: task.governanceSuggestedAgentsJson,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt,
       })),
@@ -271,6 +341,7 @@ app.get("/skills", async (req, res) => {
         name: skill.name,
         description: skill.description,
         filePath: skill.filePath,
+        content: skill.content,
         agentName: skill.agent.name,
         createdAt: skill.createdAt,
         updatedAt: skill.updatedAt,

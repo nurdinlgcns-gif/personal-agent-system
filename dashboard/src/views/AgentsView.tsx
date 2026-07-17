@@ -669,29 +669,88 @@ function GovernanceCheckPanel({
 
           <div className="agent-check-matches">
             <KeywordGroup
-              title="Matched allowed"
-              items={checkResult.matchedAllowedKeywords}
-              variant="allowed"
+            title="Matched allowed"
+            items={checkResult.matchedAllowedKeywords}
+            variant="allowed"
             />
 
             <KeywordGroup
-              title="Matched denied"
-              items={checkResult.matchedDeniedKeywords}
-              variant="denied"
+            title="Matched denied"
+            items={checkResult.matchedDeniedKeywords}
+            variant="denied"
             />
 
             <KeywordGroup
-              title="Matched soft"
-              items={checkResult.matchedSoftAllowedKeywords}
-              variant="soft"
+            title="Matched soft"
+            items={checkResult.matchedSoftAllowedKeywords}
+            variant="soft"
             />
 
             <KeywordGroup
-              title="Suggested agents"
-              items={checkResult.suggestedAgents}
-              variant="default"
+            title="Matched skills"
+            items={checkResult.matchedSkillNames}
+            variant="allowed"
+            />
+
+            <KeywordGroup
+            title="Skill signals"
+            items={checkResult.matchedSkillSignals}
+            variant="soft"
+            />
+
+            <KeywordGroup
+            title="Suggested agents"
+            items={checkResult.suggestedAgents}
+            variant="default"
             />
           </div>
+          {checkResult.memoryContext && (
+            <div className="agent-memory-preview">
+                <div className="agent-memory-preview-header">
+                <div>
+                    <span>Memory resolver preview</span>
+                    <strong>
+                    {checkResult.memoryContext.returnedCount} /{" "}
+                    {checkResult.memoryContext.eligibleCount} eligible memories
+                    </strong>
+                </div>
+
+                <span>{checkResult.memoryContext.source}</span>
+                </div>
+
+                {checkResult.memoryContext.memories.length === 0 ? (
+                <p className="agent-memory-preview-empty">
+                    No runtime-eligible memory found for this request.
+                </p>
+                ) : (
+                <div className="agent-memory-preview-list">
+                    {checkResult.memoryContext.memories.map((memory) => (
+                    <div key={memory.id} className="agent-memory-preview-item">
+                        <div className="agent-memory-preview-item-header">
+                        <strong>
+                            @{memory.agentName} · {memory.type}
+                        </strong>
+                        <span>score {memory.score}</span>
+                        </div>
+
+                        <p>{memory.content}</p>
+
+                        <div className="agent-memory-preview-pills">
+                        <span>{memory.scope}</span>
+                        <span>{memory.sensitivityLevel}</span>
+                        {memory.runtimeInjectable && <span>runtime</span>}
+                        {memory.ragEnabled && <span>rag</span>}
+                        {memory.matchReasons.map((reason) => (
+                            <span key={`${memory.id}-${reason}`}>{reason}</span>
+                        ))}
+                        </div>
+                    </div>
+                    ))}
+                </div>
+                )}
+            </div>
+            )}
+
         </div>
       )}
     </section>

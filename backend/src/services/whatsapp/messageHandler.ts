@@ -7,12 +7,16 @@ import {
 import { env } from "../../config/env";
 import { logger } from "../../utils/logger";
 import { runLlmCompletion } from "../llm/llmClient";
-import { storeLatestTaskRuntimeResult } from "../llm/taskRuntimeMetadataService";
+import {
+  storeGovernanceBlockedTask,
+  storeLatestTaskRuntimeResult,
+} from "../llm/taskRuntimeMetadataService";
 import {
   formatWhatsAppBoundaryReply,
   formatWhatsAppRuntimeReply,
 } from "./whatsappRuntimeGuardrails";
 import { checkAgentCapabilityDynamic } from "../agents/agentCapabilityGuard";
+import { resolveRuntimeMemoriesForAgent } from "../memory/memoryRuntimeScopeResolver";
 
 type WhatsAppHandleResult = {
   shouldReply: boolean;
@@ -35,10 +39,6 @@ function getChatId(msg: any): string {
 }
 
 function getSenderJid(msg: any): string {
-  /**
-   * Untuk group chat, sender asli biasanya ada di participant.
-   * Untuk personal chat, sender biasanya ada di remoteJid.
-   */
   return msg.key.participant || msg.key.remoteJid || "";
 }
 
@@ -63,7 +63,7 @@ function buildWhatsAppSystemPrompt(agentName: string) {
     "Answer the user's request directly and clearly.",
     "Keep the response concise, practical, and easy to read on mobile.",
     "Do not expose internal reasoning.",
-    "Do not include metadata, runtime details, provider details, or model details.",
+    "Do not include metadata, runtime details, provider details, model details, or memory details.",
     "Do not include labels such as Topic, Language, Constraint, Format, Analysis, Reasoning, Final, Output, or Answer.",
     "If the user asks for a short answer, keep it short.",
     "If the user asks for one sentence, return exactly one sentence and nothing else.",
@@ -102,14 +102,6 @@ export async function handleIncomingWhatsAppMessage(
   const senderJid = getSenderJid(msg);
   const senderNumber = normalizeWaNumber(senderJid);
 
-  /**
-   * PENTING:
-   * Kalau PROCESS_FROM_ME=false, pesan dari bot sendiri langsung diabaikan.
-   * Ini mencegah:
-   * - bot memproses balasannya sendiri
-   * - terminal penuh oleh text output panjang
-   * - loop reply tanpa akhir
-   */
   if (fromMe && !env.PROCESS_FROM_ME) {
     logger.wa(`Outgoing/self message ignored. Message ID: ${messageId}`);
     return { shouldReply: false };
@@ -136,15 +128,6 @@ export async function handleIncomingWhatsAppMessage(
     return { shouldReply: false };
   }
 
-  /**
-   * Security gate:
-   * Nomor / ID sender harus ada di ALLOWED_WA_NUMBERS.
-   *
-   * Catatan:
-   * WhatsApp/Baileys kadang pakai @lid ID, bukan nomor 628xxx.
-   * Jadi kalau log menunjukkan Sender normalized: 259xxxx,
-   * tambahkan juga ID itu ke .env ALLOWED_WA_NUMBERS.
-   */
   if (!isAuthorized(senderNumber)) {
     logger.security(`Unauthorized WhatsApp access: ${senderNumber}`);
 
@@ -170,16 +153,6 @@ export async function handleIncomingWhatsAppMessage(
   try {
     const agentName = extractAgentNameFromMessage(text);
 
-    /**
-     * Phase 8.38.3
-     * WhatsApp capability boundary.
-     *
-     * Jika request tidak sesuai contract agent:
-     * - jangan panggil routeTask()
-     * - jangan panggil LLM runtime
-     * - jangan create task
-     * - balas refusal halus ke WhatsApp
-     */
     const capabilityCheck = await checkAgentCapabilityDynamic({
       agentName,
       inputText: text,
@@ -192,6 +165,14 @@ export async function handleIncomingWhatsAppMessage(
       });
 
       const finalBoundaryReply = formatWhatsAppBoundaryReply(boundaryResponse);
+
+      await storeGovernanceBlockedTask({
+        inputText: text,
+        agentName,
+        source: "whatsapp",
+        outputText: finalBoundaryReply,
+        capabilityCheck,
+      });
 
       logger.wa(
         `WhatsApp task blocked by capability guard: ${agentName} | ${capabilityCheck.reason}`
@@ -212,21 +193,31 @@ export async function handleIncomingWhatsAppMessage(
       };
     }
 
-    /**
-     * Keep existing WhatsApp orchestration as safe fallback.
-     * routeTask() tetap bikin task, update agent status, dan broadcast event.
-     */
+    const memoryContext = await resolveRuntimeMemoriesForAgent({
+      agentName,
+      inputText: text,
+      source: "whatsapp",
+      matchedSkillNames: capabilityCheck.matchedSkillNames,
+      maxResults: 5,
+    });
+
+    logger.wa(
+      `WhatsApp memory resolver preview: eligible=${memoryContext.eligibleCount} returned=${memoryContext.returnedCount}`
+    );
+
+    if (memoryContext.memories.length > 0) {
+      logger.wa(
+        `WhatsApp memory resolver items: ${memoryContext.memories
+          .map((memory) => `${memory.type}:${memory.scope}`)
+          .join(", ")}`
+      );
+    }
+
     const fallbackResult = await routeTask(text, {
       source: "whatsapp",
       senderId: senderNumber,
     });
 
-    /**
-     * Runtime adapter output:
-     * - WhatsApp belum punya model selector, jadi pakai auto/default registry.
-     * - Kalau provider real sukses, final reply pakai output adapter.
-     * - Kalau provider mock/error, fallback ke routeTask lama.
-     */
     const runtimeResult = await runLlmCompletion({
       agentName,
       systemPrompt: buildWhatsAppSystemPrompt(agentName),
@@ -250,6 +241,7 @@ export async function handleIncomingWhatsAppMessage(
       source: "whatsapp",
       outputText: finalReply,
       runtimeResult,
+      capabilityCheck,
     });
 
     logger.wa(

@@ -28,6 +28,8 @@ import { FloatingTaskAssistant } from "./components/manual/FloatingTaskAssistant
 import { OfficeView } from "./views/OfficeView";
 import { SettingsView } from "./views/SettingsView";
 import { AgentsView } from "./views/AgentsView";
+import { SkillsView } from "./views/SkillsView";
+import { MemoryVaultView } from "./views/MemoryVaultView";
 
 function App() {
   const location = useLocation();
@@ -346,7 +348,8 @@ function App() {
           />
 
           <Route path="/agents" element={<AgentsView />} />
-
+          <Route path="/skills" element={<SkillsView />} />
+          <Route path="/memory-vault" element={<MemoryVaultView />} />
           <Route path="/settings" element={<SettingsView />} />
 
           <Route path="/dashboard" element={<Navigate to="/" replace />} />

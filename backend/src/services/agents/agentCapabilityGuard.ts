@@ -3,6 +3,12 @@ import {
   type AgentCapabilityContract,
 } from "./agentCapabilityContracts";
 import { getDynamicAgentCapabilityContract } from "./dynamicAgentCapabilityContractService";
+import {
+  findSkillGovernanceMatches,
+  flattenSkillMatchNames,
+  flattenSkillMatchSignals,
+  type SkillGovernanceMatch,
+} from "./skillGovernanceMapping";
 
 export type AgentCapabilityCheckResult = {
   allowed: boolean;
@@ -13,6 +19,8 @@ export type AgentCapabilityCheckResult = {
   matchedDeniedKeywords: string[];
   matchedSoftAllowedKeywords: string[];
   matchedSmallTalkKeywords: string[];
+  matchedSkillNames: string[];
+  matchedSkillSignals: string[];
   suggestedAgents: string[];
   refusalMessage?: string;
   contract: AgentCapabilityContract | null;
@@ -46,11 +54,6 @@ function keywordMatches(inputText: string, keyword: string) {
     return false;
   }
 
-  /**
-   * Important:
-   * Short keywords like "hi" must not match inside words like "vehicle".
-   * For short keywords, require whole-word matching.
-   */
   if (isShortKeyword(normalizedKeyword)) {
     const keywordPattern = new RegExp(
       `(^|\\s)${escapeRegExp(normalizedKeyword)}($|\\s)`,
@@ -157,6 +160,8 @@ function makeResult(input: {
   matchedDeniedKeywords: string[];
   matchedSoftAllowedKeywords: string[];
   matchedSmallTalkKeywords: string[];
+  matchedSkillNames: string[];
+  matchedSkillSignals: string[];
   suggestedAgents: string[];
   refusalMessage?: string;
   contract: AgentCapabilityContract | null;
@@ -170,6 +175,8 @@ function makeResult(input: {
     matchedDeniedKeywords: input.matchedDeniedKeywords,
     matchedSoftAllowedKeywords: input.matchedSoftAllowedKeywords,
     matchedSmallTalkKeywords: input.matchedSmallTalkKeywords,
+    matchedSkillNames: input.matchedSkillNames,
+    matchedSkillSignals: input.matchedSkillSignals,
     suggestedAgents: input.suggestedAgents,
     refusalMessage: input.refusalMessage,
     contract: input.contract,
@@ -180,8 +187,12 @@ function evaluateAgentCapability(input: {
   agentName: string;
   inputText: string;
   contract: AgentCapabilityContract | null;
+  skillMatches?: SkillGovernanceMatch[];
 }): AgentCapabilityCheckResult {
   const { contract } = input;
+
+  const matchedSkillNames = flattenSkillMatchNames(input.skillMatches || []);
+  const matchedSkillSignals = flattenSkillMatchSignals(input.skillMatches || []);
 
   if (!contract) {
     return makeResult({
@@ -194,6 +205,8 @@ function evaluateAgentCapability(input: {
       matchedDeniedKeywords: [],
       matchedSoftAllowedKeywords: [],
       matchedSmallTalkKeywords: [],
+      matchedSkillNames,
+      matchedSkillSignals,
       suggestedAgents: [],
       contract: null,
     });
@@ -229,97 +242,67 @@ function evaluateAgentCapability(input: {
       matchedDeniedKeywords,
       matchedSoftAllowedKeywords,
       matchedSmallTalkKeywords,
+      matchedSkillNames,
+      matchedSkillSignals,
       suggestedAgents: contract.fallbackAgents,
       contract,
     });
   }
 
   /**
-   * Important security/boundary order:
-   * Denied keywords must win before small talk.
-   * Example: "vehicle" should not be allowed just because it contains "hi".
+   * Denied precedence:
+   * For strict agents, denied keywords always win over allowed keywords or skill matches.
    */
-    /**
-   * Hard boundary rule:
-   * For strict agents, denied keywords must take precedence over allowed keywords.
-   *
-   * Example:
-   * "@design-agent buatkan promosi kopi generate gambar"
-   *
-   * This contains allowed keywords:
-   * - promosi
-   *
-   * But also denied keywords:
-   * - gambar
-   * - generate gambar
-   *
-   * Since design-agent is not an image generation agent, the request must be denied
-   * and redirected to image-agent, even if it also contains copywriting keywords.
-   */
-    if (matchedDeniedKeywords.length > 0 && contract.strictBoundary) {
-      const confidence: "high" | "medium" =
-        matchedAllowedKeywords.length > 0 ? "medium" : "high";
-  
-      return makeResult({
-        allowed: false,
-        agentName: input.agentName,
-        reason:
-          matchedAllowedKeywords.length > 0
-            ? "Request matched denied keywords. For strict agents, denied domains take precedence over allowed keywords."
-            : "Request matched denied keywords and no allowed keywords.",
-        confidence,
-        matchedAllowedKeywords,
-        matchedDeniedKeywords,
-        matchedSoftAllowedKeywords,
-        matchedSmallTalkKeywords,
-        suggestedAgents: contract.fallbackAgents,
-        refusalMessage: buildPoliteRefusalMessage({
-          contract,
-          matchedDeniedKeywords,
-        }),
+  if (matchedDeniedKeywords.length > 0 && contract.strictBoundary) {
+    const confidence: "high" | "medium" =
+      matchedAllowedKeywords.length > 0 || matchedSkillNames.length > 0
+        ? "medium"
+        : "high";
+
+    return makeResult({
+      allowed: false,
+      agentName: input.agentName,
+      reason:
+        matchedAllowedKeywords.length > 0 || matchedSkillNames.length > 0
+          ? "Request matched denied keywords. For strict agents, denied domains take precedence over allowed keywords and skill matches."
+          : "Request matched denied keywords and no allowed keywords.",
+      confidence,
+      matchedAllowedKeywords,
+      matchedDeniedKeywords,
+      matchedSoftAllowedKeywords,
+      matchedSmallTalkKeywords,
+      matchedSkillNames,
+      matchedSkillSignals,
+      suggestedAgents: contract.fallbackAgents,
+      refusalMessage: buildPoliteRefusalMessage({
         contract,
-      });
-    }
-  
-    if (matchedDeniedKeywords.length > 0 && matchedAllowedKeywords.length === 0) {
-      return makeResult({
-        allowed: false,
-        agentName: input.agentName,
-        reason: "Request matched denied keywords and no allowed keywords.",
-        confidence: "high",
-        matchedAllowedKeywords,
         matchedDeniedKeywords,
-        matchedSoftAllowedKeywords,
-        matchedSmallTalkKeywords,
-        suggestedAgents: contract.fallbackAgents,
-        refusalMessage: buildPoliteRefusalMessage({
-          contract,
-          matchedDeniedKeywords,
-        }),
+      }),
+      contract,
+    });
+  }
+
+  if (matchedDeniedKeywords.length > 0 && matchedAllowedKeywords.length === 0) {
+    return makeResult({
+      allowed: false,
+      agentName: input.agentName,
+      reason: "Request matched denied keywords and no allowed keywords.",
+      confidence: "high",
+      matchedAllowedKeywords,
+      matchedDeniedKeywords,
+      matchedSoftAllowedKeywords,
+      matchedSmallTalkKeywords,
+      matchedSkillNames,
+      matchedSkillSignals,
+      suggestedAgents: contract.fallbackAgents,
+      refusalMessage: buildPoliteRefusalMessage({
         contract,
-      });
-    }
-  
-    if (matchedDeniedKeywords.length > matchedAllowedKeywords.length) {
-      return makeResult({
-        allowed: false,
-        agentName: input.agentName,
-        reason:
-          "Request appears more aligned with denied domains than allowed domains.",
-        confidence: "medium",
-        matchedAllowedKeywords,
         matchedDeniedKeywords,
-        matchedSoftAllowedKeywords,
-        matchedSmallTalkKeywords,
-        suggestedAgents: contract.fallbackAgents,
-        refusalMessage: buildPoliteRefusalMessage({
-          contract,
-          matchedDeniedKeywords,
-        }),
-        contract,
-      });
-    }
-  
+      }),
+      contract,
+    });
+  }
+
   if (matchedDeniedKeywords.length > matchedAllowedKeywords.length) {
     return makeResult({
       allowed: false,
@@ -331,6 +314,8 @@ function evaluateAgentCapability(input: {
       matchedDeniedKeywords,
       matchedSoftAllowedKeywords,
       matchedSmallTalkKeywords,
+      matchedSkillNames,
+      matchedSkillSignals,
       suggestedAgents: contract.fallbackAgents,
       refusalMessage: buildPoliteRefusalMessage({
         contract,
@@ -350,6 +335,8 @@ function evaluateAgentCapability(input: {
       matchedDeniedKeywords,
       matchedSoftAllowedKeywords,
       matchedSmallTalkKeywords,
+      matchedSkillNames,
+      matchedSkillSignals,
       suggestedAgents: contract.fallbackAgents,
       contract,
     });
@@ -365,6 +352,25 @@ function evaluateAgentCapability(input: {
       matchedDeniedKeywords,
       matchedSoftAllowedKeywords,
       matchedSmallTalkKeywords,
+      matchedSkillNames,
+      matchedSkillSignals,
+      suggestedAgents: contract.fallbackAgents,
+      contract,
+    });
+  }
+
+  if (matchedSkillNames.length > 0) {
+    return makeResult({
+      allowed: true,
+      agentName: input.agentName,
+      reason: "Request matched assigned agent skills.",
+      confidence: "high",
+      matchedAllowedKeywords,
+      matchedDeniedKeywords,
+      matchedSoftAllowedKeywords,
+      matchedSmallTalkKeywords,
+      matchedSkillNames,
+      matchedSkillSignals,
       suggestedAgents: contract.fallbackAgents,
       contract,
     });
@@ -375,8 +381,8 @@ function evaluateAgentCapability(input: {
     contract.unknownIntentPolicy === "clarify_or_refuse"
   ) {
     const unknownReason = looksLikeQuestionWithoutDomain(input.inputText)
-      ? "Unknown question did not match this agent's allowed domains."
-      : "Unknown intent did not match this agent's allowed domains.";
+      ? "Unknown question did not match this agent's allowed domains or assigned skills."
+      : "Unknown intent did not match this agent's allowed domains or assigned skills.";
 
     return makeResult({
       allowed: false,
@@ -387,6 +393,8 @@ function evaluateAgentCapability(input: {
       matchedDeniedKeywords,
       matchedSoftAllowedKeywords,
       matchedSmallTalkKeywords,
+      matchedSkillNames,
+      matchedSkillSignals,
       suggestedAgents: contract.fallbackAgents,
       refusalMessage: buildUnknownIntentMessage(contract),
       contract,
@@ -403,6 +411,8 @@ function evaluateAgentCapability(input: {
     matchedDeniedKeywords,
     matchedSoftAllowedKeywords,
     matchedSmallTalkKeywords,
+    matchedSkillNames,
+    matchedSkillSignals,
     suggestedAgents: contract.fallbackAgents,
     contract,
   });
@@ -421,12 +431,13 @@ export function checkAgentCapability(input: {
   return evaluateAgentCapability({
     ...input,
     contract: staticContract,
+    skillMatches: [],
   });
 }
 
 /**
  * Dynamic checker.
- * Reads DB first, then falls back to static contract if DB is empty.
+ * Reads DB contract and assigned skills.
  */
 export async function checkAgentCapabilityDynamic(input: {
   agentName: string;
@@ -436,8 +447,14 @@ export async function checkAgentCapabilityDynamic(input: {
     input.agentName
   );
 
+  const skillMatches = await findSkillGovernanceMatches({
+    agentName: input.agentName,
+    inputText: input.inputText,
+  });
+
   return evaluateAgentCapability({
     ...input,
     contract: dynamicContract,
+    skillMatches,
   });
 }

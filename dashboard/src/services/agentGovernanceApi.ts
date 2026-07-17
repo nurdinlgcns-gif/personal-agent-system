@@ -23,6 +23,39 @@ export type AgentCapabilityContract = {
   unknownIntentMessage: string;
 };
 
+export type AgentMemoryContextItem = {
+  id: string;
+  agentId: string;
+  agentName: string;
+  agentColor?: string | null;
+  content: string;
+  type: string;
+  scope: string;
+  ownerAgentName?: string | null;
+  allowedAgents: string[];
+  linkedSkillNames: string[];
+  runtimeInjectable: boolean;
+  ragEnabled: boolean;
+  sensitivityLevel: string;
+  sourceType: string;
+  sourceRef?: string | null;
+  createdAt: string;
+  score: number;
+  matchReasons: string[];
+  matchedSkillNames: string[];
+};
+
+export type AgentMemoryContextPreview = {
+  agentName: string;
+  source: string;
+  inputText: string;
+  matchedSkillNames: string[];
+  totalCandidates: number;
+  eligibleCount: number;
+  returnedCount: number;
+  memories: AgentMemoryContextItem[];
+};
+
 export type AgentCapabilityContractsResponse = {
   contracts: AgentCapabilityContract[];
 };
@@ -36,9 +69,12 @@ export type AgentCapabilityCheckResult = {
   matchedDeniedKeywords: string[];
   matchedSoftAllowedKeywords: string[];
   matchedSmallTalkKeywords: string[];
+  matchedSkillNames: string[];
+  matchedSkillSignals: string[];
   suggestedAgents: string[];
   refusalMessage?: string;
   contract: AgentCapabilityContract | null;
+  memoryContext?: AgentMemoryContextPreview | null;
 };
 
 export type UpdateAgentCapabilityContractPayload = Partial<{
@@ -135,7 +171,11 @@ export async function checkAgentCapability(payload: {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      source: "manual",
+      maxMemoryResults: 5,
+    }),
   });
 
   if (!response.ok) {

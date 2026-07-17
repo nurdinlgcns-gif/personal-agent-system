@@ -22,6 +22,15 @@ export type TaskSnapshot = {
   runtimeMode?: string | null;
   runtimeResolvedFrom?: string | null;
 
+  governanceAllowed?: boolean | null;
+  governanceReason?: string | null;
+  governanceConfidence?: string | null;
+  governanceMatchedAllowedJson?: string | null;
+  governanceMatchedDeniedJson?: string | null;
+  governanceMatchedSoftJson?: string | null;
+  governanceMatchedSmallTalkJson?: string | null;
+  governanceSuggestedAgentsJson?: string | null;
+
   createdAt: string;
   updatedAt: string;
 };
@@ -44,9 +53,24 @@ export type ManualTaskRuntimeProvider = {
   isMock?: boolean;
 };
 
+export type ManualTaskCapabilityBoundary = {
+  allowed: boolean;
+  agentName: string;
+  reason: string;
+  confidence: "high" | "medium" | "low";
+  matchedAllowedKeywords: string[];
+  matchedDeniedKeywords: string[];
+  matchedSoftAllowedKeywords?: string[];
+  matchedSmallTalkKeywords?: string[];
+  suggestedAgents: string[];
+};
+
 export type ManualTaskResponse = {
   result: string;
-  runtimeProvider?: ManualTaskRuntimeProvider;
+  task?: TaskSnapshot | null;
+  runtimeProvider?: ManualTaskRuntimeProvider | null;
+  capabilityBoundary?: ManualTaskCapabilityBoundary;
+  runtimeMemoryContext?: ManualTaskRuntimeMemoryContext | null;
 };
 
 export type SkillSnapshot = {
@@ -54,6 +78,7 @@ export type SkillSnapshot = {
   name: string;
   description?: string | null;
   filePath?: string | null;
+  content?: string | null;
   agentName: string;
   createdAt: string;
   updatedAt: string;
@@ -74,4 +99,14 @@ export type DashboardSummary = {
 
 export type DashboardSummaryResponse = {
   summary: DashboardSummary;
+};
+
+export type ManualTaskRuntimeMemoryContext = {
+  injected: boolean;
+  itemCount: number;
+  totalChars: number;
+  usedMemoryIds: string[];
+  usedMemoryTypes: string[];
+  usedMemoryScopes: string[];
+  usedMemorySources: string[];
 };

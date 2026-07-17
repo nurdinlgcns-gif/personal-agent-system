@@ -32,10 +32,12 @@ const navItems: Array<{
   {
     label: "Skills",
     icon: "▧",
+    path: "/skills",
   },
   {
     label: "Memory Vault",
     icon: "◫",
+    path: "/memory-vault",
   },
   {
     label: "WhatsApp",

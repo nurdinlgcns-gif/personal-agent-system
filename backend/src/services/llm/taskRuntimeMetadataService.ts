@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../db/prisma";
+import type { AgentCapabilityCheckResult } from "../agents/agentCapabilityGuard";
 import type { LlmResponse } from "./llmTypes";
-
-const prisma = new PrismaClient();
 
 export type StoreTaskRuntimeResultInput = {
   inputText: string;
@@ -9,10 +8,50 @@ export type StoreTaskRuntimeResultInput = {
   source: string;
   outputText: string;
   runtimeResult: LlmResponse;
+  capabilityCheck?: AgentCapabilityCheckResult;
+};
+
+export type StoreGovernanceBlockedTaskInput = {
+  inputText: string;
+  agentName: string;
+  source: string;
+  outputText: string;
+  capabilityCheck: AgentCapabilityCheckResult;
 };
 
 function removeLeadingAgentMention(inputText: string) {
   return inputText.replace(/^@[\w-]+\s*/i, "").trim();
+}
+
+function stringifyJson(value: unknown) {
+  return JSON.stringify(value ?? []);
+}
+
+function buildGovernanceUpdateData(capabilityCheck?: AgentCapabilityCheckResult) {
+  if (!capabilityCheck) {
+    return {};
+  }
+
+  return {
+    governanceAllowed: capabilityCheck.allowed,
+    governanceReason: capabilityCheck.reason,
+    governanceConfidence: capabilityCheck.confidence,
+    governanceMatchedAllowedJson: stringifyJson(
+      capabilityCheck.matchedAllowedKeywords
+    ),
+    governanceMatchedDeniedJson: stringifyJson(
+      capabilityCheck.matchedDeniedKeywords
+    ),
+    governanceMatchedSoftJson: stringifyJson(
+      capabilityCheck.matchedSoftAllowedKeywords
+    ),
+    governanceMatchedSmallTalkJson: stringifyJson(
+      capabilityCheck.matchedSmallTalkKeywords
+    ),
+    governanceSuggestedAgentsJson: stringifyJson(
+      capabilityCheck.suggestedAgents
+    ),
+  };
 }
 
 export async function storeLatestTaskRuntimeResult(
@@ -57,6 +96,34 @@ export async function storeLatestTaskRuntimeResult(
       runtimeModel: input.runtimeResult.model,
       runtimeMode: input.runtimeResult.mode,
       runtimeResolvedFrom: input.runtimeResult.resolvedFrom || null,
+      ...buildGovernanceUpdateData(input.capabilityCheck),
+    },
+  });
+}
+
+export async function storeGovernanceBlockedTask(
+  input: StoreGovernanceBlockedTaskInput
+) {
+  const agent = await prisma.agent.findUnique({
+    where: {
+      name: input.agentName,
+    },
+  });
+
+  if (!agent) {
+    return null;
+  }
+
+  const cleanedInputText = removeLeadingAgentMention(input.inputText);
+
+  return prisma.task.create({
+    data: {
+      agentId: agent.id,
+      inputText: cleanedInputText,
+      outputText: input.outputText,
+      status: "done",
+      source: input.source,
+      ...buildGovernanceUpdateData(input.capabilityCheck),
     },
   });
 }
