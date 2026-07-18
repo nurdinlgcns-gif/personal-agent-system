@@ -1,4 +1,5 @@
 import type { TaskSnapshot } from "../../types/api";
+import { RuntimeMemoryTaskMetadata } from "../runtime/RuntimeMemoryTaskMetadata";
 
 type RecentTasksTableProps = {
   tasks: TaskSnapshot[];
@@ -6,28 +7,53 @@ type RecentTasksTableProps = {
   isRefreshing: boolean;
 };
 
-function getRuntimeLabel(task: TaskSnapshot) {
-  if (!task.runtimeProviderName && !task.runtimeModel) {
-    return "Runtime auto";
-  }
-
-  const providerName =
-    task.runtimeProviderName || task.runtimeProviderType || "Runtime";
-
-  const modelName = task.runtimeModel || "auto";
-
-  return `${providerName} · ${modelName}`;
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString();
 }
 
-function getRuntimeDetail(task: TaskSnapshot) {
-  if (!task.runtimeProviderName && !task.runtimeModel) {
-    return "No runtime metadata";
+function getTaskStatusLabel(status: string) {
+  if (status === "done") {
+    return "Done";
   }
 
-  const mode = task.runtimeMode || "auto";
-  const resolvedFrom = task.runtimeResolvedFrom || "unknown";
+  if (status === "error") {
+    return "Error";
+  }
 
-  return `${mode} · ${resolvedFrom}`;
+  if (status === "in_progress") {
+    return "In progress";
+  }
+
+  return status;
+}
+
+function getRuntimeLabel(task: TaskSnapshot) {
+  if (!task.runtimeProviderName && !task.runtimeModel) {
+    return null;
+  }
+
+  return `${task.runtimeProviderName || task.runtimeProviderType || "Runtime"} / ${task.runtimeModel || "auto"
+    }`;
+}
+
+function getGovernanceLabel(task: TaskSnapshot) {
+  if (typeof task.governanceAllowed !== "boolean") {
+    return null;
+  }
+
+  return task.governanceAllowed ? "Allowed" : "Denied";
+}
+
+function truncateText(value?: string | null, maxLength = 150) {
+  if (!value) {
+    return "-";
+  }
+
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength).trim()}...`;
 }
 
 export function RecentTasksTable({
@@ -36,70 +62,78 @@ export function RecentTasksTable({
   isRefreshing,
 }: RecentTasksTableProps) {
   return (
-    <section className="panel recent-tasks-panel">
-      <div className="panel-header">
+    <section className="recent-tasks-card">
+      <div className="section-header">
         <div>
+          <span>Recent activity</span>
           <h2>Recent Tasks</h2>
-          <p className="panel-subtitle">Latest persisted task history</p>
         </div>
 
-        <div className="panel-header-actions">
-          {isRefreshing && <span className="sync-chip">Syncing</span>}
-
-          <button onClick={onRefresh} disabled={isRefreshing}>
-            {isRefreshing ? "Refreshing..." : "Refresh"}
-          </button>
-        </div>
+        <button type="button" onClick={onRefresh} disabled={isRefreshing}>
+          {isRefreshing ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
-      <div className="table">
-        <div className="table-row table-head">
-          <span>Task ID</span>
-          <span>Agent</span>
-          <span>Source</span>
-          <span>Status</span>
-          <span>Input</span>
-          <span>Created At</span>
+      {tasks.length === 0 ? (
+        <div className="recent-tasks-empty">
+          <strong>No recent task yet.</strong>
+          <p>Send a task from the Floating Assistant or WhatsApp.</p>
         </div>
+      ) : (
+        <div className="recent-tasks-list">
+          {tasks.map((task) => {
+            const runtimeLabel = getRuntimeLabel(task);
+            const governanceLabel = getGovernanceLabel(task);
 
-        {tasks.length === 0 ? (
-          <div className="empty-state table-empty-state">
-            <div className="empty-state-icon">▦</div>
-            <strong>No recent tasks found</strong>
-            <p>
-              Tasks from WhatsApp, Postman, or Floating Assistant will appear
-              here.
-            </p>
-          </div>
-        ) : (
-          tasks.slice(0, 8).map((task) => (
-            <div key={task.id} className="table-row task-table-row">
-              <span title={task.id}>{task.id.slice(0, 8)}</span>
+            return (
+              <article key={task.id} className="recent-task-row">
+                <div className="recent-task-main">
+                  <div className="recent-task-title-row">
+                    <div>
+                      <span className="recent-task-agent">@{task.agentName}</span>
+                      <strong>{truncateText(task.inputText, 110)}</strong>
+                    </div>
 
-              <span>{task.agentName}</span>
+                    <span className={`recent-task-status ${task.status}`}>
+                      {getTaskStatusLabel(task.status)}
+                    </span>
+                  </div>
 
-              <span className="task-source-runtime-cell">
-                <span className="task-source-main">{task.source}</span>
+                  {task.outputText && (
+                    <p className="recent-task-output">
+                      {truncateText(task.outputText, 220)}
+                    </p>
+                  )}
 
-                <span
-                  className="task-runtime-mini"
-                  title={getRuntimeDetail(task)}
-                >
-                  {getRuntimeLabel(task)}
-                </span>
-              </span>
+                  <div className="recent-task-meta-row">
+                    <span>{task.source}</span>
+                    <span>{formatDateTime(task.updatedAt)}</span>
 
-              <span>
-                <b className={`task-status ${task.status}`}>{task.status}</b>
-              </span>
+                    {runtimeLabel && <span>Runtime: {runtimeLabel}</span>}
 
-              <span title={task.inputText}>{task.inputText}</span>
+                    {governanceLabel && (
+                      <span
+                        className={`recent-task-governance ${task.governanceAllowed ? "allowed" : "denied"
+                          }`}
+                      >
+                        Governance: {governanceLabel}
+                      </span>
+                    )}
+                  </div>
 
-              <span>{new Date(task.createdAt).toLocaleTimeString()}</span>
-            </div>
-          ))
-        )}
-      </div>
+                  {task.governanceReason && (
+                    <p className="recent-task-governance-reason">
+                      {task.governanceReason}
+                    </p>
+                  )}
+
+                  <RuntimeMemoryTaskMetadata task={task} compact />
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

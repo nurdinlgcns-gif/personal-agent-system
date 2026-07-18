@@ -38,6 +38,11 @@ function stripMarkdownPrefix(value: string) {
     .replace(/^[-*•]\s*/, "")
     .replace(/^\d+\.\s*/, "")
     .replace(/^>\s*/, "")
+    .trim();
+}
+
+function stripOuterQuotes(value: string) {
+  return value
     .replace(/^["“”]+/, "")
     .replace(/["“”]+$/, "")
     .trim();
@@ -52,6 +57,12 @@ function looksLikeMetaLine(line: string) {
     normalizedLine.startsWith("language:") ||
     normalizedLine.startsWith("constraint") ||
     normalizedLine.startsWith("format") ||
+    normalizedLine.startsWith("style:") ||
+    normalizedLine.startsWith("tone:") ||
+    normalizedLine.startsWith("platform:") ||
+    normalizedLine.startsWith("target audience:") ||
+    normalizedLine.startsWith("audience:") ||
+    normalizedLine.startsWith("content:") ||
     normalizedLine.startsWith("user request:") ||
     normalizedLine.startsWith("request:") ||
     normalizedLine.startsWith("task:") ||
@@ -62,13 +73,45 @@ function looksLikeMetaLine(line: string) {
     normalizedLine.startsWith("final:") ||
     normalizedLine.startsWith("output:") ||
     normalizedLine.startsWith("answer:") ||
-    normalizedLine.includes("do not repeat user instructions") ||
+    normalizedLine.includes("direct answer") ||
+    normalizedLine.includes("short/mobile friendly") ||
+    normalizedLine.includes("mobile friendly") ||
+    normalizedLine.includes("no repetition") ||
+    normalizedLine.includes("no reasoning") ||
     normalizedLine.includes("no analysis") ||
+    normalizedLine.includes("no metadata") ||
+    normalizedLine.includes("language matches") ||
+    normalizedLine.includes("do not repeat user instructions") ||
     normalizedLine.includes("metadata") ||
     normalizedLine.includes("labels") ||
     normalizedLine.includes("whatsapp style") ||
     normalizedLine.includes("short and direct") ||
-    normalizedLine.includes("direct to the point")
+    normalizedLine.includes("direct to the point") ||
+    normalizedLine.includes("self-correction") ||
+    normalizedLine.includes("as an ai text model") ||
+    normalizedLine.includes("system instruction") ||
+    normalizedLine.includes("the user asked") ||
+    normalizedLine.includes("i should") ||
+    normalizedLine.includes("i will") ||
+    normalizedLine.includes("wait,") ||
+    normalizedLine === "yes." ||
+    normalizedLine.endsWith("? yes.") ||
+    normalizedLine.endsWith("? yes")
+  );
+}
+
+function looksLikeOptionLine(line: string) {
+  const normalizedLine = stripMarkdownPrefix(line).toLowerCase().trim();
+
+  return (
+    normalizedLine.startsWith("option 1:") ||
+    normalizedLine.startsWith("option 2:") ||
+    normalizedLine.startsWith("option 3:") ||
+    normalizedLine.startsWith("option 4:") ||
+    normalizedLine.startsWith("opsi 1:") ||
+    normalizedLine.startsWith("opsi 2:") ||
+    normalizedLine.startsWith("opsi 3:") ||
+    normalizedLine.startsWith("opsi 4:")
   );
 }
 
@@ -149,6 +192,7 @@ function getFirstUsableLines(outputText: string, maxLines = 3) {
     .map((line) => stripMarkdownPrefix(line))
     .filter(Boolean)
     .filter((line) => !looksLikeMetaLine(line))
+    .filter((line) => !looksLikeOptionLine(line))
     .slice(0, maxLines)
     .join("\n")
     .trim();
@@ -179,11 +223,60 @@ function truncateAtSentenceBoundary(outputText: string, maxLength: number) {
   return `${slice.trim()}...`;
 }
 
+function dedupeLines(lines: string[]) {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const line of lines) {
+    const key = line.toLowerCase().trim();
+
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    result.push(line);
+  }
+
+  return result;
+}
+
+function extractQuotedFinalAnswer(lines: string[]) {
+  const cleanQuotedCandidates = lines
+    .map((line) => stripMarkdownPrefix(line))
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !looksLikeMetaLine(line))
+    .filter((line) => !looksLikeOptionLine(line))
+    .map((line) => {
+      const cleaned = stripOuterQuotes(line);
+
+      if (cleaned !== line) {
+        return cleaned;
+      }
+
+      const quotedTailMatch = line.match(/.+?["”]\s*$/);
+
+      if (quotedTailMatch?.[1]) {
+        return quotedTailMatch[1].trim();
+      }
+
+      return "";
+    })
+    .filter(Boolean);
+
+  if (cleanQuotedCandidates.length === 0) {
+    return "";
+  }
+
+  return cleanQuotedCandidates[cleanQuotedCandidates.length - 1];
+}
+
 function buildSafeFallback(inputText: string) {
   const cleanedInputText = removeLeadingAgentMention(inputText).toLowerCase();
 
   if (cleanedInputText.includes("kopi susu")) {
-    return "Nikmati kopi susu creamy yang bikin harimu lebih semangat dalam setiap tegukan.";
+    return "Lagi butuh mood booster? Segerin hari kamu dengan kopi susu kita yang creamy dan manisnya pas. Cocok banget buat nemenin santai kamu hari ini! ☕️✨";
   }
 
   if (cleanedInputText.includes("buah") || cleanedInputText.includes("fruit")) {
@@ -199,8 +292,55 @@ export function formatWhatsAppRuntimeReply(
 ) {
   const cleanedInputText = removeLeadingAgentMention(inputText);
 
+  const rawOutput = stripRuntimeMetadata(stripMarkdownWrapper(outputText));
+
+  const rawLines = rawOutput
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const hasMetaLeak =
+    rawLines.some((line) => looksLikeMetaLine(line)) ||
+    rawLines.some((line) => looksLikeOptionLine(line));
+
+  const quotedFinalAnswer = extractQuotedFinalAnswer(rawLines);
+
+  if (quotedFinalAnswer) {
+    if (userAskedForOneSentence(cleanedInputText)) {
+      return truncateAtSentenceBoundary(
+        getFirstSentence(quotedFinalAnswer),
+        ONE_SENTENCE_MAX_LENGTH
+      );
+    }
+
+    return truncateAtSentenceBoundary(quotedFinalAnswer, SHORT_REPLY_MAX_LENGTH);
+  }
+
+  const cleanedLines = rawLines
+    .map((line) => stripMarkdownPrefix(line))
+    .map((line) => stripOuterQuotes(line))
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !looksLikeMetaLine(line))
+    .filter((line) => !looksLikeOptionLine(line));
+
+  const dedupedLines = dedupeLines(cleanedLines);
+
+  if (hasMetaLeak && dedupedLines.length > 0) {
+    const lastUsableLine = dedupedLines[dedupedLines.length - 1];
+
+    if (userAskedForOneSentence(cleanedInputText)) {
+      return truncateAtSentenceBoundary(
+        getFirstSentence(lastUsableLine),
+        ONE_SENTENCE_MAX_LENGTH
+      );
+    }
+
+    return truncateAtSentenceBoundary(lastUsableLine, SHORT_REPLY_MAX_LENGTH);
+  }
+
   const cleanedOutput = normalizeWhitespace(
-    stripMetaLines(stripRuntimeMetadata(stripMarkdownWrapper(outputText)))
+    stripMetaLines(dedupedLines.join("\n"))
   );
 
   if (!cleanedOutput) {

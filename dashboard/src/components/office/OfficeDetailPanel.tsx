@@ -1,18 +1,22 @@
+import type { TaskSnapshot } from "../../types/api";
+import { RuntimeMemoryTaskMetadata } from "../runtime/RuntimeMemoryTaskMetadata";
+
 export type OfficeDetailItem = {
   type: "agent" | "source" | "skill" | "output" | "server" | "task";
   title: string;
   subtitle: string;
   status?: string;
   accent?:
-    | "green"
-    | "blue"
-    | "purple"
-    | "pink"
-    | "yellow"
-    | "cyan"
-    | "orange"
-    | "red";
+  | "green"
+  | "blue"
+  | "purple"
+  | "pink"
+  | "yellow"
+  | "cyan"
+  | "orange"
+  | "red";
   body?: string;
+  runtimeMemoryTask?: TaskSnapshot | null;
   metadata: Array<{
     label: string;
     value: string;
@@ -82,6 +86,13 @@ export function OfficeDetailPanel({ item, onClose }: OfficeDetailPanelProps) {
         <div className="office-detail-body">
           <strong>Summary</strong>
           <p>{item.body}</p>
+        </div>
+      )}
+
+      {item.runtimeMemoryTask && (
+        <div className="office-detail-body">
+          <strong>Runtime Memory</strong>
+          <RuntimeMemoryTaskMetadata task={item.runtimeMemoryTask} />
         </div>
       )}
 

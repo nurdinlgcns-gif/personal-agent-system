@@ -1,0 +1,270 @@
+/* =========================
+   PHASE 8.48
+   RECENT TASKS + OFFICE MEMORY METADATA
+========================= */
+
+.runtime-memory-task-card {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 14px;
+    font-size: 11px;
+}
+
+.runtime-memory-task-card.active {
+    background:
+        radial-gradient(circle at top right, rgba(20, 184, 166, 0.12), transparent 34%),
+        rgba(2, 6, 23, 0.34);
+    border: 1px solid rgba(45, 212, 191, 0.18);
+}
+
+.runtime-memory-task-card.idle {
+    background: rgba(15, 23, 42, 0.36);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.runtime-memory-task-card.compact {
+    gap: 6px;
+    padding: 8px;
+}
+
+.runtime-memory-task-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+}
+
+.runtime-memory-task-header span {
+    color: #5eead4;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.runtime-memory-task-header strong {
+    color: #f8fafc;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.runtime-memory-task-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.runtime-memory-task-stats div {
+    display: grid;
+    gap: 3px;
+    padding: 7px;
+    border-radius: 11px;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.runtime-memory-task-stats span,
+.runtime-memory-task-pill-group>span {
+    color: #94a3b8;
+    font-size: 9.5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.28px;
+}
+
+.runtime-memory-task-stats strong {
+    color: #f8fafc;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.runtime-memory-task-pill-group {
+    display: grid;
+    gap: 5px;
+}
+
+.runtime-memory-task-pill-group div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.runtime-memory-task-pill-group strong {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 7px;
+    color: #99f6e4;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(45, 212, 191, 0.18);
+    font-size: 9.5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+}
+
+/* Recent Tasks compatibility if the table component uses these classes */
+.recent-tasks-list {
+    display: grid;
+    gap: 12px;
+}
+
+.recent-task-row {
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(8, 15, 32, 0.62);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.recent-task-main {
+    display: grid;
+    gap: 9px;
+}
+
+.recent-task-title-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.recent-task-agent {
+    display: block;
+    color: #93c5fd;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.32px;
+    margin-bottom: 4px;
+}
+
+.recent-task-title-row strong {
+    color: #f8fafc;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.recent-task-status {
+    border-radius: 999px;
+    padding: 5px 8px;
+    color: #cbd5e1;
+    background: rgba(148, 163, 184, 0.12);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.recent-task-status.done {
+    color: #bbf7d0;
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.2);
+}
+
+.recent-task-status.error {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.22);
+}
+
+.recent-task-status.in_progress {
+    color: #fef3c7;
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.22);
+}
+
+.recent-task-output,
+.recent-task-governance-reason {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.recent-task-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.recent-task-meta-row span {
+    border-radius: 999px;
+    padding: 5px 8px;
+    color: #cbd5e1;
+    background: rgba(15, 23, 42, 0.62);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.recent-task-governance.allowed {
+    color: #bbf7d0 !important;
+    background: rgba(34, 197, 94, 0.12) !important;
+    border-color: rgba(34, 197, 94, 0.2) !important;
+}
+
+.recent-task-governance.denied {
+    color: #fecaca !important;
+    background: rgba(239, 68, 68, 0.12) !important;
+    border-color: rgba(239, 68, 68, 0.22) !important;
+}
+
+.recent-tasks-empty {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.42);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.recent-tasks-empty strong {
+    color: #f8fafc;
+}
+
+.recent-tasks-empty p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* Light theme */
+:root[data-theme="m365-light"] .runtime-memory-task-card.active {
+    background: #f0fdfa;
+    border-color: rgba(20, 184, 166, 0.2);
+}
+
+:root[data-theme="m365-light"] .runtime-memory-task-card.idle {
+    background: #f8fafc;
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .runtime-memory-task-header strong,
+:root[data-theme="m365-light"] .runtime-memory-task-stats strong,
+:root[data-theme="m365-light"] .recent-task-title-row strong,
+:root[data-theme="m365-light"] .recent-tasks-empty strong {
+    color: #111827;
+}
+
+:root[data-theme="m365-light"] .runtime-memory-task-stats div,
+:root[data-theme="m365-light"] .recent-task-row {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .runtime-memory-task-stats span,
+:root[data-theme="m365-light"] .runtime-memory-task-pill-group>span,
+:root[data-theme="m365-light"] .recent-task-output,
+:root[data-theme="m365-light"] .recent-task-governance-reason,
+:root[data-theme="m365-light"] .recent-tasks-empty p {
+    color: #64748b;
+}
+
+:root[data-theme="m365-light"] .recent-task-meta-row span {
+    color: #475569;
+    background: #f8fafc;
+    border-color: rgba(15, 23, 42, 0.08);
+}

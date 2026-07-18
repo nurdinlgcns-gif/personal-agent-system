@@ -31,6 +31,14 @@ export type TaskSnapshot = {
   governanceMatchedSmallTalkJson?: string | null;
   governanceSuggestedAgentsJson?: string | null;
 
+  runtimeMemoryInjected?: boolean | null;
+  runtimeMemoryItemCount?: number | null;
+  runtimeMemoryTotalChars?: number | null;
+  runtimeMemoryIdsJson?: string | null;
+  runtimeMemoryTypesJson?: string | null;
+  runtimeMemoryScopesJson?: string | null;
+  runtimeMemorySourcesJson?: string | null;
+
   createdAt: string;
   updatedAt: string;
 };
@@ -53,6 +61,16 @@ export type ManualTaskRuntimeProvider = {
   isMock?: boolean;
 };
 
+export type ManualTaskRuntimeMemoryContext = {
+  injected: boolean;
+  itemCount: number;
+  totalChars: number;
+  usedMemoryIds: string[];
+  usedMemoryTypes: string[];
+  usedMemoryScopes: string[];
+  usedMemorySources: string[];
+};
+
 export type ManualTaskCapabilityBoundary = {
   allowed: boolean;
   agentName: string;
@@ -62,6 +80,8 @@ export type ManualTaskCapabilityBoundary = {
   matchedDeniedKeywords: string[];
   matchedSoftAllowedKeywords?: string[];
   matchedSmallTalkKeywords?: string[];
+  matchedSkillNames?: string[];
+  matchedSkillSignals?: string[];
   suggestedAgents: string[];
 };
 
@@ -69,8 +89,8 @@ export type ManualTaskResponse = {
   result: string;
   task?: TaskSnapshot | null;
   runtimeProvider?: ManualTaskRuntimeProvider | null;
-  capabilityBoundary?: ManualTaskCapabilityBoundary;
   runtimeMemoryContext?: ManualTaskRuntimeMemoryContext | null;
+  capabilityBoundary?: ManualTaskCapabilityBoundary;
 };
 
 export type SkillSnapshot = {
@@ -99,14 +119,4 @@ export type DashboardSummary = {
 
 export type DashboardSummaryResponse = {
   summary: DashboardSummary;
-};
-
-export type ManualTaskRuntimeMemoryContext = {
-  injected: boolean;
-  itemCount: number;
-  totalChars: number;
-  usedMemoryIds: string[];
-  usedMemoryTypes: string[];
-  usedMemoryScopes: string[];
-  usedMemorySources: string[];
 };

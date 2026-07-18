@@ -73,23 +73,26 @@ function buildManualSystemPrompt(agentName: string, memoryContextBlock?: string)
     `You are ${agentName}.`,
     "Answer the user's request directly and clearly.",
     "Keep the response practical and useful.",
+    "Return only the final answer.",
     "Do not expose internal reasoning.",
+    "Do not include bullet-point analysis, constraints, self-checks, labels, or hidden planning.",
+    "Do not include lines such as Style, Constraint, Target audience, Tone, Content, Direct answer only, or Language matches.",
     "If the user requests a short answer, keep it short.",
     "Never mention internal runtime metadata, provider metadata, governance metadata, or memory retrieval metadata.",
     "If runtime memory context is provided, use it silently only when it improves relevance.",
     memoryContextBlock
       ? [
-          "",
-          "Scoped runtime memory:",
-          memoryContextBlock,
-          "",
-          "Important memory handling rules:",
-          "1. Use memory only as background context.",
-          "2. Do not quote memory metadata.",
-          "3. Do not say that memory was retrieved.",
-          "4. Do not reveal Memory Vault internals.",
-          "5. If memory is unrelated, ignore it.",
-        ].join("\n")
+        "",
+        "Scoped runtime memory:",
+        memoryContextBlock,
+        "",
+        "Important memory handling rules:",
+        "1. Use memory only as background context.",
+        "2. Do not quote memory metadata.",
+        "3. Do not say that memory was retrieved.",
+        "4. Do not reveal Memory Vault internals.",
+        "5. If memory is unrelated, ignore it.",
+      ].join("\n")
       : "",
   ]
     .filter(Boolean)
@@ -178,7 +181,7 @@ app.post("/tasks", async (req, res) => {
     }
 
     const modelPreference = extractManualTaskModelPreference(req.body);
-    
+
     const memoryContext = await resolveRuntimeMemoriesForAgent({
       agentName,
       inputText,
@@ -192,7 +195,7 @@ app.post("/tasks", async (req, res) => {
       maxTotalChars: 1500,
       maxCharsPerMemory: 430,
     });
-    
+
     logger.task(
       `Manual runtime memory context: injected=${runtimeMemoryContext.summary.injected} items=${runtimeMemoryContext.summary.itemCount} chars=${runtimeMemoryContext.summary.totalChars}`
     );
@@ -222,16 +225,17 @@ app.post("/tasks", async (req, res) => {
 
     const finalOutputText = runtimeResult.isMock
       ? fallbackResult
-      : runtimeResult.outputText;
+      : formatManualRuntimeOutput(inputText, runtimeResult.outputText);
 
-      const updatedTaskWithRuntimeMetadata = await storeLatestTaskRuntimeResult({
-        inputText,
-        agentName,
-        source: "manual",
-        outputText: finalOutputText,
-        runtimeResult,
-        capabilityCheck,
-      });
+    const updatedTaskWithRuntimeMetadata = await storeLatestTaskRuntimeResult({
+      inputText,
+      agentName,
+      source: "manual",
+      outputText: finalOutputText,
+      runtimeResult,
+      capabilityCheck,
+      runtimeMemoryContext: runtimeMemoryContext.summary,
+    });
 
     return res.json({
       result: finalOutputText,
@@ -289,6 +293,27 @@ app.get("/agents/status", async (req, res) => {
   }
 });
 
+type TaskGovernanceMetadata = {
+  governanceAllowed?: boolean | null;
+  governanceReason?: string | null;
+  governanceConfidence?: string | null;
+  governanceMatchedAllowedJson?: string | null;
+  governanceMatchedDeniedJson?: string | null;
+  governanceMatchedSoftJson?: string | null;
+  governanceMatchedSmallTalkJson?: string | null;
+  governanceSuggestedAgentsJson?: string | null;
+};
+
+type TaskRuntimeMemoryMetadata = {
+  runtimeMemoryInjected?: boolean | null;
+  runtimeMemoryItemCount?: number | null;
+  runtimeMemoryTotalChars?: number | null;
+  runtimeMemoryIdsJson?: string | null;
+  runtimeMemoryTypesJson?: string | null;
+  runtimeMemoryScopesJson?: string | null;
+  runtimeMemorySourcesJson?: string | null;
+};
+
 app.get("/tasks/recent", async (req, res) => {
   try {
     const rawLimit = Number(req.query.limit || 10);
@@ -297,30 +322,59 @@ app.get("/tasks/recent", async (req, res) => {
     const tasks = await findRecentTasks(limit);
 
     return res.json({
-      tasks: tasks.map((task) => ({
-        id: task.id,
-        agentName: task.agent.name,
-        inputText: task.inputText,
-        outputText: task.outputText,
-        status: task.status,
-        source: task.source,
-        runtimeProviderId: task.runtimeProviderId,
-        runtimeProviderName: task.runtimeProviderName,
-        runtimeProviderType: task.runtimeProviderType,
-        runtimeModel: task.runtimeModel,
-        runtimeMode: task.runtimeMode,
-        runtimeResolvedFrom: task.runtimeResolvedFrom,
-        governanceAllowed: task.governanceAllowed,
-        governanceReason: task.governanceReason,
-        governanceConfidence: task.governanceConfidence,
-        governanceMatchedAllowedJson: task.governanceMatchedAllowedJson,
-        governanceMatchedDeniedJson: task.governanceMatchedDeniedJson,
-        governanceMatchedSoftJson: task.governanceMatchedSoftJson,
-        governanceMatchedSmallTalkJson: task.governanceMatchedSmallTalkJson,
-        governanceSuggestedAgentsJson: task.governanceSuggestedAgentsJson,
-        createdAt: task.createdAt,
-        updatedAt: task.updatedAt,
-      })),
+      tasks: tasks.map((task) => {
+        const taskWithMetadata = task as typeof task &
+          TaskGovernanceMetadata &
+          TaskRuntimeMemoryMetadata;
+
+        return {
+          id: task.id,
+          agentName: task.agent.name,
+          inputText: task.inputText,
+          outputText: task.outputText,
+          status: task.status,
+          source: task.source,
+
+          runtimeProviderId: task.runtimeProviderId,
+          runtimeProviderName: task.runtimeProviderName,
+          runtimeProviderType: task.runtimeProviderType,
+          runtimeModel: task.runtimeModel,
+          runtimeMode: task.runtimeMode,
+          runtimeResolvedFrom: task.runtimeResolvedFrom,
+
+          governanceAllowed: taskWithMetadata.governanceAllowed ?? null,
+          governanceReason: taskWithMetadata.governanceReason ?? null,
+          governanceConfidence: taskWithMetadata.governanceConfidence ?? null,
+          governanceMatchedAllowedJson:
+            taskWithMetadata.governanceMatchedAllowedJson ?? null,
+          governanceMatchedDeniedJson:
+            taskWithMetadata.governanceMatchedDeniedJson ?? null,
+          governanceMatchedSoftJson:
+            taskWithMetadata.governanceMatchedSoftJson ?? null,
+          governanceMatchedSmallTalkJson:
+            taskWithMetadata.governanceMatchedSmallTalkJson ?? null,
+          governanceSuggestedAgentsJson:
+            taskWithMetadata.governanceSuggestedAgentsJson ?? null,
+
+          runtimeMemoryInjected:
+            taskWithMetadata.runtimeMemoryInjected ?? null,
+          runtimeMemoryItemCount:
+            taskWithMetadata.runtimeMemoryItemCount ?? null,
+          runtimeMemoryTotalChars:
+            taskWithMetadata.runtimeMemoryTotalChars ?? null,
+          runtimeMemoryIdsJson:
+            taskWithMetadata.runtimeMemoryIdsJson ?? null,
+          runtimeMemoryTypesJson:
+            taskWithMetadata.runtimeMemoryTypesJson ?? null,
+          runtimeMemoryScopesJson:
+            taskWithMetadata.runtimeMemoryScopesJson ?? null,
+          runtimeMemorySourcesJson:
+            taskWithMetadata.runtimeMemorySourcesJson ?? null,
+
+          createdAt: task.createdAt,
+          updatedAt: task.updatedAt,
+        };
+      }),
     });
   } catch (error) {
     logger.error("Failed to fetch recent tasks", error);

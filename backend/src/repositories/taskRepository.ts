@@ -31,22 +31,6 @@ export async function markTaskDone(params: {
   });
 }
 
-export async function findRecentTasks(limit = 10) {
-    return prisma.task.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: limit,
-      include: {
-        agent: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-  }
-
 export async function markTaskError(params: {
   taskId: string;
   outputText: string;
@@ -58,6 +42,22 @@ export async function markTaskError(params: {
     data: {
       outputText: params.outputText,
       status: TASK_STATUS.ERROR,
+    },
+  });
+}
+
+export async function findRecentTasks(limit = 10) {
+  return prisma.task.findMany({
+    take: limit,
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      agent: {
+        select: {
+          name: true,
+        },
+      },
     },
   });
 }
@@ -75,19 +75,19 @@ export async function getTaskSummary() {
 
     prisma.task.count({
       where: {
-        status: "in_progress",
+        status: TASK_STATUS.IN_PROGRESS,
       },
     }),
 
     prisma.task.count({
       where: {
-        status: "done",
+        status: TASK_STATUS.DONE,
       },
     }),
 
     prisma.task.count({
       where: {
-        status: "error",
+        status: TASK_STATUS.ERROR,
       },
     }),
 

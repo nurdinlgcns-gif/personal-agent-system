@@ -19,135 +19,140 @@ function userAskedForOneSentence(inputText: string) {
 function stripMarkdownWrapper(outputText: string) {
   return outputText
     .replace(/^```[a-z]*\n?/i, "")
-    .replace(/```$/i, "*)
+    .replace(/```$/i, "")
     .trim();
 }
 
-function stripMa*kdownPrefix(value: string) {
-  ret*rn value
-    .replace(/^[-*•]\s*/,*"")
-    .replace(/^\d+\.\s*/, "")
-*   .replace(/^>\s*/, "")
-    .trim*);
-}
-
-function stripOuterQuotes(va*ue: string) {
+function stripMarkdownPrefix(value: string) {
   return value
-    .*eplace(/^["“”]+/, "")
-    .replace*/["“”]+$/, "")
+    .replace(/^[-*•]\s*/, "")
+    .replace(/^\d+\.\s*/, "")
+    .replace(/^>\s*/, "")
     .trim();
 }
 
-fun*tion normalizeWhitespace(outputTex*: string) {
+function stripOuterQuotes(value: string) {
+  return value
+    .replace(/^["“”]+/, "")
+    .replace(/["“”]+$/, "")
+    .trim();
+}
+
+function normalizeWhitespace(outputText: string) {
   return outputText
-  * .replace(/\r/g, "")
-    .split("\*")
-    .map((line) => line.trim())*    .filter(Boolean)
-    .join("\n*)
+    .replace(/\r/g, "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("\n")
     .replace(/[ \t]+/g, " ")
-   *.trim();
+    .trim();
 }
 
-function looksLikeMeta*ine(line: string) {
-  const normal*zedLine = stripMarkdownPrefix(line*.toLowerCase().trim();
-
-  return (*    normalizedLine.startsWith("sty*e:") ||
-    normalizedLine.startsW*th("constraint") ||
-    normalized*ine.startsWith("target audience:")*||
-    normalizedLine.startsWith("*udience:") ||
-    normalizedLine.s*artsWith("tone:") ||
-    normalize*Line.startsWith("content:") ||
-   *normalizedLine.startsWith("languag*:") ||
-    normalizedLine.startsWi*h("topic:") ||
-    normalizedLine.*tartsWith("format:") ||
-    normal*zedLine.startsWith("analysis:") ||*    normalizedLine.startsWith("rea*oning:") ||
-    normalizedLine.sta*tsWith("final:") ||
-    normalized*ine.startsWith("output:") ||
-    n*rmalizedLine.startsWith("answer:")*||
-    normalizedLine.startsWith("*ser request:") ||
-    normalizedLi*e.startsWith("request:") ||
-    no*malizedLine.startsWith("task:") ||*    normalizedLine.includes("direc* answer only") ||
-    normalizedLi*e.includes("no repetition") ||
-   *normalizedLine.includes("no reason*ng") ||
-    normalizedLine.include*("no analysis") ||
-    normalizedL*ne.includes("no metadata") ||
-    *ormalizedLine.includes("language m*tches") ||
-    normalizedLine.incl*des("self-correction") ||
-    norm*lizedLine.includes("as an ai text *odel") ||
-    normalizedLine.inclu*es("system instruction") ||
-    no*malizedLine.includes("the user ask*d") ||
-    normalizedLine.includes*"i should") ||
-    normalizedLine.*ncludes("i will") ||
-    normalize*Line.includes("wait,") ||
-    norm*lizedLine.includes("yes.")
-  );
-}
-*function looksLikeOptionLine(line:*string) {
-  const normalizedLine =*stripMarkdownPrefix(line).toLowerC*se().trim();
+function looksLikeMetaLine(line: string) {
+  const normalizedLine = stripMarkdownPrefix(line).toLowerCase().trim();
 
   return (
-    norma*izedLine.startsWith("option 1:") |*
-    normalizedLine.startsWith("op*ion 2:") ||
-    normalizedLine.sta*tsWith("option 3:") ||
-    normali*edLine.startsWith("opsi 1:") ||
-  * normalizedLine.startsWith("opsi 2*") ||
-    normalizedLine.startsWit*("opsi 3:")
+    normalizedLine.startsWith("style:") ||
+    normalizedLine.startsWith("constraint") ||
+    normalizedLine.startsWith("target audience:") ||
+    normalizedLine.startsWith("audience:") ||
+    normalizedLine.startsWith("tone:") ||
+    normalizedLine.startsWith("content:") ||
+    normalizedLine.startsWith("language:") ||
+    normalizedLine.startsWith("topic:") ||
+    normalizedLine.startsWith("format:") ||
+    normalizedLine.startsWith("analysis:") ||
+    normalizedLine.startsWith("reasoning:") ||
+    normalizedLine.startsWith("final:") ||
+    normalizedLine.startsWith("output:") ||
+    normalizedLine.startsWith("answer:") ||
+    normalizedLine.startsWith("user request:") ||
+    normalizedLine.startsWith("request:") ||
+    normalizedLine.startsWith("task:") ||
+    normalizedLine.includes("direct answer only") ||
+    normalizedLine.includes("no repetition") ||
+    normalizedLine.includes("no reasoning") ||
+    normalizedLine.includes("no analysis") ||
+    normalizedLine.includes("no metadata") ||
+    normalizedLine.includes("language matches") ||
+    normalizedLine.includes("self-correction") ||
+    normalizedLine.includes("as an ai text model") ||
+    normalizedLine.includes("system instruction") ||
+    normalizedLine.includes("the user asked") ||
+    normalizedLine.includes("i should") ||
+    normalizedLine.includes("i will") ||
+    normalizedLine.includes("wait,") ||
+    normalizedLine.includes("yes.")
   );
 }
 
-function extra*tQuotedText(line: string) {
-  cons* trimmedLine = stripMarkdownPrefix*line).trim();
+function looksLikeOptionLine(line: string) {
+  const normalizedLine = stripMarkdownPrefix(line).toLowerCase().trim();
 
-  const quoteMatch *
-    trimmedLine.match(/^.+["”]$/)*||
-    trimmedLine.match(/.+["”]$/*;
+  return (
+    normalizedLine.startsWith("option 1:") ||
+    normalizedLine.startsWith("option 2:") ||
+    normalizedLine.startsWith("option 3:") ||
+    normalizedLine.startsWith("opsi 1:") ||
+    normalizedLine.startsWith("opsi 2:") ||
+    normalizedLine.startsWith("opsi 3:")
+  );
+}
+
+function extractQuotedText(line: string) {
+  const trimmedLine = stripMarkdownPrefix(line).trim();
+
+  const quoteMatch =
+    trimmedLine.match(/^.+["”]$/) ||
+    trimmedLine.match(/.+["”]$/);
 
   if (quoteMatch?.[1]) {
-    re*urn quoteMatch[1].trim();
+    return quoteMatch[1].trim();
   }
 
-  r*turn "";
+  return "";
 }
 
-function getFirstSente*ce(outputText: string) {
-  const n*rmalizedOutput = outputText.trim()*
+function getFirstSentence(outputText: string) {
+  const normalizedOutput = outputText.trim();
 
   if (!normalizedOutput) {
-    r*turn "";
+    return "";
   }
 
-  const sentenceMatc* = normalizedOutput.match(/^(.+?[.*?])(\s|$)/);
+  const sentenceMatch = normalizedOutput.match(/^(.+?[.!?])(\s|$)/);
 
-  if (sentenceMatch?*[1]) {
-    return sentenceMatch[1]*trim();
+  if (sentenceMatch?.[1]) {
+    return sentenceMatch[1].trim();
   }
 
-  return normalizedOu*put;
+  return normalizedOutput;
 }
 
-function truncateAtSentenc*Boundary(outputText: string, maxLe*gth: number) {
-  if (outputText.le*gth <= maxLength) {
-    return out*utText;
+function truncateAtSentenceBoundary(outputText: string, maxLength: number) {
+  if (outputText.length <= maxLength) {
+    return outputText;
   }
 
-  const slice = outpu*Text.slice(0, maxLength);
-  const *astSentenceEnd = Math.max(
-    sli*e.lastIndexOf("."),
-    slice.last*ndexOf("!"),
-    slice.lastIndexOf*"?")
+  const slice = outputText.slice(0, maxLength);
+  const lastSentenceEnd = Math.max(
+    slice.lastIndexOf("."),
+    slice.lastIndexOf("!"),
+    slice.lastIndexOf("?")
   );
 
-  if (lastSentenceEnd >*120) {
-    return slice.slice(0, l*stSentenceEnd + 1).trim();
+  if (lastSentenceEnd > 120) {
+    return slice.slice(0, lastSentenceEnd + 1).trim();
   }
 
-  *onst lastSpace = slice.lastIndexOf*" ");
+  const lastSpace = slice.lastIndexOf(" ");
 
   if (lastSpace > 120) {
-  * return `${slice.slice(0, lastSpac*).trim()}...`;
+    return `${slice.slice(0, lastSpace).trim()}...`;
   }
 
-  return `${sl*ce.trim()}...`;
+  return `${slice.trim()}...`;
 }
 
 function dedupeLines(lines: string[]) {

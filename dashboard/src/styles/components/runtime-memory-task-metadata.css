@@ -1,0 +1,131 @@
+/* =========================
+   PHASE 8.48
+   RUNTIME MEMORY TASK METADATA
+========================= */
+
+.runtime-memory-task-card {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 14px;
+    font-size: 11px;
+}
+
+.runtime-memory-task-card.active {
+    background:
+        radial-gradient(circle at top right, rgba(20, 184, 166, 0.12), transparent 34%),
+        rgba(2, 6, 23, 0.34);
+    border: 1px solid rgba(45, 212, 191, 0.18);
+}
+
+.runtime-memory-task-card.idle {
+    background: rgba(15, 23, 42, 0.36);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.runtime-memory-task-card.compact {
+    gap: 6px;
+    padding: 8px;
+}
+
+.runtime-memory-task-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+}
+
+.runtime-memory-task-header span {
+    color: #5eead4;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.runtime-memory-task-header strong {
+    color: #f8fafc;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.runtime-memory-task-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.runtime-memory-task-stats div {
+    display: grid;
+    gap: 3px;
+    padding: 7px;
+    border-radius: 11px;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.runtime-memory-task-stats span,
+.runtime-memory-task-pill-group>span {
+    color: #94a3b8;
+    font-size: 9.5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.28px;
+}
+
+.runtime-memory-task-stats strong {
+    color: #f8fafc;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.runtime-memory-task-pill-group {
+    display: grid;
+    gap: 5px;
+}
+
+.runtime-memory-task-pill-group div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.runtime-memory-task-pill-group strong {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 7px;
+    color: #99f6e4;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(45, 212, 191, 0.18);
+    font-size: 9.5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+}
+
+:root[data-theme="m365-light"] .runtime-memory-task-card.active {
+    background: #f0fdfa;
+    border-color: rgba(20, 184, 166, 0.2);
+}
+
+:root[data-theme="m365-light"] .runtime-memory-task-card.idle {
+    background: #f8fafc;
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .runtime-memory-task-header strong,
+:root[data-theme="m365-light"] .runtime-memory-task-stats strong {
+    color: #111827;
+}
+
+:root[data-theme="m365-light"] .runtime-memory-task-stats div {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .runtime-memory-task-stats span,
+:root[data-theme="m365-light"] .runtime-memory-task-pill-group>span {
+    color: #64748b;
+}

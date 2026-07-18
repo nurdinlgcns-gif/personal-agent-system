@@ -50,6 +50,24 @@ export type MemoryRuntimeScopeResolveResult = {
 
 type MemoryRecord = Awaited<ReturnType<typeof findAllMemories>>[number];
 
+type MemoryScopeMetadata = {
+  scope?: string | null;
+  ownerAgentName?: string | null;
+  allowedAgentsJson?: string | null;
+  linkedSkillNamesJson?: string | null;
+  runtimeInjectable?: boolean | null;
+  ragEnabled?: boolean | null;
+  sensitivityLevel?: string | null;
+  sourceType?: string | null;
+  sourceRef?: string | null;
+};
+
+type MemoryRecordWithScopeMetadata = MemoryRecord & MemoryScopeMetadata;
+
+function withScopeMetadata(memory: MemoryRecord): MemoryRecordWithScopeMetadata {
+  return memory as MemoryRecordWithScopeMetadata;
+}
+
 function safeJsonParse<TValue>(value: string | null | undefined, fallback: TValue) {
   if (!value) {
     return fallback;
@@ -80,12 +98,6 @@ function normalizeList(values: string[] | undefined) {
   );
 }
 
-function hasOverlap(left: string[], right: string[]) {
-  const rightSet = new Set(right.map((item) => item.toLowerCase()));
-
-  return left.some((item) => rightSet.has(item.toLowerCase()));
-}
-
 function getOverlaps(left: string[], right: string[]) {
   const rightSet = new Set(right.map((item) => item.toLowerCase()));
 
@@ -93,30 +105,35 @@ function getOverlaps(left: string[], right: string[]) {
 }
 
 function memoryTextMatchesQuery(memory: MemoryRecord, query: string) {
+  const scopedMemory = withScopeMetadata(memory);
   const normalizedQuery = normalizeText(query);
 
   if (!normalizedQuery) {
     return false;
   }
 
-  const allowedAgents = safeJsonParse<string[]>(memory.allowedAgentsJson, []);
+  const allowedAgents = safeJsonParse<string[]>(
+    scopedMemory.allowedAgentsJson,
+    []
+  );
+
   const linkedSkillNames = safeJsonParse<string[]>(
-    memory.linkedSkillNamesJson,
+    scopedMemory.linkedSkillNamesJson,
     []
   );
 
   const searchableText = normalizeText(
     [
-      memory.agent.name,
-      memory.content,
-      memory.type,
-      memory.scope,
-      memory.ownerAgentName || "",
+      scopedMemory.agent.name,
+      scopedMemory.content,
+      scopedMemory.type,
+      scopedMemory.scope || "agent",
+      scopedMemory.ownerAgentName || "",
       allowedAgents.join(" "),
       linkedSkillNames.join(" "),
-      memory.sensitivityLevel,
-      memory.sourceType,
-      memory.sourceRef || "",
+      scopedMemory.sensitivityLevel || "normal",
+      scopedMemory.sourceType || "manual",
+      scopedMemory.sourceRef || "",
     ].join(" ")
   );
 
@@ -124,28 +141,33 @@ function memoryTextMatchesQuery(memory: MemoryRecord, query: string) {
 }
 
 function mapMemoryBase(memory: MemoryRecord) {
-  return {
-    id: memory.id,
-    agentId: memory.agentId,
-    agentName: memory.agent.name,
-    agentColor: memory.agent.color,
-    content: memory.content,
-    type: memory.type,
+  const scopedMemory = withScopeMetadata(memory);
 
-    scope: memory.scope,
-    ownerAgentName: memory.ownerAgentName,
-    allowedAgents: safeJsonParse<string[]>(memory.allowedAgentsJson, []),
-    linkedSkillNames: safeJsonParse<string[]>(
-      memory.linkedSkillNamesJson,
+  return {
+    id: scopedMemory.id,
+    agentId: scopedMemory.agentId,
+    agentName: scopedMemory.agent.name,
+    agentColor: scopedMemory.agent.color,
+    content: scopedMemory.content,
+    type: scopedMemory.type,
+
+    scope: scopedMemory.scope || "agent",
+    ownerAgentName: scopedMemory.ownerAgentName || null,
+    allowedAgents: safeJsonParse<string[]>(
+      scopedMemory.allowedAgentsJson,
       []
     ),
-    runtimeInjectable: memory.runtimeInjectable,
-    ragEnabled: memory.ragEnabled,
-    sensitivityLevel: memory.sensitivityLevel,
-    sourceType: memory.sourceType,
-    sourceRef: memory.sourceRef,
+    linkedSkillNames: safeJsonParse<string[]>(
+      scopedMemory.linkedSkillNamesJson,
+      []
+    ),
+    runtimeInjectable: scopedMemory.runtimeInjectable ?? false,
+    ragEnabled: scopedMemory.ragEnabled ?? false,
+    sensitivityLevel: scopedMemory.sensitivityLevel || "normal",
+    sourceType: scopedMemory.sourceType || "manual",
+    sourceRef: scopedMemory.sourceRef || null,
 
-    createdAt: memory.createdAt,
+    createdAt: scopedMemory.createdAt,
   };
 }
 
@@ -188,7 +210,8 @@ function evaluateMemoryEligibility(input: {
     baseMemory.scope === "global" && baseMemory.allowedAgents.length === 0;
   const isProjectOpen =
     baseMemory.scope === "project" && baseMemory.allowedAgents.length === 0;
-  const isWhatsappScope = baseMemory.scope === "whatsapp" && source === "whatsapp";
+  const isWhatsappScope =
+    baseMemory.scope === "whatsapp" && source === "whatsapp";
 
   const agentScopeEligible =
     isOwnerAgent ||

@@ -1,5 +1,6 @@
 import { prisma } from "../../db/prisma";
 import type { AgentCapabilityCheckResult } from "../agents/agentCapabilityGuard";
+import type { RuntimeMemoryContextSummary } from "../memory/runtimeMemoryContextFormatter";
 import type { LlmResponse } from "./llmTypes";
 
 export type StoreTaskRuntimeResultInput = {
@@ -9,6 +10,7 @@ export type StoreTaskRuntimeResultInput = {
   outputText: string;
   runtimeResult: LlmResponse;
   capabilityCheck?: AgentCapabilityCheckResult;
+  runtimeMemoryContext?: RuntimeMemoryContextSummary | null;
 };
 
 export type StoreGovernanceBlockedTaskInput = {
@@ -32,6 +34,11 @@ function buildGovernanceUpdateData(capabilityCheck?: AgentCapabilityCheckResult)
     return {};
   }
 
+  const softAndSkillSignals = [
+    ...capabilityCheck.matchedSoftAllowedKeywords,
+    ...capabilityCheck.matchedSkillSignals.map((signal) => `skill:${signal}`),
+  ];
+
   return {
     governanceAllowed: capabilityCheck.allowed,
     governanceReason: capabilityCheck.reason,
@@ -42,14 +49,33 @@ function buildGovernanceUpdateData(capabilityCheck?: AgentCapabilityCheckResult)
     governanceMatchedDeniedJson: stringifyJson(
       capabilityCheck.matchedDeniedKeywords
     ),
-    governanceMatchedSoftJson: stringifyJson(
-      capabilityCheck.matchedSoftAllowedKeywords
-    ),
+    governanceMatchedSoftJson: stringifyJson(softAndSkillSignals),
     governanceMatchedSmallTalkJson: stringifyJson(
       capabilityCheck.matchedSmallTalkKeywords
     ),
-    governanceSuggestedAgentsJson: stringifyJson(
-      capabilityCheck.suggestedAgents
+    governanceSuggestedAgentsJson: stringifyJson([
+      ...capabilityCheck.suggestedAgents,
+      ...capabilityCheck.matchedSkillNames.map((skillName) => `skill:${skillName}`),
+    ]),
+  };
+}
+
+function buildRuntimeMemoryUpdateData(
+  runtimeMemoryContext?: RuntimeMemoryContextSummary | null
+) {
+  if (!runtimeMemoryContext) {
+    return {};
+  }
+
+  return {
+    runtimeMemoryInjected: runtimeMemoryContext.injected,
+    runtimeMemoryItemCount: runtimeMemoryContext.itemCount,
+    runtimeMemoryTotalChars: runtimeMemoryContext.totalChars,
+    runtimeMemoryIdsJson: stringifyJson(runtimeMemoryContext.usedMemoryIds),
+    runtimeMemoryTypesJson: stringifyJson(runtimeMemoryContext.usedMemoryTypes),
+    runtimeMemoryScopesJson: stringifyJson(runtimeMemoryContext.usedMemoryScopes),
+    runtimeMemorySourcesJson: stringifyJson(
+      runtimeMemoryContext.usedMemorySources
     ),
   };
 }
@@ -97,6 +123,7 @@ export async function storeLatestTaskRuntimeResult(
       runtimeMode: input.runtimeResult.mode,
       runtimeResolvedFrom: input.runtimeResult.resolvedFrom || null,
       ...buildGovernanceUpdateData(input.capabilityCheck),
+      ...buildRuntimeMemoryUpdateData(input.runtimeMemoryContext),
     },
   });
 }
@@ -124,6 +151,13 @@ export async function storeGovernanceBlockedTask(
       status: "done",
       source: input.source,
       ...buildGovernanceUpdateData(input.capabilityCheck),
+      runtimeMemoryInjected: false,
+      runtimeMemoryItemCount: 0,
+      runtimeMemoryTotalChars: 0,
+      runtimeMemoryIdsJson: stringifyJson([]),
+      runtimeMemoryTypesJson: stringifyJson([]),
+      runtimeMemoryScopesJson: stringifyJson([]),
+      runtimeMemorySourcesJson: stringifyJson([]),
     },
   });
 }

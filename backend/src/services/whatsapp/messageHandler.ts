@@ -17,6 +17,7 @@ import {
 } from "./whatsappRuntimeGuardrails";
 import { checkAgentCapabilityDynamic } from "../agents/agentCapabilityGuard";
 import { resolveRuntimeMemoriesForAgent } from "../memory/memoryRuntimeScopeResolver";
+import { buildRuntimeMemoryContextBlock } from "../memory/runtimeMemoryContextFormatter";
 
 type WhatsAppHandleResult = {
   shouldReply: boolean;
@@ -39,6 +40,10 @@ function getChatId(msg: any): string {
 }
 
 function getSenderJid(msg: any): string {
+  /**
+   * Untuk group chat, sender asli biasanya ada di participant.
+   * Untuk personal chat, sender biasanya ada di remoteJid.
+   */
   return msg.key.participant || msg.key.remoteJid || "";
 }
 
@@ -56,18 +61,42 @@ function extractAgentNameFromMessage(message: string) {
   return agentMentionMatch?.[1] || "design-agent";
 }
 
-function buildWhatsAppSystemPrompt(agentName: string) {
+function buildWhatsAppSystemPrompt(
+  agentName: string,
+  memoryContextBlock?: string
+) {
   return [
     `You are ${agentName}.`,
     "You are replying to a WhatsApp message.",
     "Answer the user's request directly and clearly.",
     "Keep the response concise, practical, and easy to read on mobile.",
+    "Return only the final answer.",
     "Do not expose internal reasoning.",
-    "Do not include metadata, runtime details, provider details, model details, or memory details.",
-    "Do not include labels such as Topic, Language, Constraint, Format, Analysis, Reasoning, Final, Output, or Answer.",
+    "Do not include bullet-point analysis, constraints, self-checks, labels, or hidden planning.",
+    "Do not include metadata, runtime details, provider details, model details, governance details, or memory details.",
+    "Do not include labels such as Topic, Language, Constraint, Format, Analysis, Reasoning, Final, Output, Answer, Style, Tone, Target audience, or Content.",
+    "Do not mention Memory Vault, retrieval, memory IDs, memory score, sourceRef, runtimeInjectable, or RAG.",
     "If the user asks for a short answer, keep it short.",
     "If the user asks for one sentence, return exactly one sentence and nothing else.",
-  ].join(" ");
+    "If runtime memory context is provided, use it silently only when it improves relevance.",
+    memoryContextBlock
+      ? [
+        "",
+        "Scoped runtime memory:",
+        memoryContextBlock,
+        "",
+        "Important memory handling rules:",
+        "1. Use memory only as background context.",
+        "2. Do not quote memory metadata.",
+        "3. Do not say that memory was retrieved.",
+        "4. Do not reveal Memory Vault internals.",
+        "5. If memory is unrelated, ignore it.",
+        "6. The WhatsApp reply must remain short and user-facing only.",
+      ].join("\n")
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function buildCapabilityBoundaryResponse(input: {
@@ -102,6 +131,14 @@ export async function handleIncomingWhatsAppMessage(
   const senderJid = getSenderJid(msg);
   const senderNumber = normalizeWaNumber(senderJid);
 
+  /**
+   * PENTING:
+   * Kalau PROCESS_FROM_ME=false, pesan dari bot sendiri langsung diabaikan.
+   * Ini mencegah:
+   * - bot memproses balasannya sendiri
+   * - terminal penuh oleh text output panjang
+   * - loop reply tanpa akhir
+   */
   if (fromMe && !env.PROCESS_FROM_ME) {
     logger.wa(`Outgoing/self message ignored. Message ID: ${messageId}`);
     return { shouldReply: false };
@@ -128,6 +165,10 @@ export async function handleIncomingWhatsAppMessage(
     return { shouldReply: false };
   }
 
+  /**
+   * Security gate:
+   * Nomor / ID sender harus ada di ALLOWED_WA_NUMBERS.
+   */
   if (!isAuthorized(senderNumber)) {
     logger.security(`Unauthorized WhatsApp access: ${senderNumber}`);
 
@@ -153,6 +194,15 @@ export async function handleIncomingWhatsAppMessage(
   try {
     const agentName = extractAgentNameFromMessage(text);
 
+    /**
+     * Capability boundary check.
+     *
+     * Jika request tidak sesuai contract agent:
+     * - jangan panggil routeTask()
+     * - jangan panggil LLM runtime
+     * - tetap create task audit governance blocked
+     * - balas refusal halus ke WhatsApp
+     */
     const capabilityCheck = await checkAgentCapabilityDynamic({
       agentName,
       inputText: text,
@@ -179,10 +229,9 @@ export async function handleIncomingWhatsAppMessage(
       );
 
       logger.wa(
-        `WhatsApp capability guard denied keywords: ${
-          capabilityCheck.matchedDeniedKeywords.length > 0
-            ? capabilityCheck.matchedDeniedKeywords.join(", ")
-            : "-"
+        `WhatsApp capability guard denied keywords: ${capabilityCheck.matchedDeniedKeywords.length > 0
+          ? capabilityCheck.matchedDeniedKeywords.join(", ")
+          : "-"
         }`
       );
 
@@ -193,16 +242,35 @@ export async function handleIncomingWhatsAppMessage(
       };
     }
 
+    /**
+     * Phase 8.46.3
+     * WhatsApp memory context injection.
+     *
+     * Important:
+     * - shorter than manual/widget context
+     * - injected only into system prompt
+     * - never sent as metadata to WhatsApp user
+     */
     const memoryContext = await resolveRuntimeMemoriesForAgent({
       agentName,
       inputText: text,
       source: "whatsapp",
       matchedSkillNames: capabilityCheck.matchedSkillNames,
-      maxResults: 5,
+      maxResults: 4,
+    });
+
+    const runtimeMemoryContext = buildRuntimeMemoryContextBlock(memoryContext, {
+      maxItems: 2,
+      maxTotalChars: 900,
+      maxCharsPerMemory: 320,
     });
 
     logger.wa(
       `WhatsApp memory resolver preview: eligible=${memoryContext.eligibleCount} returned=${memoryContext.returnedCount}`
+    );
+
+    logger.wa(
+      `WhatsApp runtime memory context: injected=${runtimeMemoryContext.summary.injected} items=${runtimeMemoryContext.summary.itemCount} chars=${runtimeMemoryContext.summary.totalChars}`
     );
 
     if (memoryContext.memories.length > 0) {
@@ -213,14 +281,27 @@ export async function handleIncomingWhatsAppMessage(
       );
     }
 
+    /**
+     * Keep existing WhatsApp orchestration as safe fallback.
+     * routeTask() tetap bikin task, update agent status, dan broadcast event.
+     */
     const fallbackResult = await routeTask(text, {
       source: "whatsapp",
       senderId: senderNumber,
     });
 
+    /**
+     * Runtime adapter output:
+     * - WhatsApp belum punya model selector, jadi pakai auto/default registry.
+     * - Kalau provider real sukses, final reply pakai output adapter.
+     * - Kalau provider mock/error, fallback ke routeTask lama.
+     */
     const runtimeResult = await runLlmCompletion({
       agentName,
-      systemPrompt: buildWhatsAppSystemPrompt(agentName),
+      systemPrompt: buildWhatsAppSystemPrompt(
+        agentName,
+        runtimeMemoryContext.contextBlock
+      ),
       inputText: text,
       preference: {
         provider: "auto",
@@ -242,11 +323,11 @@ export async function handleIncomingWhatsAppMessage(
       outputText: finalReply,
       runtimeResult,
       capabilityCheck,
+      runtimeMemoryContext: runtimeMemoryContext.summary,
     });
 
     logger.wa(
-      `WhatsApp runtime provider: ${
-        runtimeResult.providerName || runtimeResult.provider
+      `WhatsApp runtime provider: ${runtimeResult.providerName || runtimeResult.provider
       } / ${runtimeResult.model} / mock=${runtimeResult.isMock}`
     );
 

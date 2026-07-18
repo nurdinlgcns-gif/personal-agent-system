@@ -5,7 +5,12 @@ import {
   type DynamicLlmProvider,
   type LlmModelMode,
 } from "../../services/llmApi";
-import type { AgentSnapshot, SkillSnapshot } from "../../types/api";
+import type {
+  AgentSnapshot,
+  ManualTaskRuntimeMemoryContext,
+  SkillSnapshot,
+} from "../../types/api";
+import { RuntimeMemoryContextDisplay } from "../runtime/RuntimeMemoryContextDisplay";
 
 type FloatingTaskAssistantProps = {
   onTaskSent: () => Promise<void>;
@@ -19,6 +24,7 @@ type ChatMessage = {
   text: string;
   timestamp: string;
   status?: "normal" | "error";
+  runtimeMemoryContext?: ManualTaskRuntimeMemoryContext | null;
 };
 
 type Suggestion = {
@@ -66,7 +72,8 @@ const AUTO_MODEL_SELECTION: RuntimeModelSelection = {
 function createMessage(
   role: ChatMessage["role"],
   text: string,
-  status: ChatMessage["status"] = "normal"
+  status: ChatMessage["status"] = "normal",
+  runtimeMemoryContext?: ManualTaskRuntimeMemoryContext | null
 ): ChatMessage {
   return {
     id: crypto.randomUUID(),
@@ -74,6 +81,7 @@ function createMessage(
     text,
     timestamp: new Date().toISOString(),
     status,
+    runtimeMemoryContext,
   };
 }
 
@@ -517,14 +525,19 @@ export function FloatingTaskAssistant({
       });
 
       const runtimeText = response.runtimeProvider
-        ? `\n\nRuntime: ${response.runtimeProvider.providerName || "auto"} / ${
-            response.runtimeProvider.model || "auto"
-          } (${response.runtimeProvider.mode || "auto"})`
+        ? `\n\nRuntime: ${response.runtimeProvider.providerName || "auto"
+        } / ${response.runtimeProvider.model || "auto"} (${response.runtimeProvider.mode || "auto"
+        })`
         : "";
 
       setMessages((currentMessages) => [
         ...currentMessages,
-        createMessage("assistant", `${response.result}${runtimeText}`),
+        createMessage(
+          "assistant",
+          `${response.result}${runtimeText}`,
+          "normal",
+          response.runtimeMemoryContext || null
+        ),
       ]);
 
       await onTaskSent();
@@ -695,12 +708,19 @@ export function FloatingTaskAssistant({
             {messages.map((chatMessage) => (
               <div
                 key={chatMessage.id}
-                className={`chat-message ${chatMessage.role} ${
-                  chatMessage.status === "error" ? "error" : ""
-                }`}
+                className={`chat-message ${chatMessage.role} ${chatMessage.status === "error" ? "error" : ""
+                  }`}
               >
                 <div className="chat-bubble">
                   <p>{chatMessage.text}</p>
+
+                  {chatMessage.role === "assistant" &&
+                    chatMessage.runtimeMemoryContext && (
+                      <RuntimeMemoryContextDisplay
+                        runtimeMemoryContext={chatMessage.runtimeMemoryContext}
+                      />
+                    )}
+
                   <small>
                     {new Date(chatMessage.timestamp).toLocaleTimeString()}
                   </small>
@@ -751,9 +771,8 @@ export function FloatingTaskAssistant({
                     <button
                       type="button"
                       key={agent.id}
-                      className={`mention-agent-option ${
-                        index === activeMentionIndex ? "active" : ""
-                      }`}
+                      className={`mention-agent-option ${index === activeMentionIndex ? "active" : ""
+                        }`}
                       onMouseDown={(event) => {
                         event.preventDefault();
                         insertAgentMention(agent.name);

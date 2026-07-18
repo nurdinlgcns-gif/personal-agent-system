@@ -377,46 +377,47 @@ function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
       status: "waiting",
       accent: "blue",
       body: "Tasks from WhatsApp, Manual Console, or backend automation will appear here.",
+      runtimeMemoryTask: null,
       metadata: [
         {
           label: "Task ID",
-          value: task.id,
+          value: "-",
         },
         {
           label: "Source",
-          value: task.source,
+          value: "-",
         },
         {
           label: "Status",
-          value: task.status,
+          value: "waiting",
         },
         {
           label: "Runtime Provider",
-          value: getRuntimeProviderLabel(task),
+          value: "-",
         },
         {
           label: "Runtime Type",
-          value: task.runtimeProviderType || "-",
+          value: "-",
         },
         {
           label: "Runtime Model",
-          value: getRuntimeModelLabel(task),
+          value: "-",
         },
         {
           label: "Runtime Mode",
-          value: getRuntimeModeLabel(task),
+          value: "-",
         },
         {
           label: "Resolved From",
-          value: getRuntimeResolvedFromLabel(task),
+          value: "-",
         },
         {
-          label: "Created",
-          value: formatTime(task.createdAt),
+          label: "Memory Injected",
+          value: "-",
         },
         {
-          label: "Updated",
-          value: formatTime(task.updatedAt),
+          label: "Memory Items",
+          value: "-",
         },
       ],
     };
@@ -434,6 +435,7 @@ function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
           ? "green"
           : "orange",
     body: task.outputText || "No output preview available yet.",
+    runtimeMemoryTask: task,
     metadata: [
       {
         label: "Task ID",
@@ -446,6 +448,49 @@ function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
       {
         label: "Status",
         value: task.status,
+      },
+      {
+        label: "Runtime Provider",
+        value: getRuntimeProviderLabel(task),
+      },
+      {
+        label: "Runtime Type",
+        value: task.runtimeProviderType || "-",
+      },
+      {
+        label: "Runtime Model",
+        value: getRuntimeModelLabel(task),
+      },
+      {
+        label: "Runtime Mode",
+        value: getRuntimeModeLabel(task),
+      },
+      {
+        label: "Resolved From",
+        value: getRuntimeResolvedFromLabel(task),
+      },
+      {
+        label: "Memory Injected",
+        value:
+          typeof task.runtimeMemoryInjected === "boolean"
+            ? task.runtimeMemoryInjected
+              ? "Yes"
+              : "No"
+            : "-",
+      },
+      {
+        label: "Memory Items",
+        value:
+          typeof task.runtimeMemoryItemCount === "number"
+            ? String(task.runtimeMemoryItemCount)
+            : "-",
+      },
+      {
+        label: "Memory Chars",
+        value:
+          typeof task.runtimeMemoryTotalChars === "number"
+            ? String(task.runtimeMemoryTotalChars)
+            : "-",
       },
       {
         label: "Created",
@@ -800,6 +845,7 @@ export function OfficeCanvas({
       body:
         latestAgentTask?.inputText ||
         "This agent is registered and ready to receive tasks.",
+      runtimeMemoryTask: latestAgentTask || null,
       metadata: [
         {
           label: "Agent ID",
@@ -840,9 +886,9 @@ export function OfficeCanvas({
       accent: source === "whatsapp" ? "green" : "blue",
       body:
         task?.inputText ||
-        `No ${
-          source === "whatsapp" ? "WhatsApp" : "manual"
+        `No ${source === "whatsapp" ? "WhatsApp" : "manual"
         } task has been received yet.`,
+      runtimeMemoryTask: task || null,
       metadata: [
         {
           label: "Source",
@@ -859,6 +905,22 @@ export function OfficeCanvas({
         {
           label: "Status",
           value: task?.status || "waiting",
+        },
+        {
+          label: "Memory Injected",
+          value:
+            typeof task?.runtimeMemoryInjected === "boolean"
+              ? task.runtimeMemoryInjected
+                ? "Yes"
+                : "No"
+              : "-",
+        },
+        {
+          label: "Memory Items",
+          value:
+            typeof task?.runtimeMemoryItemCount === "number"
+              ? String(task.runtimeMemoryItemCount)
+              : "-",
         },
         {
           label: "Created",
@@ -912,6 +974,7 @@ export function OfficeCanvas({
             ? "green"
             : "yellow",
       body: getOutputPreview(task),
+      runtimeMemoryTask: task || null,
       metadata: [
         {
           label: "Task ID",
@@ -948,6 +1011,29 @@ export function OfficeCanvas({
         {
           label: "Resolved From",
           value: getRuntimeResolvedFromLabel(task),
+        },
+        {
+          label: "Memory Injected",
+          value:
+            typeof task?.runtimeMemoryInjected === "boolean"
+              ? task.runtimeMemoryInjected
+                ? "Yes"
+                : "No"
+              : "-",
+        },
+        {
+          label: "Memory Items",
+          value:
+            typeof task?.runtimeMemoryItemCount === "number"
+              ? String(task.runtimeMemoryItemCount)
+              : "-",
+        },
+        {
+          label: "Memory Chars",
+          value:
+            typeof task?.runtimeMemoryTotalChars === "number"
+              ? String(task.runtimeMemoryTotalChars)
+              : "-",
         },
       ],
     });
@@ -1039,15 +1125,11 @@ export function OfficeCanvas({
           }}
         >
           <div
-            className={`office-scene ${
-              visualFlow.active ? "is-processing" : ""
-            } ${realAgents.length === 1 ? "single-agent-scene" : ""} office-latest-${
-              visualFlowStatus
-            } ${selectedItem ? "detail-open" : ""} ${
-              showLabels ? "" : "labels-hidden"
-            } ${showActivityLog ? "" : "activity-hidden"} ${
-              compactMode ? "compact-office" : ""
-            }`}
+            className={`office-scene ${visualFlow.active ? "is-processing" : ""
+              } ${realAgents.length === 1 ? "single-agent-scene" : ""} office-latest-${visualFlowStatus
+              } ${selectedItem ? "detail-open" : ""} ${showLabels ? "" : "labels-hidden"
+              } ${showActivityLog ? "" : "activity-hidden"} ${compactMode ? "compact-office" : ""
+              }`}
             style={{
               width: OFFICE_SCENE_WIDTH,
               height: OFFICE_SCENE_HEIGHT,
@@ -1140,9 +1222,8 @@ export function OfficeCanvas({
 
             <button
               type="button"
-              className={`office-server-core office-clickable ${
-                selectedKey === "server:core" ? "office-selected-element" : ""
-              }`}
+              className={`office-server-core office-clickable ${selectedKey === "server:core" ? "office-selected-element" : ""
+                }`}
               onClick={(event) => {
                 event.stopPropagation();
                 openServerDetail();
@@ -1196,13 +1277,10 @@ export function OfficeCanvas({
                 <button
                   type="button"
                   key={agent.id}
-                  className={`office-room office-clickable ${
-                    slot.roomClass
-                  } ${status} registered ${
-                    isActiveAgent ? "active-room" : ""
-                  } ${
-                    selectedKey === agentKey ? "office-selected-element" : ""
-                  }`}
+                  className={`office-room office-clickable ${slot.roomClass
+                    } ${status} registered ${isActiveAgent ? "active-room" : ""
+                    } ${selectedKey === agentKey ? "office-selected-element" : ""
+                    }`}
                   onClick={(event) => {
                     event.stopPropagation();
                     openAgentDetail(agent, status);
@@ -1251,13 +1329,11 @@ export function OfficeCanvas({
 
             <button
               type="button"
-              className={`office-source-card office-clickable source-whatsapp ${
-                latestSource === "whatsapp" ? "source-active" : ""
-              } ${
-                selectedKey === "source:whatsapp"
+              className={`office-source-card office-clickable source-whatsapp ${latestSource === "whatsapp" ? "source-active" : ""
+                } ${selectedKey === "source:whatsapp"
                   ? "office-selected-element"
                   : ""
-              }`}
+                }`}
               onClick={(event) => {
                 event.stopPropagation();
                 openSourceDetail("whatsapp", latestWhatsAppTask);
@@ -1276,13 +1352,11 @@ export function OfficeCanvas({
 
             <button
               type="button"
-              className={`office-source-card office-clickable source-manual ${
-                latestSource === "manual" ? "source-active" : ""
-              } ${
-                selectedKey === "source:manual"
+              className={`office-source-card office-clickable source-manual ${latestSource === "manual" ? "source-active" : ""
+                } ${selectedKey === "source:manual"
                   ? "office-selected-element"
                   : ""
-              }`}
+                }`}
               onClick={(event) => {
                 event.stopPropagation();
                 openSourceDetail("manual", latestManualTask);
@@ -1301,13 +1375,11 @@ export function OfficeCanvas({
 
             <button
               type="button"
-              className={`office-resource-card office-clickable resource-skill ${
-                activeSkill ? "resource-ready" : ""
-              } ${visualFlow.active ? "resource-active" : ""} ${
-                selectedKey === "skill:shelf"
+              className={`office-resource-card office-clickable resource-skill ${activeSkill ? "resource-ready" : ""
+                } ${visualFlow.active ? "resource-active" : ""} ${selectedKey === "skill:shelf"
                   ? "office-selected-element"
                   : ""
-              }`}
+                }`}
               onClick={(event) => {
                 event.stopPropagation();
                 openSkillDetail(activeSkill);
@@ -1325,13 +1397,11 @@ export function OfficeCanvas({
 
             <button
               type="button"
-              className={`office-resource-card office-clickable resource-output ${
-                latestTask?.status || ""
-              } ${
-                selectedKey === "output:board"
+              className={`office-resource-card office-clickable resource-output ${latestTask?.status || ""
+                } ${selectedKey === "output:board"
                   ? "office-selected-element"
                   : ""
-              }`}
+                }`}
               onClick={(event) => {
                 event.stopPropagation();
                 openOutputDetail(latestTask);
@@ -1345,9 +1415,8 @@ export function OfficeCanvas({
 
             {showActivityLog && (
               <div
-                className={`office-activity-log ${
-                  isActivityLogDragging ? "dragging" : ""
-                }`}
+                className={`office-activity-log ${isActivityLogDragging ? "dragging" : ""
+                  }`}
                 style={
                   {
                     "--office-activity-log-x": `${activityLogPosition.x}px`,
@@ -1408,8 +1477,8 @@ export function OfficeCanvas({
                           <strong>{getActivityLabel(task)}</strong>
                           <small>
                             {task.source} · {getRuntimeActivityLabel(task)} ·{" "}
-                          {formatShortTime(task.updatedAt)}
-                        </small>
+                            {formatShortTime(task.updatedAt)}
+                          </small>
                         </div>
                       </button>
                     ))

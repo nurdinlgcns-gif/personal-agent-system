@@ -56,6 +56,14 @@ model Task {
   governanceMatchedSmallTalkJson String?
   governanceSuggestedAgentsJson  String?
 
+  runtimeMemoryInjected    Boolean?
+  runtimeMemoryItemCount   Int?
+  runtimeMemoryTotalChars  Int?
+  runtimeMemoryIdsJson     String?
+  runtimeMemoryTypesJson   String?
+  runtimeMemoryScopesJson  String?
+  runtimeMemorySourcesJson String?
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
