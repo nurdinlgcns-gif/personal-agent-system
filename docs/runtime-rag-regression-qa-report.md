@@ -1,8 +1,8 @@
 # Runtime RAG Stability + Regression QA Report
 
-Generated: 2026-07-19T09:47:27.238Z
+Generated: 2026-07-19T10:06:03.896Z
 Base URL: `http://localhost:3000`
-Duration: 2966 ms
+Duration: 11154 ms
 
 ## Summary
 
@@ -25,8 +25,8 @@ Backend /health returned status ok.
 {
   "app": "personal-agent-system",
   "status": "ok",
-  "uptime": 79.8335723,
-  "timestamp": "2026-07-19T09:47:24.325Z"
+  "uptime": 196.7127971,
+  "timestamp": "2026-07-19T10:05:52.809Z"
 }
 ```
 
@@ -210,7 +210,7 @@ Semantic search returned 2 results from 2 eligible candidates.
     "agentName": "design-agent",
     "memoryType": "agent_scope",
     "scope": "agent",
-    "score": 0.392377,
+    "score": 0.304149,
     "accessReasons": [
       "scope_allowed",
       "sensitivity_allowed",
@@ -219,7 +219,8 @@ Semantic search returned 2 results from 2 eligible candidates.
       "allowed_agent_match"
     ],
     "matchReasons": [
-      "linked_skill_match"
+      "linked_skill_match",
+      "semantic_similarity"
     ]
   }
 }
@@ -261,7 +262,7 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
 
 ```json
 {
-  "result": "Lagi suntuk atau butuh mood booster? Segerin lagi hari kamu dengan segelas kopi susu kita yang creamy dan pas banget manisnya. Yuk, pesan sekarang sebelum kehabisan! ☕✨",
+  "result": "Lagi butuh mood booster? Segerin hari kamu dengan manisnya kopi susu kita yang pas banget buat nemenin santai atau kerja. Yuk, order sekarang! ☕️✨",
   "runtimeMemoryContext": {
     "injected": true,
     "itemCount": 2,
@@ -284,11 +285,11 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
     ]
   },
   "runtimeRagContext": {
-    "previewOnly": true,
+    "previewOnly": false,
     "retrieved": true,
-    "query": "@design-agent buat caption promosi kopi susu dengan gaya santai",
+    "query": "buat caption promosi kopi susu dengan gaya santai",
     "itemCount": 2,
-    "totalChars": 1200,
+    "totalChars": 945,
     "usedChunkIds": [
       "ceb41d5d-4a3c-4e58-a6ac-113e2fc2122e",
       "7c389bfb-1331-4daf-83f3-efeb1fa995c7"
@@ -310,8 +311,8 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
       "memory-foundation/brand-tone"
     ],
     "scores": [
-      0.416048,
-      0.381606
+      0.304149,
+      0.289186
     ],
     "topResults": [
       {
@@ -320,7 +321,7 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
         "agentName": "design-agent",
         "memoryType": "agent_scope",
         "scope": "agent",
-        "score": 0.416048,
+        "score": 0.304149,
         "contentPreview": "design-agent focuses on copywriting, captions, promotional copy, branding, slogans, headlines, CTA copy, and campaign wording."
       },
       {
@@ -329,12 +330,12 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
         "agentName": "design-agent",
         "memoryType": "brand_tone",
         "scope": "skill",
-        "score": 0.381606,
+        "score": 0.289186,
         "contentPreview": "Preferred creative tone: concise, practical, friendly, modern, clear, and suitable for Indonesian social media or WhatsApp marketing copy."
       }
     ]
   },
-  "taskId": "48b935a5-7504-4e90-8c78-2569cc1ac087"
+  "taskId": "a48fcd4e-db15-420d-ab74-905f0f7a1fcf"
 }
 ```
 
@@ -397,13 +398,13 @@ Recent tasks include runtime memory and runtime RAG metadata.
 ```json
 {
   "ragTask": {
-    "id": "b4a0660d-afc4-45eb-b60b-0fc79bdec469",
+    "id": "39f00c86-14e9-430d-bb9c-6eb165c4f751",
     "source": "manual",
     "runtimeRagRetrieved": false,
     "runtimeRagItemCount": 0
   },
   "memoryTask": {
-    "id": "b4a0660d-afc4-45eb-b60b-0fc79bdec469",
+    "id": "39f00c86-14e9-430d-bb9c-6eb165c4f751",
     "source": "manual",
     "runtimeMemoryInjected": false,
     "runtimeMemoryItemCount": 0

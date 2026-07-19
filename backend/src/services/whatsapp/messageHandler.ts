@@ -20,6 +20,10 @@ import { resolveRuntimeMemoriesForAgent } from "../memory/memoryRuntimeScopeReso
 import { buildRuntimeMemoryContextBlock } from "../memory/runtimeMemoryContextFormatter";
 import { buildRuntimeRagContextBlock } from "../memory/runtimeRagContextFormatter";
 import { searchSemanticMemoryChunks } from "../embeddings/semanticMemorySearchService";
+import {
+  buildRuntimeRagQuery,
+  getRuntimeRagQualityConfig,
+} from "../memory/runtimeRagQualityTuning";
 
 type WhatsAppHandleResult = {
   shouldReply: boolean;
@@ -277,20 +281,26 @@ export async function handleIncomingWhatsAppMessage(
      * - Injected only into WhatsApp system prompt.
      * - Never exposed to WhatsApp user.
      */
+    const ragQualityConfig = getRuntimeRagQualityConfig("whatsapp");
+    const runtimeRagQuery = buildRuntimeRagQuery(text);
+
     const semanticRagSearch = await searchSemanticMemoryChunks({
-      query: text,
+      query: runtimeRagQuery,
       agentName,
       matchedSkillNames: capabilityCheck.matchedSkillNames,
-      allowedScopes: ["agent", "skill", "project", "global"],
-      allowedSensitivityLevels: ["normal", "internal"],
-      topK: 4,
-      minScore: 0,
+      allowedScopes: ragQualityConfig.allowedScopes,
+      allowedSensitivityLevels: ragQualityConfig.allowedSensitivityLevels,
+      topK: ragQualityConfig.topK,
+      minScore: ragQualityConfig.minScore,
     });
 
     const runtimeRagContext = buildRuntimeRagContextBlock(semanticRagSearch, {
-      maxItems: 2,
-      maxTotalChars: 900,
-      maxCharsPerChunk: 320,
+      maxItems: ragQualityConfig.maxItems,
+      maxTotalChars: ragQualityConfig.maxTotalChars,
+      maxCharsPerChunk: ragQualityConfig.maxCharsPerChunk,
+      minScore: ragQualityConfig.minScore,
+      excludedMemoryIds: runtimeMemoryContext.summary.usedMemoryIds,
+      previewOnly: false,
     });
 
     logger.wa(

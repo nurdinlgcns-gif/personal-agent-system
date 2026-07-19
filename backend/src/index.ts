@@ -24,6 +24,10 @@ import { checkAgentCapabilityDynamic } from "./services/agents/agentCapabilityGu
 import { resolveRuntimeMemoriesForAgent } from "./services/memory/memoryRuntimeScopeResolver";
 import { buildRuntimeMemoryContextBlock } from "./services/memory/runtimeMemoryContextFormatter";
 import { buildRuntimeRagContextBlock } from "./services/memory/runtimeRagContextFormatter";
+import {
+  buildRuntimeRagQuery,
+  getRuntimeRagQualityConfig,
+} from "./services/memory/runtimeRagQualityTuning";
 import { searchSemanticMemoryChunks } from "./services/embeddings/semanticMemorySearchService";
 import { formatManualRuntimeOutput } from "./services/llm/manualRuntimeOutputGuardrails";
 
@@ -220,20 +224,26 @@ app.post("/tasks", async (req, res) => {
       `Manual runtime memory context: injected=${runtimeMemoryContext.summary.injected} items=${runtimeMemoryContext.summary.itemCount} chars=${runtimeMemoryContext.summary.totalChars}`
     );
 
+    const ragQualityConfig = getRuntimeRagQualityConfig("manual");
+    const runtimeRagQuery = buildRuntimeRagQuery(inputText);
+
     const semanticRagSearch = await searchSemanticMemoryChunks({
-      query: inputText,
+      query: runtimeRagQuery,
       agentName,
       matchedSkillNames: capabilityCheck.matchedSkillNames,
-      allowedScopes: ["agent", "skill", "project", "global"],
-      allowedSensitivityLevels: ["normal", "internal"],
-      topK: 5,
-      minScore: 0,
+      allowedScopes: ragQualityConfig.allowedScopes,
+      allowedSensitivityLevels: ragQualityConfig.allowedSensitivityLevels,
+      topK: ragQualityConfig.topK,
+      minScore: ragQualityConfig.minScore,
     });
 
     const runtimeRagContext = buildRuntimeRagContextBlock(semanticRagSearch, {
-      maxItems: 3,
-      maxTotalChars: 1400,
-      maxCharsPerChunk: 420,
+      maxItems: ragQualityConfig.maxItems,
+      maxTotalChars: ragQualityConfig.maxTotalChars,
+      maxCharsPerChunk: ragQualityConfig.maxCharsPerChunk,
+      minScore: ragQualityConfig.minScore,
+      excludedMemoryIds: runtimeMemoryContext.summary.usedMemoryIds,
+      previewOnly: false,
     });
 
     logger.task(

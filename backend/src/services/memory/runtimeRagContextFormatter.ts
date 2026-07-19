@@ -37,6 +37,10 @@ type RuntimeRagContextFormatterOptions = {
     maxItems?: number;
     maxTotalChars?: number;
     maxCharsPerChunk?: number;
+    minScore?: number;
+    excludedMemoryIds?: string[];
+    excludedChunkIds?: string[];
+    previewOnly?: boolean;
 };
 
 const DEFAULT_MAX_ITEMS = 3;
@@ -86,6 +90,16 @@ function truncateText(value: string, maxChars: number) {
     return `${slice.trim()}...`;
 }
 
+function uniqueClean(values?: string[]) {
+    return Array.from(
+        new Set(
+            (values || [])
+                .map((value) => value.trim())
+                .filter(Boolean)
+        )
+    );
+}
+
 function formatRagChunkLine(
     item: SemanticMemorySearchResultItem,
     index: number,
@@ -101,25 +115,19 @@ function formatRagChunkLine(
             ? ` Linked skills: ${item.linkedSkillNames.join(", ")}.`
             : "";
 
-    const guardHint =
-        item.accessReasons.length > 0
-            ? ` Access guard: ${item.accessReasons.join(", ")}.`
-            : "";
-
     return [
-        `RAG Chunk ${index + 1}:`,
-        `[agent=${item.agentName}; type=${item.memoryType}; scope=${item.scope}; score=${item.score}; sensitivity=${item.sensitivityLevel}]`,
+        `RAG Context ${index + 1}:`,
+        `[agent=${item.agentName}; type=${item.memoryType}; scope=${item.scope}; sensitivity=${item.sensitivityLevel}]`,
         content,
         skillHint,
-        guardHint,
     ]
         .filter(Boolean)
         .join(" ");
 }
 
-function emptySummary(query = ""): RuntimeRagContextSummary {
+function emptySummary(query = "", previewOnly = false): RuntimeRagContextSummary {
     return {
-        previewOnly: true,
+        previewOnly,
         retrieved: false,
         query,
         itemCount: 0,
@@ -138,6 +146,35 @@ function getSourceValue(item: SemanticMemorySearchResultItem) {
     return item.sourceRef || item.sourceType || "unknown";
 }
 
+function selectQualityResults(
+    searchResult: SemanticMemorySearchResult,
+    options: RuntimeRagContextFormatterOptions
+) {
+    const minScore = options.minScore ?? 0;
+    const excludedMemoryIds = new Set(uniqueClean(options.excludedMemoryIds));
+    const excludedChunkIds = new Set(uniqueClean(options.excludedChunkIds));
+
+    const scoreEligible = searchResult.results.filter((item) => item.score >= minScore);
+
+    const nonDuplicateResults = scoreEligible.filter((item) => {
+        if (excludedChunkIds.has(item.chunkId)) {
+            return false;
+        }
+
+        if (excludedMemoryIds.has(item.memoryId)) {
+            return false;
+        }
+
+        return true;
+    });
+
+    if (nonDuplicateResults.length > 0) {
+        return nonDuplicateResults;
+    }
+
+    return scoreEligible;
+}
+
 export function buildRuntimeRagContextBlock(
     searchResult: SemanticMemorySearchResult | null | undefined,
     options: RuntimeRagContextFormatterOptions = {}
@@ -146,19 +183,28 @@ export function buildRuntimeRagContextBlock(
     const maxTotalChars = options.maxTotalChars || DEFAULT_MAX_TOTAL_CHARS;
     const maxCharsPerChunk =
         options.maxCharsPerChunk || DEFAULT_MAX_CHARS_PER_CHUNK;
+    const previewOnly = options.previewOnly ?? false;
 
     if (!searchResult || searchResult.results.length === 0) {
         return {
             contextBlock: "",
-            summary: emptySummary(searchResult?.query || ""),
+            summary: emptySummary(searchResult?.query || "", previewOnly),
         };
     }
 
-    const usableResults = searchResult.results.slice(0, maxItems);
+    const qualityResults = selectQualityResults(searchResult, options);
+    const usableResults = qualityResults.slice(0, maxItems);
+
+    if (usableResults.length === 0) {
+        return {
+            contextBlock: "",
+            summary: emptySummary(searchResult.query, previewOnly),
+        };
+    }
 
     const header = [
-        "Runtime RAG context preview:",
-        "Use the following semantic retrieval chunks only as background context.",
+        "Runtime RAG context:",
+        "Use the following semantic retrieval context only as background context.",
         "Do not mention chunk IDs, scores, retrieval metadata, embeddings, vector search, or internal RAG details to the user.",
         "If semantic retrieval context is unrelated to the user's request, ignore it.",
     ].join("\n");
@@ -184,7 +230,7 @@ export function buildRuntimeRagContextBlock(
     if (chunkLines.length === 0) {
         return {
             contextBlock: "",
-            summary: emptySummary(searchResult.query),
+            summary: emptySummary(searchResult.query, previewOnly),
         };
     }
 
@@ -194,7 +240,7 @@ export function buildRuntimeRagContextBlock(
     return {
         contextBlock,
         summary: {
-            previewOnly: true,
+            previewOnly,
             retrieved: true,
             query: searchResult.query,
             itemCount: usedResults.length,

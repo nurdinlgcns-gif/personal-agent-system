@@ -59,6 +59,36 @@ type EmbeddedChunk = Awaited<ReturnType<typeof findEmbeddedMemoryChunks>>[number
 const DEFAULT_ALLOWED_SCOPES = ["global", "project", "agent", "skill", "whatsapp"];
 const DEFAULT_ALLOWED_SENSITIVITY_LEVELS = ["normal", "internal"];
 
+const STOP_WORDS = new Set([
+  "yang",
+  "dengan",
+  "untuk",
+  "buat",
+  "bikin",
+  "create",
+  "make",
+  "the",
+  "and",
+  "or",
+  "a",
+  "an",
+  "to",
+  "of",
+  "in",
+  "on",
+  "for",
+  "is",
+  "are",
+  "ini",
+  "itu",
+  "dan",
+  "di",
+  "ke",
+  "dari",
+  "agar",
+  "supaya",
+]);
+
 function safeJsonParse<TValue>(
   value: string | null | undefined,
   fallback: TValue
@@ -104,10 +134,21 @@ function normalizeList(values?: string[]) {
   );
 }
 
-function hasOverlap(left: string[], right: string[]) {
-  const rightSet = new Set(right.map((item) => item.toLowerCase()));
+function normalizeText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/^@[\w-]+\s*/i, "")
+    .replace(/[^\p{L}\p{N}\s._-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  return left.some((item) => rightSet.has(item.toLowerCase()));
+function tokenizeForLexicalScore(value: string) {
+  return normalizeText(value)
+    .split(" ")
+    .map((token) => token.trim())
+    .filter((token) => token.length > 1)
+    .filter((token) => !STOP_WORDS.has(token));
 }
 
 function getOverlaps(left: string[], right: string[]) {
@@ -141,6 +182,40 @@ function cosineSimilarity(left: number[], right: number[]) {
   }
 
   return dot / (Math.sqrt(leftMagnitude) * Math.sqrt(rightMagnitude));
+}
+
+function calculateLexicalOverlapScore(queryTokens: string[], chunk: EmbeddedChunk) {
+  if (queryTokens.length === 0) {
+    return 0;
+  }
+
+  const chunkTokens = tokenizeForLexicalScore(
+    [
+      chunk.agentName,
+      chunk.memoryType,
+      chunk.scope,
+      chunk.sourceRef || "",
+      chunk.sourceType,
+      chunk.content,
+    ].join(" ")
+  );
+
+  if (chunkTokens.length === 0) {
+    return 0;
+  }
+
+  const querySet = new Set(queryTokens);
+  const chunkSet = new Set(chunkTokens);
+
+  let overlapCount = 0;
+
+  querySet.forEach((token) => {
+    if (chunkSet.has(token)) {
+      overlapCount += 1;
+    }
+  });
+
+  return overlapCount / Math.max(querySet.size, 1);
 }
 
 function evaluateChunkAccess(input: {
@@ -255,11 +330,6 @@ function evaluateChunkAccess(input: {
 
   const matchedMemorySkills = getOverlaps(chunkLinkedSkillNames, matchedSkillNames);
 
-  /**
-   * Skill-scope hardening:
-   * If the chunk is skill scoped and the caller provides matched skills,
-   * then linkedSkillNames must overlap with matchedSkillNames.
-   */
   if (
     chunk.scope === "skill" &&
     chunkLinkedSkillNames.length > 0 &&
@@ -298,25 +368,24 @@ function evaluateChunkAccess(input: {
 function calculateGuardBoost(input: {
   chunk: EmbeddedChunk;
   agentName?: string;
-  matchedSkillNames: string[];
   matchedMemorySkills: string[];
 }) {
   let boost = 0;
 
   if (input.agentName && input.chunk.agentName === input.agentName) {
-    boost += 0.08;
-  }
-
-  if (input.agentName && input.chunk.ownerAgentName === input.agentName) {
     boost += 0.06;
   }
 
+  if (input.agentName && input.chunk.ownerAgentName === input.agentName) {
+    boost += 0.04;
+  }
+
   if (input.chunk.scope === "skill" && input.matchedMemorySkills.length > 0) {
-    boost += 0.08;
+    boost += 0.06;
   }
 
   if (input.chunk.scope === "agent") {
-    boost += 0.04;
+    boost += 0.03;
   }
 
   if (input.chunk.scope === "project") {
@@ -398,6 +467,7 @@ export async function searchSemanticMemoryChunks(
   }
 
   const provider = getActiveEmbeddingProviderInfo();
+  const queryTokens = tokenizeForLexicalScore(query);
 
   const queryEmbedding = await embedText({
     id: "query",
@@ -422,21 +492,34 @@ export async function searchSemanticMemoryChunks(
       }
 
       const chunkVector = parseVector(chunk.embeddingVectorJson);
-      const baseScore = cosineSimilarity(queryEmbedding.vector, chunkVector);
+      const semanticScore = Math.max(
+        0,
+        cosineSimilarity(queryEmbedding.vector, chunkVector)
+      );
+      const lexicalScore = calculateLexicalOverlapScore(queryTokens, chunk);
       const boost = calculateGuardBoost({
         chunk,
         agentName: input.agentName,
-        matchedSkillNames,
         matchedMemorySkills: access.matchedMemorySkills,
       });
 
-      const score = Math.min(1, baseScore + boost);
+      const score = Math.min(1, semanticScore * 0.82 + lexicalScore * 0.18 + boost);
+
+      const matchReasons = [...access.matchReasons];
+
+      if (lexicalScore > 0) {
+        matchReasons.push("lexical_overlap");
+      }
+
+      if (semanticScore > 0) {
+        matchReasons.push("semantic_similarity");
+      }
 
       return {
         chunk,
         score,
         accessReasons: access.accessReasons,
-        matchReasons: access.matchReasons,
+        matchReasons,
         matchedMemorySkills: access.matchedMemorySkills,
       };
     })
