@@ -18,6 +18,8 @@ import {
 import { checkAgentCapabilityDynamic } from "../agents/agentCapabilityGuard";
 import { resolveRuntimeMemoriesForAgent } from "../memory/memoryRuntimeScopeResolver";
 import { buildRuntimeMemoryContextBlock } from "../memory/runtimeMemoryContextFormatter";
+import { buildRuntimeRagContextBlock } from "../memory/runtimeRagContextFormatter";
+import { searchSemanticMemoryChunks } from "../embeddings/semanticMemorySearchService";
 
 type WhatsAppHandleResult = {
   shouldReply: boolean;
@@ -40,10 +42,6 @@ function getChatId(msg: any): string {
 }
 
 function getSenderJid(msg: any): string {
-  /**
-   * Untuk group chat, sender asli biasanya ada di participant.
-   * Untuk personal chat, sender biasanya ada di remoteJid.
-   */
   return msg.key.participant || msg.key.remoteJid || "";
 }
 
@@ -61,29 +59,32 @@ function extractAgentNameFromMessage(message: string) {
   return agentMentionMatch?.[1] || "design-agent";
 }
 
-function buildWhatsAppSystemPrompt(
-  agentName: string,
-  memoryContextBlock?: string
-) {
+function buildWhatsAppSystemPrompt(input: {
+  agentName: string;
+  memoryContextBlock?: string;
+  ragContextBlock?: string;
+}) {
   return [
-    `You are ${agentName}.`,
+    `You are ${input.agentName}.`,
     "You are replying to a WhatsApp message.",
     "Answer the user's request directly and clearly.",
     "Keep the response concise, practical, and easy to read on mobile.",
     "Return only the final answer.",
     "Do not expose internal reasoning.",
     "Do not include bullet-point analysis, constraints, self-checks, labels, or hidden planning.",
-    "Do not include metadata, runtime details, provider details, model details, governance details, or memory details.",
-    "Do not include labels such as Topic, Language, Constraint, Format, Analysis, Reasoning, Final, Output, Answer, Style, Tone, Target audience, or Content.",
-    "Do not mention Memory Vault, retrieval, memory IDs, memory score, sourceRef, runtimeInjectable, or RAG.",
+    "Do not include metadata, runtime details, provider details, model details, governance details, memory details, RAG details, chunk IDs, scores, embeddings, vector search, or source references.",
+    "Do not include labels such as Topic, Language, Constraint, Format, Analysis, Reasoning, Final, Output, Answer, Style, Tone, Target audience, Platform, Direct answer, or Content.",
+    "Do not mention Memory Vault, retrieval, semantic search, chunks, embeddings, vectors, memory IDs, memory score, sourceRef, runtimeInjectable, or RAG.",
     "If the user asks for a short answer, keep it short.",
     "If the user asks for one sentence, return exactly one sentence and nothing else.",
     "If runtime memory context is provided, use it silently only when it improves relevance.",
-    memoryContextBlock
+    "If runtime RAG context is provided, use it silently only when it improves relevance.",
+    "If any context is unrelated to the user's request, ignore that context.",
+    input.memoryContextBlock
       ? [
         "",
         "Scoped runtime memory:",
-        memoryContextBlock,
+        input.memoryContextBlock,
         "",
         "Important memory handling rules:",
         "1. Use memory only as background context.",
@@ -91,6 +92,21 @@ function buildWhatsAppSystemPrompt(
         "3. Do not say that memory was retrieved.",
         "4. Do not reveal Memory Vault internals.",
         "5. If memory is unrelated, ignore it.",
+        "6. The WhatsApp reply must remain short and user-facing only.",
+      ].join("\n")
+      : "",
+    input.ragContextBlock
+      ? [
+        "",
+        "Scoped runtime RAG context:",
+        input.ragContextBlock,
+        "",
+        "Important RAG handling rules:",
+        "1. Use RAG chunks only as background context.",
+        "2. Do not mention chunk IDs, scores, embeddings, vector search, retrieval, semantic search, or RAG internals.",
+        "3. Do not quote RAG metadata.",
+        "4. Do not say that chunks were retrieved.",
+        "5. If RAG context is unrelated, ignore it.",
         "6. The WhatsApp reply must remain short and user-facing only.",
       ].join("\n")
       : "",
@@ -131,14 +147,6 @@ export async function handleIncomingWhatsAppMessage(
   const senderJid = getSenderJid(msg);
   const senderNumber = normalizeWaNumber(senderJid);
 
-  /**
-   * PENTING:
-   * Kalau PROCESS_FROM_ME=false, pesan dari bot sendiri langsung diabaikan.
-   * Ini mencegah:
-   * - bot memproses balasannya sendiri
-   * - terminal penuh oleh text output panjang
-   * - loop reply tanpa akhir
-   */
   if (fromMe && !env.PROCESS_FROM_ME) {
     logger.wa(`Outgoing/self message ignored. Message ID: ${messageId}`);
     return { shouldReply: false };
@@ -165,10 +173,6 @@ export async function handleIncomingWhatsAppMessage(
     return { shouldReply: false };
   }
 
-  /**
-   * Security gate:
-   * Nomor / ID sender harus ada di ALLOWED_WA_NUMBERS.
-   */
   if (!isAuthorized(senderNumber)) {
     logger.security(`Unauthorized WhatsApp access: ${senderNumber}`);
 
@@ -194,15 +198,6 @@ export async function handleIncomingWhatsAppMessage(
   try {
     const agentName = extractAgentNameFromMessage(text);
 
-    /**
-     * Capability boundary check.
-     *
-     * Jika request tidak sesuai contract agent:
-     * - jangan panggil routeTask()
-     * - jangan panggil LLM runtime
-     * - tetap create task audit governance blocked
-     * - balas refusal halus ke WhatsApp
-     */
     const capabilityCheck = await checkAgentCapabilityDynamic({
       agentName,
       inputText: text,
@@ -242,21 +237,12 @@ export async function handleIncomingWhatsAppMessage(
       };
     }
 
-    /**
-     * Phase 8.46.3
-     * WhatsApp memory context injection.
-     *
-     * Important:
-     * - shorter than manual/widget context
-     * - injected only into system prompt
-     * - never sent as metadata to WhatsApp user
-     */
     const memoryContext = await resolveRuntimeMemoriesForAgent({
       agentName,
       inputText: text,
       source: "whatsapp",
       matchedSkillNames: capabilityCheck.matchedSkillNames,
-      maxResults: 4,
+      maxResults: 5,
     });
 
     const runtimeMemoryContext = buildRuntimeMemoryContextBlock(memoryContext, {
@@ -282,26 +268,58 @@ export async function handleIncomingWhatsAppMessage(
     }
 
     /**
-     * Keep existing WhatsApp orchestration as safe fallback.
-     * routeTask() tetap bikin task, update agent status, dan broadcast event.
+     * Phase 8.50.5
+     * WhatsApp Runtime RAG context injection.
+     *
+     * Important:
+     * - Smaller than manual runtime context.
+     * - Uses same semantic retrieval guard.
+     * - Injected only into WhatsApp system prompt.
+     * - Never exposed to WhatsApp user.
      */
+    const semanticRagSearch = await searchSemanticMemoryChunks({
+      query: text,
+      agentName,
+      matchedSkillNames: capabilityCheck.matchedSkillNames,
+      allowedScopes: ["agent", "skill", "project", "global"],
+      allowedSensitivityLevels: ["normal", "internal"],
+      topK: 4,
+      minScore: 0,
+    });
+
+    const runtimeRagContext = buildRuntimeRagContextBlock(semanticRagSearch, {
+      maxItems: 2,
+      maxTotalChars: 900,
+      maxCharsPerChunk: 320,
+    });
+
+    logger.wa(
+      `WhatsApp runtime RAG context: injected=${runtimeRagContext.summary.retrieved} items=${runtimeRagContext.summary.itemCount} chars=${runtimeRagContext.summary.totalChars}`
+    );
+
+    if (runtimeRagContext.summary.topResults.length > 0) {
+      logger.wa(
+        `WhatsApp RAG top results: ${runtimeRagContext.summary.topResults
+          .map(
+            (item) =>
+              `${item.agentName}:${item.memoryType}:${item.scope}:${item.score}`
+          )
+          .join(", ")}`
+      );
+    }
+
     const fallbackResult = await routeTask(text, {
       source: "whatsapp",
       senderId: senderNumber,
     });
 
-    /**
-     * Runtime adapter output:
-     * - WhatsApp belum punya model selector, jadi pakai auto/default registry.
-     * - Kalau provider real sukses, final reply pakai output adapter.
-     * - Kalau provider mock/error, fallback ke routeTask lama.
-     */
     const runtimeResult = await runLlmCompletion({
       agentName,
-      systemPrompt: buildWhatsAppSystemPrompt(
+      systemPrompt: buildWhatsAppSystemPrompt({
         agentName,
-        runtimeMemoryContext.contextBlock
-      ),
+        memoryContextBlock: runtimeMemoryContext.contextBlock,
+        ragContextBlock: runtimeRagContext.contextBlock,
+      }),
       inputText: text,
       preference: {
         provider: "auto",
@@ -324,6 +342,7 @@ export async function handleIncomingWhatsAppMessage(
       runtimeResult,
       capabilityCheck,
       runtimeMemoryContext: runtimeMemoryContext.summary,
+      runtimeRagContext: runtimeRagContext.summary,
     });
 
     logger.wa(
