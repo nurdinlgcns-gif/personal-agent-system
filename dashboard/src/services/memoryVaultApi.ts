@@ -21,8 +21,35 @@ export type MemoryVaultItem = {
   createdAt: string;
 };
 
+export type MemoryVaultChunk = {
+  id: string;
+  memoryId: string;
+  agentId: string;
+  agentName: string;
+  chunkIndex: number;
+  content: string;
+  charCount: number;
+  tokenEstimate: number;
+  memoryType: string;
+  scope: string;
+  ownerAgentName?: string | null;
+  allowedAgents: string[];
+  linkedSkillNames: string[];
+  sensitivityLevel: string;
+  sourceType: string;
+  sourceRef?: string | null;
+  embeddingStatus: string;
+  embeddingModel?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type MemoryVaultResponse = {
   memories: MemoryVaultItem[];
+};
+
+export type MemoryVaultChunksResponse = {
+  chunks: MemoryVaultChunk[];
 };
 
 export type MemoryVaultSummary = {
@@ -33,10 +60,78 @@ export type MemoryVaultSummary = {
   byScope: Record<string, number>;
   ragReadyCount: number;
   runtimeInjectableCount: number;
+
+  totalChunks?: number;
+  chunkedMemoryCount?: number;
+  pendingEmbeddings?: number;
+  embeddedChunks?: number;
+  failedEmbeddings?: number;
+  totalChunkChars?: number;
+  totalChunkTokenEstimate?: number;
+  chunksByAgent?: Record<string, number>;
+  chunksByType?: Record<string, number>;
+  chunksByScope?: Record<string, number>;
 };
 
 export type MemoryVaultSummaryResponse = {
   summary: MemoryVaultSummary;
+};
+
+export type RebuildMemoryChunksResponse = {
+  processedMemoryCount: number;
+  createdChunkCount: number;
+  skippedMemoryCount: number;
+  memoryResults: Array<{
+    memoryId: string;
+    agentName: string;
+    type: string;
+    createdChunks: number;
+    skipped: boolean;
+    reason?: string;
+  }>;
+};
+
+export type EmbeddingProviderInfo = {
+  id: string;
+  type: string;
+  model: string;
+  dimensions: number;
+  enabled: boolean;
+  description: string;
+};
+
+export type SemanticMemorySearchResultItem = {
+  chunkId: string;
+  memoryId: string;
+  agentId: string;
+  agentName: string;
+  chunkIndex: number;
+  content: string;
+  score: number;
+
+  charCount: number;
+  tokenEstimate: number;
+  memoryType: string;
+  scope: string;
+  ownerAgentName?: string | null;
+  allowedAgents: string[];
+  linkedSkillNames: string[];
+  sensitivityLevel: string;
+  sourceType: string;
+  sourceRef?: string | null;
+  embeddingStatus: string;
+  embeddingModel?: string | null;
+};
+
+export type SemanticMemorySearchResponse = {
+  provider: EmbeddingProviderInfo;
+  query: string;
+  agentName?: string;
+  totalCandidates: number;
+  returnedCount: number;
+  topK: number;
+  minScore: number;
+  results: SemanticMemorySearchResultItem[];
 };
 
 async function readErrorMessage(response: Response, fallbackMessage: string) {
@@ -92,4 +187,75 @@ export async function fetchMemoryVaultSummary() {
 
   const data: MemoryVaultSummaryResponse = await response.json();
   return data.summary;
+}
+
+export async function fetchMemoryVaultChunks() {
+  const response = await fetch(`${API_BASE_URL}/api/memory-vault/chunks`);
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to fetch Memory Vault chunks"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const data: MemoryVaultChunksResponse = await response.json();
+  return data.chunks;
+}
+
+export async function rebuildMemoryVaultChunks(payload?: {
+  memoryId?: string;
+  maxChunkChars?: number;
+  overlapChars?: number;
+  minChunkChars?: number;
+}) {
+  const response = await fetch(`${API_BASE_URL}/api/memory-vault/chunks/rebuild`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload || {}),
+  });
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to rebuild Memory Vault chunks"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const data: RebuildMemoryChunksResponse = await response.json();
+  return data;
+}
+
+export async function searchSemanticMemory(payload: {
+  query: string;
+  agentName?: string;
+  topK?: number;
+  minScore?: number;
+  allowedSensitivityLevels?: string[];
+}) {
+  const response = await fetch(`${API_BASE_URL}/api/memory-vault/search`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to run semantic memory search"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const data: SemanticMemorySearchResponse = await response.json();
+  return data;
 }

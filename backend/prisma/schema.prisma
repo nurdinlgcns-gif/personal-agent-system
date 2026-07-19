@@ -90,6 +90,42 @@ model Memory {
   createdAt DateTime @default(now())
 
   agent     Agent    @relation(fields: [agentId], references: [id])
+  chunks    MemoryChunk[]
+}
+
+model MemoryChunk {
+  id        String   @id @default(uuid())
+  memoryId  String
+  agentId   String
+  agentName String
+
+  chunkIndex Int
+  content    String
+  charCount  Int
+  tokenEstimate Int
+
+  memoryType        String
+  scope             String
+  ownerAgentName    String?
+  allowedAgentsJson String @default("[]")
+  linkedSkillNamesJson String @default("[]")
+  sensitivityLevel  String @default("normal")
+  sourceType        String @default("manual")
+  sourceRef         String?
+
+  embeddingStatus String @default("pending")
+  embeddingModel  String?
+  embeddingVectorJson String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memory Memory @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+
+  @@index([memoryId])
+  @@index([agentName])
+  @@index([scope])
+  @@index([embeddingStatus])
 }
 
 model Skill {
