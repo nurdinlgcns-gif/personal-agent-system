@@ -1,5 +1,6 @@
 import type { TaskSnapshot } from "../../types/api";
 import { RuntimeMemoryTaskMetadata } from "../runtime/RuntimeMemoryTaskMetadata";
+import { RuntimeRagTaskMetadata } from "../runtime/RuntimeRagTaskMetadata";
 
 export type OfficeDetailItem = {
   type: "agent" | "source" | "skill" | "output" | "server" | "task";
@@ -17,6 +18,7 @@ export type OfficeDetailItem = {
   | "red";
   body?: string;
   runtimeMemoryTask?: TaskSnapshot | null;
+  runtimeRagTask?: TaskSnapshot | null;
   metadata: Array<{
     label: string;
     value: string;
@@ -93,6 +95,13 @@ export function OfficeDetailPanel({ item, onClose }: OfficeDetailPanelProps) {
         <div className="office-detail-body">
           <strong>Runtime Memory</strong>
           <RuntimeMemoryTaskMetadata task={item.runtimeMemoryTask} />
+        </div>
+      )}
+
+      {item.runtimeRagTask && (
+        <div className="office-detail-body">
+          <strong>Runtime RAG</strong>
+          <RuntimeRagTaskMetadata task={item.runtimeRagTask} />
         </div>
       )}
 

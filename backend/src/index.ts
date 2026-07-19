@@ -133,6 +133,7 @@ function buildCapabilityBoundaryResponse(input: {
   );
 }
 
+
 app.post("/tasks", async (req, res) => {
   try {
     const inputText = extractInputText(req.body);
@@ -219,16 +220,6 @@ app.post("/tasks", async (req, res) => {
       `Manual runtime memory context: injected=${runtimeMemoryContext.summary.injected} items=${runtimeMemoryContext.summary.itemCount} chars=${runtimeMemoryContext.summary.totalChars}`
     );
 
-    /**
-     * Phase 8.50.2
-     * Runtime RAG retrieval is now injected into the Manual LLM prompt.
-     *
-     * Important:
-     * - Manual/Floating Assistant only.
-     * - WhatsApp is not affected in this phase.
-     * - RAG context remains sanitized by runtimeRagContextFormatter.
-     * - Output guardrails still clean the final answer.
-     */
     const semanticRagSearch = await searchSemanticMemoryChunks({
       query: inputText,
       agentName,
@@ -249,20 +240,10 @@ app.post("/tasks", async (req, res) => {
       `Manual runtime RAG context: injected=${runtimeRagContext.summary.retrieved} items=${runtimeRagContext.summary.itemCount} chars=${runtimeRagContext.summary.totalChars}`
     );
 
-    /*
-      Keep existing orchestrator behavior as safe fallback.
-      This also preserves current task creation, socket events, and routing behavior.
-    */
     const fallbackResult = await routeTask(inputText, {
       source: "manual",
     });
 
-    /*
-      Adapter runtime output:
-      - If real provider succeeds: use real output.
-      - If provider returns mock/fallback: preserve old routeTask output.
-      - Runtime memory context and RAG context are both available in system prompt.
-    */
     const runtimeResult = await runLlmCompletion({
       agentName,
       systemPrompt: buildManualSystemPrompt({
@@ -286,6 +267,7 @@ app.post("/tasks", async (req, res) => {
       runtimeResult,
       capabilityCheck,
       runtimeMemoryContext: runtimeMemoryContext.summary,
+      runtimeRagContext: runtimeRagContext.summary,
     });
 
     return res.json({
@@ -370,6 +352,21 @@ type TaskRuntimeMemoryMetadata = {
   runtimeMemorySourcesJson?: string | null;
 };
 
+type TaskRuntimeRagMetadata = {
+  runtimeRagPreviewOnly?: boolean | null;
+  runtimeRagRetrieved?: boolean | null;
+  runtimeRagQuery?: string | null;
+  runtimeRagItemCount?: number | null;
+  runtimeRagTotalChars?: number | null;
+  runtimeRagChunkIdsJson?: string | null;
+  runtimeRagMemoryIdsJson?: string | null;
+  runtimeRagTypesJson?: string | null;
+  runtimeRagScopesJson?: string | null;
+  runtimeRagSourcesJson?: string | null;
+  runtimeRagScoresJson?: string | null;
+  runtimeRagTopResultsJson?: string | null;
+};
+
 app.get("/tasks/recent", async (req, res) => {
   try {
     const rawLimit = Number(req.query.limit || 10);
@@ -381,7 +378,8 @@ app.get("/tasks/recent", async (req, res) => {
       tasks: tasks.map((task) => {
         const taskWithMetadata = task as typeof task &
           TaskGovernanceMetadata &
-          TaskRuntimeMemoryMetadata;
+          TaskRuntimeMemoryMetadata &
+          TaskRuntimeRagMetadata;
 
         return {
           id: task.id,
@@ -426,6 +424,31 @@ app.get("/tasks/recent", async (req, res) => {
             taskWithMetadata.runtimeMemoryScopesJson ?? null,
           runtimeMemorySourcesJson:
             taskWithMetadata.runtimeMemorySourcesJson ?? null,
+
+          runtimeRagPreviewOnly:
+            taskWithMetadata.runtimeRagPreviewOnly ?? null,
+          runtimeRagRetrieved:
+            taskWithMetadata.runtimeRagRetrieved ?? null,
+          runtimeRagQuery:
+            taskWithMetadata.runtimeRagQuery ?? null,
+          runtimeRagItemCount:
+            taskWithMetadata.runtimeRagItemCount ?? null,
+          runtimeRagTotalChars:
+            taskWithMetadata.runtimeRagTotalChars ?? null,
+          runtimeRagChunkIdsJson:
+            taskWithMetadata.runtimeRagChunkIdsJson ?? null,
+          runtimeRagMemoryIdsJson:
+            taskWithMetadata.runtimeRagMemoryIdsJson ?? null,
+          runtimeRagTypesJson:
+            taskWithMetadata.runtimeRagTypesJson ?? null,
+          runtimeRagScopesJson:
+            taskWithMetadata.runtimeRagScopesJson ?? null,
+          runtimeRagSourcesJson:
+            taskWithMetadata.runtimeRagSourcesJson ?? null,
+          runtimeRagScoresJson:
+            taskWithMetadata.runtimeRagScoresJson ?? null,
+          runtimeRagTopResultsJson:
+            taskWithMetadata.runtimeRagTopResultsJson ?? null,
 
           createdAt: task.createdAt,
           updatedAt: task.updatedAt,

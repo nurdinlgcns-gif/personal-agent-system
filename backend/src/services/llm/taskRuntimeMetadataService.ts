@@ -1,6 +1,7 @@
 import { prisma } from "../../db/prisma";
 import type { AgentCapabilityCheckResult } from "../agents/agentCapabilityGuard";
 import type { RuntimeMemoryContextSummary } from "../memory/runtimeMemoryContextFormatter";
+import type { RuntimeRagContextSummary } from "../memory/runtimeRagContextFormatter";
 import type { LlmResponse } from "./llmTypes";
 
 export type StoreTaskRuntimeResultInput = {
@@ -11,6 +12,7 @@ export type StoreTaskRuntimeResultInput = {
   runtimeResult: LlmResponse;
   capabilityCheck?: AgentCapabilityCheckResult;
   runtimeMemoryContext?: RuntimeMemoryContextSummary | null;
+  runtimeRagContext?: RuntimeRagContextSummary | null;
 };
 
 export type StoreGovernanceBlockedTaskInput = {
@@ -27,6 +29,10 @@ function removeLeadingAgentMention(inputText: string) {
 
 function stringifyJson(value: unknown) {
   return JSON.stringify(value ?? []);
+}
+
+function asRecord(value: Record<string, unknown>) {
+  return value;
 }
 
 function buildGovernanceUpdateData(capabilityCheck?: AgentCapabilityCheckResult) {
@@ -80,6 +86,29 @@ function buildRuntimeMemoryUpdateData(
   };
 }
 
+function buildRuntimeRagUpdateData(
+  runtimeRagContext?: RuntimeRagContextSummary | null
+) {
+  if (!runtimeRagContext) {
+    return {};
+  }
+
+  return {
+    runtimeRagPreviewOnly: runtimeRagContext.previewOnly,
+    runtimeRagRetrieved: runtimeRagContext.retrieved,
+    runtimeRagQuery: runtimeRagContext.query || null,
+    runtimeRagItemCount: runtimeRagContext.itemCount,
+    runtimeRagTotalChars: runtimeRagContext.totalChars,
+    runtimeRagChunkIdsJson: stringifyJson(runtimeRagContext.usedChunkIds),
+    runtimeRagMemoryIdsJson: stringifyJson(runtimeRagContext.usedMemoryIds),
+    runtimeRagTypesJson: stringifyJson(runtimeRagContext.usedMemoryTypes),
+    runtimeRagScopesJson: stringifyJson(runtimeRagContext.usedMemoryScopes),
+    runtimeRagSourcesJson: stringifyJson(runtimeRagContext.usedMemorySources),
+    runtimeRagScoresJson: stringifyJson(runtimeRagContext.scores),
+    runtimeRagTopResultsJson: stringifyJson(runtimeRagContext.topResults),
+  };
+}
+
 export async function storeLatestTaskRuntimeResult(
   input: StoreTaskRuntimeResultInput
 ) {
@@ -109,22 +138,25 @@ export async function storeLatestTaskRuntimeResult(
     return null;
   }
 
+  const updateData = asRecord({
+    outputText: input.outputText,
+    runtimeProviderId: input.runtimeResult.providerId || null,
+    runtimeProviderName: input.runtimeResult.providerName || null,
+    runtimeProviderType:
+      input.runtimeResult.providerType || input.runtimeResult.provider,
+    runtimeModel: input.runtimeResult.model,
+    runtimeMode: input.runtimeResult.mode,
+    runtimeResolvedFrom: input.runtimeResult.resolvedFrom || null,
+    ...buildGovernanceUpdateData(input.capabilityCheck),
+    ...buildRuntimeMemoryUpdateData(input.runtimeMemoryContext),
+    ...buildRuntimeRagUpdateData(input.runtimeRagContext),
+  });
+
   return prisma.task.update({
     where: {
       id: latestMatchingTask.id,
     },
-    data: {
-      outputText: input.outputText,
-      runtimeProviderId: input.runtimeResult.providerId || null,
-      runtimeProviderName: input.runtimeResult.providerName || null,
-      runtimeProviderType:
-        input.runtimeResult.providerType || input.runtimeResult.provider,
-      runtimeModel: input.runtimeResult.model,
-      runtimeMode: input.runtimeResult.mode,
-      runtimeResolvedFrom: input.runtimeResult.resolvedFrom || null,
-      ...buildGovernanceUpdateData(input.capabilityCheck),
-      ...buildRuntimeMemoryUpdateData(input.runtimeMemoryContext),
-    },
+    data: updateData as never,
   });
 }
 
@@ -143,21 +175,37 @@ export async function storeGovernanceBlockedTask(
 
   const cleanedInputText = removeLeadingAgentMention(input.inputText);
 
+  const createData = asRecord({
+    agentId: agent.id,
+    inputText: cleanedInputText,
+    outputText: input.outputText,
+    status: "done",
+    source: input.source,
+    ...buildGovernanceUpdateData(input.capabilityCheck),
+
+    runtimeMemoryInjected: false,
+    runtimeMemoryItemCount: 0,
+    runtimeMemoryTotalChars: 0,
+    runtimeMemoryIdsJson: stringifyJson([]),
+    runtimeMemoryTypesJson: stringifyJson([]),
+    runtimeMemoryScopesJson: stringifyJson([]),
+    runtimeMemorySourcesJson: stringifyJson([]),
+
+    runtimeRagPreviewOnly: true,
+    runtimeRagRetrieved: false,
+    runtimeRagQuery: null,
+    runtimeRagItemCount: 0,
+    runtimeRagTotalChars: 0,
+    runtimeRagChunkIdsJson: stringifyJson([]),
+    runtimeRagMemoryIdsJson: stringifyJson([]),
+    runtimeRagTypesJson: stringifyJson([]),
+    runtimeRagScopesJson: stringifyJson([]),
+    runtimeRagSourcesJson: stringifyJson([]),
+    runtimeRagScoresJson: stringifyJson([]),
+    runtimeRagTopResultsJson: stringifyJson([]),
+  });
+
   return prisma.task.create({
-    data: {
-      agentId: agent.id,
-      inputText: cleanedInputText,
-      outputText: input.outputText,
-      status: "done",
-      source: input.source,
-      ...buildGovernanceUpdateData(input.capabilityCheck),
-      runtimeMemoryInjected: false,
-      runtimeMemoryItemCount: 0,
-      runtimeMemoryTotalChars: 0,
-      runtimeMemoryIdsJson: stringifyJson([]),
-      runtimeMemoryTypesJson: stringifyJson([]),
-      runtimeMemoryScopesJson: stringifyJson([]),
-      runtimeMemorySourcesJson: stringifyJson([]),
-    },
+    data: createData as never,
   });
 }

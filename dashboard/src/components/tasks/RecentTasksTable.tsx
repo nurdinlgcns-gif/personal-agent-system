@@ -1,5 +1,6 @@
 import type { TaskSnapshot } from "../../types/api";
 import { RuntimeMemoryTaskMetadata } from "../runtime/RuntimeMemoryTaskMetadata";
+import { RuntimeRagTaskMetadata } from "../runtime/RuntimeRagTaskMetadata";
 
 type RecentTasksTableProps = {
   tasks: TaskSnapshot[];
@@ -119,6 +120,15 @@ export function RecentTasksTable({
                         Governance: {governanceLabel}
                       </span>
                     )}
+
+                    {typeof task.runtimeRagRetrieved === "boolean" && (
+                      <span>
+                        RAG:{" "}
+                        {task.runtimeRagRetrieved
+                          ? `${task.runtimeRagItemCount ?? 0} chunks`
+                          : "none"}
+                      </span>
+                    )}
                   </div>
 
                   {task.governanceReason && (
@@ -128,6 +138,7 @@ export function RecentTasksTable({
                   )}
 
                   <RuntimeMemoryTaskMetadata task={task} compact />
+                  <RuntimeRagTaskMetadata task={task} compact />
                 </div>
               </article>
             );

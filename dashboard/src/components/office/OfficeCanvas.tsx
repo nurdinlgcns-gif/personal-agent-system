@@ -378,6 +378,7 @@ function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
       accent: "blue",
       body: "Tasks from WhatsApp, Manual Console, or backend automation will appear here.",
       runtimeMemoryTask: null,
+      runtimeRagTask: null,
       metadata: [
         {
           label: "Task ID",
@@ -396,19 +397,7 @@ function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
           value: "-",
         },
         {
-          label: "Runtime Type",
-          value: "-",
-        },
-        {
           label: "Runtime Model",
-          value: "-",
-        },
-        {
-          label: "Runtime Mode",
-          value: "-",
-        },
-        {
-          label: "Resolved From",
           value: "-",
         },
         {
@@ -416,7 +405,7 @@ function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
           value: "-",
         },
         {
-          label: "Memory Items",
+          label: "RAG Retrieved",
           value: "-",
         },
       ],
@@ -436,6 +425,7 @@ function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
           : "orange",
     body: task.outputText || "No output preview available yet.",
     runtimeMemoryTask: task,
+    runtimeRagTask: task,
     metadata: [
       {
         label: "Task ID",
@@ -486,10 +476,26 @@ function createTaskDetail(task?: TaskSnapshot): OfficeDetailItem {
             : "-",
       },
       {
-        label: "Memory Chars",
+        label: "RAG Retrieved",
         value:
-          typeof task.runtimeMemoryTotalChars === "number"
-            ? String(task.runtimeMemoryTotalChars)
+          typeof task.runtimeRagRetrieved === "boolean"
+            ? task.runtimeRagRetrieved
+              ? "Yes"
+              : "No"
+            : "-",
+      },
+      {
+        label: "RAG Items",
+        value:
+          typeof task.runtimeRagItemCount === "number"
+            ? String(task.runtimeRagItemCount)
+            : "-",
+      },
+      {
+        label: "RAG Chars",
+        value:
+          typeof task.runtimeRagTotalChars === "number"
+            ? String(task.runtimeRagTotalChars)
             : "-",
       },
       {
@@ -846,6 +852,7 @@ export function OfficeCanvas({
         latestAgentTask?.inputText ||
         "This agent is registered and ready to receive tasks.",
       runtimeMemoryTask: latestAgentTask || null,
+      runtimeRagTask: latestAgentTask || null,
       metadata: [
         {
           label: "Agent ID",
@@ -889,6 +896,7 @@ export function OfficeCanvas({
         `No ${source === "whatsapp" ? "WhatsApp" : "manual"
         } task has been received yet.`,
       runtimeMemoryTask: task || null,
+      runtimeRagTask: task || null,
       metadata: [
         {
           label: "Source",
@@ -925,6 +933,22 @@ export function OfficeCanvas({
         {
           label: "Created",
           value: task ? formatTime(task.createdAt) : "-",
+        },
+        {
+          label: "RAG Retrieved",
+          value:
+            typeof task?.runtimeRagRetrieved === "boolean"
+              ? task.runtimeRagRetrieved
+                ? "Yes"
+                : "No"
+              : "-",
+        },
+        {
+          label: "RAG Items",
+          value:
+            typeof task?.runtimeRagItemCount === "number"
+              ? String(task.runtimeRagItemCount)
+              : "-",
         },
       ],
     });
@@ -975,6 +999,7 @@ export function OfficeCanvas({
             : "yellow",
       body: getOutputPreview(task),
       runtimeMemoryTask: task || null,
+      runtimeRagTask: task || null,
       metadata: [
         {
           label: "Task ID",
@@ -1033,6 +1058,29 @@ export function OfficeCanvas({
           value:
             typeof task?.runtimeMemoryTotalChars === "number"
               ? String(task.runtimeMemoryTotalChars)
+              : "-",
+        },
+        {
+          label: "RAG Retrieved",
+          value:
+            typeof task?.runtimeRagRetrieved === "boolean"
+              ? task.runtimeRagRetrieved
+                ? "Yes"
+                : "No"
+              : "-",
+        },
+        {
+          label: "RAG Items",
+          value:
+            typeof task?.runtimeRagItemCount === "number"
+              ? String(task.runtimeRagItemCount)
+              : "-",
+        },
+        {
+          label: "RAG Chars",
+          value:
+            typeof task?.runtimeRagTotalChars === "number"
+              ? String(task.runtimeRagTotalChars)
               : "-",
         },
       ],

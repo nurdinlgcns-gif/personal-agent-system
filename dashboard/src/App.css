@@ -12,6 +12,7 @@
 @import "./styles/components/runtime-memory-task-metadata.css";
 @import "./styles/components/recent-tasks-memory.css";
 @import "./styles/components/runtime-rag-context-display.css";
+@import "./styles/components/runtime-rag-task-metadata.css";
 @import "./styles/components/agents-governance.css";
 @import "./styles/components/skills-page.css";
 @import "./styles/components/memory-vault.css";

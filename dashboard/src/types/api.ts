@@ -39,6 +39,19 @@ export type TaskSnapshot = {
   runtimeMemoryScopesJson?: string | null;
   runtimeMemorySourcesJson?: string | null;
 
+  runtimeRagPreviewOnly?: boolean | null;
+  runtimeRagRetrieved?: boolean | null;
+  runtimeRagQuery?: string | null;
+  runtimeRagItemCount?: number | null;
+  runtimeRagTotalChars?: number | null;
+  runtimeRagChunkIdsJson?: string | null;
+  runtimeRagMemoryIdsJson?: string | null;
+  runtimeRagTypesJson?: string | null;
+  runtimeRagScopesJson?: string | null;
+  runtimeRagSourcesJson?: string | null;
+  runtimeRagScoresJson?: string | null;
+  runtimeRagTopResultsJson?: string | null;
+
   createdAt: string;
   updatedAt: string;
 };

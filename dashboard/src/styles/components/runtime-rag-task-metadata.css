@@ -1,0 +1,189 @@
+/* =========================
+   PHASE 8.50.4
+   RUNTIME RAG TASK METADATA
+========================= */
+
+.runtime-rag-task-card {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 14px;
+    font-size: 11px;
+}
+
+.runtime-rag-task-card.active {
+    background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.13), transparent 34%),
+        rgba(2, 6, 23, 0.34);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.runtime-rag-task-card.idle {
+    background: rgba(15, 23, 42, 0.36);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.runtime-rag-task-card.compact {
+    gap: 6px;
+    padding: 8px;
+}
+
+.runtime-rag-task-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+}
+
+.runtime-rag-task-header span {
+    color: #93c5fd;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.runtime-rag-task-header strong {
+    color: #f8fafc;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.runtime-rag-task-query {
+    display: grid;
+    gap: 4px;
+    padding: 8px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.46);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.runtime-rag-task-query span,
+.runtime-rag-task-stats span,
+.runtime-rag-task-pill-group>span {
+    color: #94a3b8;
+    font-size: 9.5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.28px;
+}
+
+.runtime-rag-task-query p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 11px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.runtime-rag-task-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.runtime-rag-task-stats div {
+    display: grid;
+    gap: 3px;
+    padding: 7px;
+    border-radius: 11px;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.runtime-rag-task-stats strong {
+    color: #f8fafc;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.runtime-rag-task-pill-group {
+    display: grid;
+    gap: 5px;
+}
+
+.runtime-rag-task-pill-group div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.runtime-rag-task-pill-group strong {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 7px;
+    color: #bfdbfe;
+    background: rgba(37, 99, 235, 0.14);
+    border: 1px solid rgba(96, 165, 250, 0.22);
+    font-size: 9.5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+}
+
+.runtime-rag-task-top-results {
+    display: grid;
+    gap: 7px;
+}
+
+.runtime-rag-task-top-results article {
+    display: grid;
+    gap: 5px;
+    padding: 9px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.52);
+    border: 1px solid rgba(96, 165, 250, 0.12);
+}
+
+.runtime-rag-task-top-results article div {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.runtime-rag-task-top-results article strong {
+    color: #f8fafc;
+    font-size: 10.5px;
+}
+
+.runtime-rag-task-top-results article span {
+    color: #bfdbfe;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.runtime-rag-task-top-results article p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+:root[data-theme="m365-light"] .runtime-rag-task-card.active {
+    background: #eff6ff;
+    border-color: rgba(37, 99, 235, 0.18);
+}
+
+:root[data-theme="m365-light"] .runtime-rag-task-card.idle,
+:root[data-theme="m365-light"] .runtime-rag-task-query,
+:root[data-theme="m365-light"] .runtime-rag-task-stats div,
+:root[data-theme="m365-light"] .runtime-rag-task-top-results article {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="m365-light"] .runtime-rag-task-header strong,
+:root[data-theme="m365-light"] .runtime-rag-task-stats strong,
+:root[data-theme="m365-light"] .runtime-rag-task-top-results article strong {
+    color: #111827;
+}
+
+:root[data-theme="m365-light"] .runtime-rag-task-query p,
+:root[data-theme="m365-light"] .runtime-rag-task-top-results article p,
+:root[data-theme="m365-light"] .runtime-rag-task-query span,
+:root[data-theme="m365-light"] .runtime-rag-task-stats span,
+:root[data-theme="m365-light"] .runtime-rag-task-pill-group>span {
+    color: #475569;
+}
