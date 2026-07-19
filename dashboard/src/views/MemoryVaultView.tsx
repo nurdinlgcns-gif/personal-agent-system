@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   fetchMemoryVaultChunks,
   fetchMemoryVaultItems,
@@ -78,6 +78,13 @@ function truncateText(value: string, maxLength = 420) {
   }
 
   return `${value.slice(0, maxLength).trim()}...`;
+}
+
+function parseCommaList(value: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function MemoryVaultCard({
@@ -260,6 +267,15 @@ function MemoryFilterPanel({
           Clear filters
         </button>
       </div>
+
+      {hasActiveFilter && (
+        <div className="memory-active-filter-note">
+          Active filter:
+          {searchQuery.trim() && <span>search “{searchQuery.trim()}”</span>}
+          {selectedAgent !== "all" && <span>@{selectedAgent}</span>}
+          {selectedType !== "all" && <span>{selectedType}</span>}
+        </div>
+      )}
     </section>
   );
 }
@@ -325,10 +341,16 @@ function SemanticSearchPanel({
     agentName?: string;
     topK: number;
     minScore: number;
+    matchedSkillNames: string[];
+    allowedScopes: string[];
   }) => Promise<void>;
 }) {
   const [query, setQuery] = useState(defaultQuery);
   const [agentName, setAgentName] = useState("all");
+  const [matchedSkillsText, setMatchedSkillsText] = useState("");
+  const [allowedScopesText, setAllowedScopesText] = useState(
+    "agent, skill, project, global"
+  );
   const [topK, setTopK] = useState(5);
   const [minScore, setMinScore] = useState(0);
 
@@ -338,7 +360,7 @@ function SemanticSearchPanel({
     }
   }, [defaultQuery, query]);
 
-  async function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
     await onRunSearch({
@@ -346,6 +368,8 @@ function SemanticSearchPanel({
       agentName: agentName === "all" ? undefined : agentName,
       topK,
       minScore,
+      matchedSkillNames: parseCommaList(matchedSkillsText),
+      allowedScopes: parseCommaList(allowedScopesText),
     });
   }
 
@@ -388,6 +412,24 @@ function SemanticSearchPanel({
         </label>
 
         <label className="memory-filter-field">
+          <span>Matched skills</span>
+          <input
+            value={matchedSkillsText}
+            onChange={(event) => setMatchedSkillsText(event.target.value)}
+            placeholder="generate_ad_copy, social_caption"
+          />
+        </label>
+
+        <label className="memory-filter-field">
+          <span>Allowed scopes</span>
+          <input
+            value={allowedScopesText}
+            onChange={(event) => setAllowedScopesText(event.target.value)}
+            placeholder="agent, skill, project, global"
+          />
+        </label>
+
+        <label className="memory-filter-field">
           <span>Top K</span>
           <input
             type="number"
@@ -420,7 +462,24 @@ function SemanticSearchPanel({
           <SummaryMetric label="Provider" value={result.provider.id} />
           <SummaryMetric label="Model" value={result.provider.model} />
           <SummaryMetric label="Candidates" value={result.totalCandidates} />
+          <SummaryMetric label="Eligible" value={result.eligibleCandidates} />
           <SummaryMetric label="Returned" value={result.returnedCount} />
+        </div>
+      )}
+
+      {result && (
+        <div className="memory-active-filter-note">
+          Guard:
+          {result.agentName && <span>@{result.agentName}</span>}
+          {result.matchedSkillNames.map((skillName) => (
+            <span key={`matched-${skillName}`}>skill:{skillName}</span>
+          ))}
+          {result.allowedScopes.map((scope) => (
+            <span key={`scope-${scope}`}>scope:{scope}</span>
+          ))}
+          {result.allowedSensitivityLevels.map((level) => (
+            <span key={`sensitivity-${level}`}>sensitivity:{level}</span>
+          ))}
         </div>
       )}
 
@@ -459,6 +518,22 @@ function SemanticSearchPanel({
                 <span>{item.embeddingModel || "embedding"}</span>
                 {item.linkedSkillNames.slice(0, 4).map((skillName) => (
                   <span key={`${item.chunkId}-${skillName}`}>{skillName}</span>
+                ))}
+              </div>
+
+              <div className="memory-semantic-guard-pills">
+                {item.accessReasons.slice(0, 5).map((reason) => (
+                  <span key={`${item.chunkId}-access-${reason}`}>{reason}</span>
+                ))}
+
+                {item.matchReasons.slice(0, 5).map((reason) => (
+                  <span key={`${item.chunkId}-match-${reason}`}>{reason}</span>
+                ))}
+
+                {item.matchedSkillNames.slice(0, 4).map((skillName) => (
+                  <span key={`${item.chunkId}-matched-${skillName}`}>
+                    matched:{skillName}
+                  </span>
                 ))}
               </div>
             </article>
@@ -519,14 +594,17 @@ export function MemoryVaultView() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const chunksByMemoryId = useMemo(() => {
-    return chunks.reduce<Record<string, MemoryVaultChunk[]>>((accumulator, chunk) => {
-      if (!accumulator[chunk.memoryId]) {
-        accumulator[chunk.memoryId] = [];
-      }
+    return chunks.reduce<Record<string, MemoryVaultChunk[]>>(
+      (accumulator, chunk) => {
+        if (!accumulator[chunk.memoryId]) {
+          accumulator[chunk.memoryId] = [];
+        }
 
-      accumulator[chunk.memoryId].push(chunk);
-      return accumulator;
-    }, {});
+        accumulator[chunk.memoryId].push(chunk);
+        return accumulator;
+      },
+      {}
+    );
   }, [chunks]);
 
   const agentOptions = useMemo(() => {
@@ -700,6 +778,8 @@ export function MemoryVaultView() {
     agentName?: string;
     topK: number;
     minScore: number;
+    matchedSkillNames: string[];
+    allowedScopes: string[];
   }) {
     try {
       setIsSemanticSearching(true);
@@ -710,6 +790,8 @@ export function MemoryVaultView() {
         agentName: payload.agentName,
         topK: payload.topK,
         minScore: payload.minScore,
+        matchedSkillNames: payload.matchedSkillNames,
+        allowedScopes: payload.allowedScopes,
         allowedSensitivityLevels: ["normal", "internal"],
       });
 
@@ -750,13 +832,14 @@ export function MemoryVaultView() {
           <h1>Memory Vault Control Center</h1>
           <p>
             Monitor agent-scoped memories, chunking readiness, embeddings,
-            semantic search preview, and future RAG-powered runtime grounding.
+            semantic retrieval guard checks, and future RAG-powered runtime
+            grounding.
           </p>
 
           <div className="memory-vault-badge-row">
             <span>Agent-scoped memory</span>
             <span>Chunk-ready</span>
-            <span>Semantic search preview</span>
+            <span>Semantic guard</span>
             <span>RAG foundation planned</span>
           </div>
         </div>
@@ -987,6 +1070,34 @@ export function MemoryVaultView() {
                         value={selectedMemory.sourceRef || selectedMemory.sourceType}
                       />
                     </div>
+
+                    <div className="memory-scope-pills-panel">
+                      <div>
+                        <span>Allowed Agents</span>
+                        <div className="memory-roadmap-pills">
+                          {selectedMemory.allowedAgents.length > 0 ? (
+                            selectedMemory.allowedAgents.map((agentName) => (
+                              <span key={agentName}>@{agentName}</span>
+                            ))
+                          ) : (
+                            <span>none</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <span>Linked Skills</span>
+                        <div className="memory-roadmap-pills">
+                          {selectedMemory.linkedSkillNames.length > 0 ? (
+                            selectedMemory.linkedSkillNames.map((skillName) => (
+                              <span key={skillName}>{skillName}</span>
+                            ))
+                          ) : (
+                            <span>none</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </section>
 
                   <section className="memory-content-card">
@@ -1021,7 +1132,9 @@ export function MemoryVaultView() {
                           disabled={isRebuildingChunks}
                           onClick={handleRebuildSelectedMemoryChunks}
                         >
-                          {isRebuildingChunks ? "Rebuilding..." : "Rebuild selected"}
+                          {isRebuildingChunks
+                            ? "Rebuilding..."
+                            : "Rebuild selected"}
                         </button>
                       </div>
                     </div>

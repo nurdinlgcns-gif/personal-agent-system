@@ -278,6 +278,18 @@ memoryVaultRoutes.post("/search", async (request, response) => {
     )
     : undefined;
 
+  const matchedSkillNames = Array.isArray(request.body?.matchedSkillNames)
+    ? request.body.matchedSkillNames.filter(
+      (item: unknown): item is string => typeof item === "string"
+    )
+    : undefined;
+
+  const allowedScopes = Array.isArray(request.body?.allowedScopes)
+    ? request.body.allowedScopes.filter(
+      (item: unknown): item is string => typeof item === "string"
+    )
+    : undefined;
+
   const allowedSensitivityLevels = Array.isArray(
     request.body?.allowedSensitivityLevels
   )
@@ -292,6 +304,8 @@ memoryVaultRoutes.post("/search", async (request, response) => {
     topK,
     minScore,
     allowedAgents,
+    matchedSkillNames,
+    allowedScopes,
     allowedSensitivityLevels,
   });
 

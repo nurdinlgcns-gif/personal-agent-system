@@ -116,18 +116,25 @@ export type SemanticMemorySearchResultItem = {
   ownerAgentName?: string | null;
   allowedAgents: string[];
   linkedSkillNames: string[];
+  matchedSkillNames: string[];
   sensitivityLevel: string;
   sourceType: string;
   sourceRef?: string | null;
   embeddingStatus: string;
   embeddingModel?: string | null;
+  accessReasons: string[];
+  matchReasons: string[];
 };
 
 export type SemanticMemorySearchResponse = {
   provider: EmbeddingProviderInfo;
   query: string;
   agentName?: string;
+  matchedSkillNames: string[];
+  allowedScopes: string[];
+  allowedSensitivityLevels: string[];
   totalCandidates: number;
+  eligibleCandidates: number;
   returnedCount: number;
   topK: number;
   minScore: number;
@@ -237,6 +244,8 @@ export async function searchSemanticMemory(payload: {
   agentName?: string;
   topK?: number;
   minScore?: number;
+  matchedSkillNames?: string[];
+  allowedScopes?: string[];
   allowedSensitivityLevels?: string[];
 }) {
   const response = await fetch(`${API_BASE_URL}/api/memory-vault/search`, {
