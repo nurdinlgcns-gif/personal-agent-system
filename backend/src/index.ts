@@ -21,10 +21,13 @@ import {
   storeLatestTaskRuntimeResult,
 } from "./services/llm/taskRuntimeMetadataService";
 import { checkAgentCapabilityDynamic } from "./services/agents/agentCapabilityGuard";
-validateEnv();
 import { resolveRuntimeMemoriesForAgent } from "./services/memory/memoryRuntimeScopeResolver";
 import { buildRuntimeMemoryContextBlock } from "./services/memory/runtimeMemoryContextFormatter";
+import { buildRuntimeRagContextBlock } from "./services/memory/runtimeRagContextFormatter";
+import { searchSemanticMemoryChunks } from "./services/embeddings/semanticMemorySearchService";
 import { formatManualRuntimeOutput } from "./services/llm/manualRuntimeOutputGuardrails";
+
+validateEnv();
 
 const app = express();
 
@@ -36,7 +39,7 @@ app.use("/api/llm/registry", llmProviderRegistryRoutes);
 app.use("/api/agent-governance", agentGovernanceRoutes);
 app.use("/api/memory-vault", memoryVaultRoutes);
 
-app.get("/health", (req, res) => {
+app.get("/health", (_req, res) => {
   res.json({
     app: "personal-agent-system",
     status: "ok",
@@ -68,9 +71,13 @@ function extractAgentNameFromMessage(message: string) {
   return agentMentionMatch?.[1] || "design-agent";
 }
 
-function buildManualSystemPrompt(agentName: string, memoryContextBlock?: string) {
+function buildManualSystemPrompt(input: {
+  agentName: string;
+  memoryContextBlock?: string;
+  ragContextBlock?: string;
+}) {
   return [
-    `You are ${agentName}.`,
+    `You are ${input.agentName}.`,
     "Answer the user's request directly and clearly.",
     "Keep the response practical and useful.",
     "Return only the final answer.",
@@ -78,13 +85,15 @@ function buildManualSystemPrompt(agentName: string, memoryContextBlock?: string)
     "Do not include bullet-point analysis, constraints, self-checks, labels, or hidden planning.",
     "Do not include lines such as Style, Constraint, Target audience, Tone, Content, Direct answer only, or Language matches.",
     "If the user requests a short answer, keep it short.",
-    "Never mention internal runtime metadata, provider metadata, governance metadata, or memory retrieval metadata.",
+    "Never mention internal runtime metadata, provider metadata, governance metadata, memory retrieval metadata, RAG metadata, chunk IDs, scores, embeddings, vector search, or source references.",
     "If runtime memory context is provided, use it silently only when it improves relevance.",
-    memoryContextBlock
+    "If runtime RAG context is provided, use it silently only when it improves relevance.",
+    "If any context is unrelated to the user's request, ignore that context.",
+    input.memoryContextBlock
       ? [
         "",
         "Scoped runtime memory:",
-        memoryContextBlock,
+        input.memoryContextBlock,
         "",
         "Important memory handling rules:",
         "1. Use memory only as background context.",
@@ -92,6 +101,21 @@ function buildManualSystemPrompt(agentName: string, memoryContextBlock?: string)
         "3. Do not say that memory was retrieved.",
         "4. Do not reveal Memory Vault internals.",
         "5. If memory is unrelated, ignore it.",
+      ].join("\n")
+      : "",
+    input.ragContextBlock
+      ? [
+        "",
+        "Scoped runtime RAG context:",
+        input.ragContextBlock,
+        "",
+        "Important RAG handling rules:",
+        "1. Use RAG chunks only as background context.",
+        "2. Do not mention chunk IDs, scores, embeddings, vector search, retrieval, semantic search, or RAG internals.",
+        "3. Do not quote RAG metadata.",
+        "4. Do not say that chunks were retrieved.",
+        "5. If RAG context is unrelated, ignore it.",
+        "6. Keep the final answer user-facing only.",
       ].join("\n")
       : "",
   ]
@@ -129,14 +153,6 @@ app.post("/tasks", async (req, res) => {
 
     const agentName = extractAgentNameFromMessage(inputText);
 
-    /**
-     * Phase 8.38.2
-     * Manual task capability boundary.
-     *
-     * If the target agent is not allowed to handle the request,
-     * return a polite refusal and DO NOT call routeTask() or the LLM runtime.
-     * This keeps agent behavior aligned with its declared contract.
-     */
     const capabilityCheck = await checkAgentCapabilityDynamic({
       agentName,
       inputText,
@@ -166,6 +182,7 @@ app.post("/tasks", async (req, res) => {
         runtimeProvider: null,
         memoryContext: null,
         runtimeMemoryContext: null,
+        runtimeRagContext: null,
         capabilityBoundary: {
           allowed: capabilityCheck.allowed,
           agentName: capabilityCheck.agentName,
@@ -175,6 +192,8 @@ app.post("/tasks", async (req, res) => {
           matchedDeniedKeywords: capabilityCheck.matchedDeniedKeywords,
           matchedSoftAllowedKeywords: capabilityCheck.matchedSoftAllowedKeywords,
           matchedSmallTalkKeywords: capabilityCheck.matchedSmallTalkKeywords,
+          matchedSkillNames: capabilityCheck.matchedSkillNames,
+          matchedSkillSignals: capabilityCheck.matchedSkillSignals,
           suggestedAgents: capabilityCheck.suggestedAgents,
         },
       });
@@ -200,6 +219,36 @@ app.post("/tasks", async (req, res) => {
       `Manual runtime memory context: injected=${runtimeMemoryContext.summary.injected} items=${runtimeMemoryContext.summary.itemCount} chars=${runtimeMemoryContext.summary.totalChars}`
     );
 
+    /**
+     * Phase 8.50.2
+     * Runtime RAG retrieval is now injected into the Manual LLM prompt.
+     *
+     * Important:
+     * - Manual/Floating Assistant only.
+     * - WhatsApp is not affected in this phase.
+     * - RAG context remains sanitized by runtimeRagContextFormatter.
+     * - Output guardrails still clean the final answer.
+     */
+    const semanticRagSearch = await searchSemanticMemoryChunks({
+      query: inputText,
+      agentName,
+      matchedSkillNames: capabilityCheck.matchedSkillNames,
+      allowedScopes: ["agent", "skill", "project", "global"],
+      allowedSensitivityLevels: ["normal", "internal"],
+      topK: 5,
+      minScore: 0,
+    });
+
+    const runtimeRagContext = buildRuntimeRagContextBlock(semanticRagSearch, {
+      maxItems: 3,
+      maxTotalChars: 1400,
+      maxCharsPerChunk: 420,
+    });
+
+    logger.task(
+      `Manual runtime RAG context: injected=${runtimeRagContext.summary.retrieved} items=${runtimeRagContext.summary.itemCount} chars=${runtimeRagContext.summary.totalChars}`
+    );
+
     /*
       Keep existing orchestrator behavior as safe fallback.
       This also preserves current task creation, socket events, and routing behavior.
@@ -212,13 +261,15 @@ app.post("/tasks", async (req, res) => {
       Adapter runtime output:
       - If real provider succeeds: use real output.
       - If provider returns mock/fallback: preserve old routeTask output.
+      - Runtime memory context and RAG context are both available in system prompt.
     */
     const runtimeResult = await runLlmCompletion({
       agentName,
-      systemPrompt: buildManualSystemPrompt(
+      systemPrompt: buildManualSystemPrompt({
         agentName,
-        runtimeMemoryContext.contextBlock
-      ),
+        memoryContextBlock: runtimeMemoryContext.contextBlock,
+        ragContextBlock: runtimeRagContext.contextBlock,
+      }),
       inputText,
       preference: modelPreference,
     });
@@ -242,6 +293,7 @@ app.post("/tasks", async (req, res) => {
       task: updatedTaskWithRuntimeMetadata,
       memoryContext,
       runtimeMemoryContext: runtimeMemoryContext.summary,
+      runtimeRagContext: runtimeRagContext.summary,
       runtimeProvider: {
         providerId: runtimeResult.providerId || null,
         providerName: runtimeResult.providerName || runtimeResult.provider,
@@ -258,6 +310,10 @@ app.post("/tasks", async (req, res) => {
         confidence: capabilityCheck.confidence,
         matchedAllowedKeywords: capabilityCheck.matchedAllowedKeywords,
         matchedDeniedKeywords: capabilityCheck.matchedDeniedKeywords,
+        matchedSoftAllowedKeywords: capabilityCheck.matchedSoftAllowedKeywords,
+        matchedSmallTalkKeywords: capabilityCheck.matchedSmallTalkKeywords,
+        matchedSkillNames: capabilityCheck.matchedSkillNames,
+        matchedSkillSignals: capabilityCheck.matchedSkillSignals,
         suggestedAgents: capabilityCheck.suggestedAgents,
       },
     });
@@ -270,7 +326,7 @@ app.post("/tasks", async (req, res) => {
   }
 });
 
-app.get("/agents/status", async (req, res) => {
+app.get("/agents/status", async (_req, res) => {
   try {
     const agents = await findAllAgents();
 
@@ -385,7 +441,7 @@ app.get("/tasks/recent", async (req, res) => {
   }
 });
 
-app.get("/skills", async (req, res) => {
+app.get("/skills", async (_req, res) => {
   try {
     const skills = await findAllSkills();
 
@@ -410,7 +466,7 @@ app.get("/skills", async (req, res) => {
   }
 });
 
-app.get("/dashboard/summary", async (req, res) => {
+app.get("/dashboard/summary", async (_req, res) => {
   try {
     const summary = await getTaskSummary();
 

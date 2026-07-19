@@ -71,6 +71,31 @@ export type ManualTaskRuntimeMemoryContext = {
   usedMemorySources: string[];
 };
 
+export type ManualTaskRuntimeRagTopResult = {
+  chunkId: string;
+  memoryId: string;
+  agentName: string;
+  memoryType: string;
+  scope: string;
+  score: number;
+  contentPreview: string;
+};
+
+export type ManualTaskRuntimeRagContext = {
+  previewOnly: boolean;
+  retrieved: boolean;
+  query: string;
+  itemCount: number;
+  totalChars: number;
+  usedChunkIds: string[];
+  usedMemoryIds: string[];
+  usedMemoryTypes: string[];
+  usedMemoryScopes: string[];
+  usedMemorySources: string[];
+  scores: number[];
+  topResults: ManualTaskRuntimeRagTopResult[];
+};
+
 export type ManualTaskCapabilityBoundary = {
   allowed: boolean;
   agentName: string;
@@ -90,6 +115,7 @@ export type ManualTaskResponse = {
   task?: TaskSnapshot | null;
   runtimeProvider?: ManualTaskRuntimeProvider | null;
   runtimeMemoryContext?: ManualTaskRuntimeMemoryContext | null;
+  runtimeRagContext?: ManualTaskRuntimeRagContext | null;
   capabilityBoundary?: ManualTaskCapabilityBoundary;
 };
 

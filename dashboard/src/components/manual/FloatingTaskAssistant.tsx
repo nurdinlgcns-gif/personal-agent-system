@@ -8,9 +8,11 @@ import {
 import type {
   AgentSnapshot,
   ManualTaskRuntimeMemoryContext,
+  ManualTaskRuntimeRagContext,
   SkillSnapshot,
 } from "../../types/api";
 import { RuntimeMemoryContextDisplay } from "../runtime/RuntimeMemoryContextDisplay";
+import { RuntimeRagContextDisplay } from "../runtime/RuntimeRagContextDisplay";
 
 type FloatingTaskAssistantProps = {
   onTaskSent: () => Promise<void>;
@@ -25,6 +27,7 @@ type ChatMessage = {
   timestamp: string;
   status?: "normal" | "error";
   runtimeMemoryContext?: ManualTaskRuntimeMemoryContext | null;
+  runtimeRagContext?: ManualTaskRuntimeRagContext | null;
 };
 
 type Suggestion = {
@@ -73,7 +76,8 @@ function createMessage(
   role: ChatMessage["role"],
   text: string,
   status: ChatMessage["status"] = "normal",
-  runtimeMemoryContext?: ManualTaskRuntimeMemoryContext | null
+  runtimeMemoryContext?: ManualTaskRuntimeMemoryContext | null,
+  runtimeRagContext?: ManualTaskRuntimeRagContext | null
 ): ChatMessage {
   return {
     id: crypto.randomUUID(),
@@ -82,6 +86,7 @@ function createMessage(
     timestamp: new Date().toISOString(),
     status,
     runtimeMemoryContext,
+    runtimeRagContext,
   };
 }
 
@@ -536,7 +541,8 @@ export function FloatingTaskAssistant({
           "assistant",
           `${response.result}${runtimeText}`,
           "normal",
-          response.runtimeMemoryContext || null
+          response.runtimeMemoryContext || null,
+          response.runtimeRagContext || null
         ),
       ]);
 
@@ -718,6 +724,13 @@ export function FloatingTaskAssistant({
                     chatMessage.runtimeMemoryContext && (
                       <RuntimeMemoryContextDisplay
                         runtimeMemoryContext={chatMessage.runtimeMemoryContext}
+                      />
+                    )}
+
+                  {chatMessage.role === "assistant" &&
+                    chatMessage.runtimeRagContext && (
+                      <RuntimeRagContextDisplay
+                        runtimeRagContext={chatMessage.runtimeRagContext}
                       />
                     )}
 
