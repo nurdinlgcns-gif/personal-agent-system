@@ -10,6 +10,7 @@ import {
   type MemoryVaultSummary,
   type SemanticMemorySearchResponse,
 } from "../services/memoryVaultApi";
+import { MemoryMaintenancePanel } from "../components/memory/MemoryMaintenancePanel";
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -925,6 +926,12 @@ export function MemoryVaultView() {
               />
             </div>
           </section>
+
+          <MemoryMaintenancePanel
+            selectedMemoryId={selectedMemory?.id || null}
+            disabled={isLoading || isRefreshing || isRebuildingChunks}
+            onCompleted={() => loadMemoryVault(true)}
+          />
 
           <SemanticSearchPanel
             agentOptions={agentOptions}

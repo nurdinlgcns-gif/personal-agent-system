@@ -13,10 +13,14 @@ import { rebuildMemoryChunks } from "../services/memory/memoryChunkingService";
 import { getActiveEmbeddingProviderInfo } from "../services/embeddings/embeddingClient";
 import { embedMemoryChunks } from "../services/embeddings/memoryChunkEmbeddingService";
 import { searchSemanticMemoryChunks } from "../services/embeddings/semanticMemorySearchService";
+import { runMemoryVaultMaintenance } from "../services/memory/memoryMaintenanceService";
 
 export const memoryVaultRoutes = Router();
 
-function safeJsonParse<TValue>(value: string | null | undefined, fallback: TValue) {
+function safeJsonParse<TValue>(
+  value: string | null | undefined,
+  fallback: TValue
+) {
   if (!value) {
     return fallback;
   }
@@ -76,7 +80,9 @@ function mapMemory(memory: MemoryWithAgent) {
   };
 }
 
-function mapMemoryChunk(chunk: Awaited<ReturnType<typeof findAllMemoryChunks>>[number]) {
+function mapMemoryChunk(
+  chunk: Awaited<ReturnType<typeof findAllMemoryChunks>>[number]
+) {
   return {
     id: chunk.id,
     memoryId: chunk.memoryId,
@@ -121,28 +127,37 @@ memoryVaultRoutes.get("/summary", async (_request, response) => {
   const memories = await findAllMemories();
   const chunkSummary = await getMemoryChunkSummary();
 
-  const byAgent = memories.reduce<Record<string, number>>((accumulator, memory) => {
-    const agentName = memory.agent.name;
+  const byAgent = memories.reduce<Record<string, number>>(
+    (accumulator, memory) => {
+      const agentName = memory.agent.name;
 
-    accumulator[agentName] = (accumulator[agentName] || 0) + 1;
+      accumulator[agentName] = (accumulator[agentName] || 0) + 1;
 
-    return accumulator;
-  }, {});
+      return accumulator;
+    },
+    {}
+  );
 
-  const byType = memories.reduce<Record<string, number>>((accumulator, memory) => {
-    accumulator[memory.type] = (accumulator[memory.type] || 0) + 1;
+  const byType = memories.reduce<Record<string, number>>(
+    (accumulator, memory) => {
+      accumulator[memory.type] = (accumulator[memory.type] || 0) + 1;
 
-    return accumulator;
-  }, {});
+      return accumulator;
+    },
+    {}
+  );
 
-  const byScope = memories.reduce<Record<string, number>>((accumulator, memory) => {
-    const scopedMemory = withScopeMetadata(memory);
-    const scope = scopedMemory.scope || "agent";
+  const byScope = memories.reduce<Record<string, number>>(
+    (accumulator, memory) => {
+      const scopedMemory = withScopeMetadata(memory);
+      const scope = scopedMemory.scope || "agent";
 
-    accumulator[scope] = (accumulator[scope] || 0) + 1;
+      accumulator[scope] = (accumulator[scope] || 0) + 1;
 
-    return accumulator;
-  }, {});
+      return accumulator;
+    },
+    {}
+  );
 
   const ragReadyCount = memories.filter(
     (memory) => withScopeMetadata(memory).ragEnabled
@@ -192,7 +207,9 @@ memoryVaultRoutes.get("/chunks", async (_request, response) => {
 
 memoryVaultRoutes.post("/chunks/rebuild", async (request, response) => {
   const memoryId =
-    typeof request.body?.memoryId === "string" ? request.body.memoryId : undefined;
+    typeof request.body?.memoryId === "string"
+      ? request.body.memoryId
+      : undefined;
 
   const maxChunkChars =
     typeof request.body?.maxChunkChars === "number"
@@ -223,10 +240,14 @@ memoryVaultRoutes.post("/chunks/rebuild", async (request, response) => {
 
 memoryVaultRoutes.post("/chunks/embed", async (request, response) => {
   const memoryId =
-    typeof request.body?.memoryId === "string" ? request.body.memoryId : undefined;
+    typeof request.body?.memoryId === "string"
+      ? request.body.memoryId
+      : undefined;
 
   const chunkId =
-    typeof request.body?.chunkId === "string" ? request.body.chunkId : undefined;
+    typeof request.body?.chunkId === "string"
+      ? request.body.chunkId
+      : undefined;
 
   const onlyPending =
     typeof request.body?.onlyPending === "boolean"
@@ -243,6 +264,57 @@ memoryVaultRoutes.post("/chunks/embed", async (request, response) => {
     chunkId,
     onlyPending,
     limit,
+  });
+
+  response.json(result);
+});
+
+memoryVaultRoutes.post("/maintenance/rebuild-embed", async (request, response) => {
+  const memoryId =
+    typeof request.body?.memoryId === "string"
+      ? request.body.memoryId
+      : undefined;
+
+  const rebuild =
+    typeof request.body?.rebuild === "boolean" ? request.body.rebuild : true;
+
+  const embed =
+    typeof request.body?.embed === "boolean" ? request.body.embed : true;
+
+  const embedOnlyPending =
+    typeof request.body?.embedOnlyPending === "boolean"
+      ? request.body.embedOnlyPending
+      : false;
+
+  const limit =
+    typeof request.body?.limit === "number" && request.body.limit > 0
+      ? Math.min(request.body.limit, 500)
+      : undefined;
+
+  const maxChunkChars =
+    typeof request.body?.maxChunkChars === "number"
+      ? request.body.maxChunkChars
+      : undefined;
+
+  const overlapChars =
+    typeof request.body?.overlapChars === "number"
+      ? request.body.overlapChars
+      : undefined;
+
+  const minChunkChars =
+    typeof request.body?.minChunkChars === "number"
+      ? request.body.minChunkChars
+      : undefined;
+
+  const result = await runMemoryVaultMaintenance({
+    memoryId,
+    rebuild,
+    embed,
+    embedOnlyPending,
+    limit,
+    maxChunkChars,
+    overlapChars,
+    minChunkChars,
   });
 
   response.json(result);
@@ -274,28 +346,28 @@ memoryVaultRoutes.post("/search", async (request, response) => {
 
   const allowedAgents = Array.isArray(request.body?.allowedAgents)
     ? request.body.allowedAgents.filter(
-      (item: unknown): item is string => typeof item === "string"
-    )
+        (item: unknown): item is string => typeof item === "string"
+      )
     : undefined;
 
   const matchedSkillNames = Array.isArray(request.body?.matchedSkillNames)
     ? request.body.matchedSkillNames.filter(
-      (item: unknown): item is string => typeof item === "string"
-    )
+        (item: unknown): item is string => typeof item === "string"
+      )
     : undefined;
 
   const allowedScopes = Array.isArray(request.body?.allowedScopes)
     ? request.body.allowedScopes.filter(
-      (item: unknown): item is string => typeof item === "string"
-    )
+        (item: unknown): item is string => typeof item === "string"
+      )
     : undefined;
 
   const allowedSensitivityLevels = Array.isArray(
     request.body?.allowedSensitivityLevels
   )
     ? request.body.allowedSensitivityLevels.filter(
-      (item: unknown): item is string => typeof item === "string"
-    )
+        (item: unknown): item is string => typeof item === "string"
+      )
     : undefined;
 
   const result = await searchSemanticMemoryChunks({
@@ -336,20 +408,20 @@ memoryVaultRoutes.post("/resolve", async (request, response) => {
 
   const source =
     request.body?.source === "whatsapp" ||
-      request.body?.source === "api" ||
-      request.body?.source === "system"
+    request.body?.source === "api" ||
+    request.body?.source === "system"
       ? request.body.source
       : "manual";
 
   const matchedSkillNames = Array.isArray(request.body?.matchedSkillNames)
     ? request.body.matchedSkillNames.filter(
-      (item: unknown): item is string => typeof item === "string"
-    )
+        (item: unknown): item is string => typeof item === "string"
+      )
     : [];
 
   const maxResults =
     typeof request.body?.maxResults === "number" &&
-      request.body.maxResults > 0
+    request.body.maxResults > 0
       ? Math.min(request.body.maxResults, 20)
       : 8;
 
@@ -362,8 +434,8 @@ memoryVaultRoutes.post("/resolve", async (request, response) => {
     request.body?.allowedSensitivityLevels
   )
     ? request.body.allowedSensitivityLevels.filter(
-      (item: unknown): item is string => typeof item === "string"
-    )
+        (item: unknown): item is string => typeof item === "string"
+      )
     : undefined;
 
   const result = await resolveRuntimeMemoriesForAgent({

@@ -1,8 +1,8 @@
 # Runtime RAG Stability + Regression QA Report
 
-Generated: 2026-07-19T10:06:03.896Z
+Generated: 2026-07-20T02:49:03.354Z
 Base URL: `http://localhost:3000`
-Duration: 11154 ms
+Duration: 8639 ms
 
 ## Summary
 
@@ -25,8 +25,8 @@ Backend /health returned status ok.
 {
   "app": "personal-agent-system",
   "status": "ok",
-  "uptime": 196.7127971,
-  "timestamp": "2026-07-19T10:05:52.809Z"
+  "uptime": 147.5323602,
+  "timestamp": "2026-07-20T02:48:54.805Z"
 }
 ```
 
@@ -262,7 +262,7 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
 
 ```json
 {
-  "result": "Lagi butuh mood booster? Segerin hari kamu dengan manisnya kopi susu kita yang pas banget buat nemenin santai atau kerja. Yuk, order sekarang! ☕️✨",
+  "result": "Lagi butuh mood booster? Segelas kopi susu creamy ini siap nemenin hari kamu biar makin asik. Yuk, pesan sekarang sebelum kehabisan! ☕️✨",
   "runtimeMemoryContext": {
     "injected": true,
     "itemCount": 2,
@@ -291,8 +291,8 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
     "itemCount": 2,
     "totalChars": 945,
     "usedChunkIds": [
-      "ceb41d5d-4a3c-4e58-a6ac-113e2fc2122e",
-      "7c389bfb-1331-4daf-83f3-efeb1fa995c7"
+      "64c979bf-d6bb-4cb4-b1e1-1f96f4b280cb",
+      "b5094d0a-c8ee-4330-8f02-aa34a6136f2f"
     ],
     "usedMemoryIds": [
       "24ef5ceb-597b-4405-9b76-5ad8bc0e009a",
@@ -316,7 +316,7 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
     ],
     "topResults": [
       {
-        "chunkId": "ceb41d5d-4a3c-4e58-a6ac-113e2fc2122e",
+        "chunkId": "64c979bf-d6bb-4cb4-b1e1-1f96f4b280cb",
         "memoryId": "24ef5ceb-597b-4405-9b76-5ad8bc0e009a",
         "agentName": "design-agent",
         "memoryType": "agent_scope",
@@ -325,7 +325,7 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
         "contentPreview": "design-agent focuses on copywriting, captions, promotional copy, branding, slogans, headlines, CTA copy, and campaign wording."
       },
       {
-        "chunkId": "7c389bfb-1331-4daf-83f3-efeb1fa995c7",
+        "chunkId": "b5094d0a-c8ee-4330-8f02-aa34a6136f2f",
         "memoryId": "4262ffc0-6864-4afe-8f15-9c3e689adade",
         "agentName": "design-agent",
         "memoryType": "brand_tone",
@@ -335,7 +335,7 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
       }
     ]
   },
-  "taskId": "a48fcd4e-db15-420d-ab74-905f0f7a1fcf"
+  "taskId": "613c70fb-135d-4d51-ab02-6aeadc594ba6"
 }
 ```
 
@@ -398,13 +398,13 @@ Recent tasks include runtime memory and runtime RAG metadata.
 ```json
 {
   "ragTask": {
-    "id": "39f00c86-14e9-430d-bb9c-6eb165c4f751",
+    "id": "c7db41e4-bc12-47fc-a240-9bad6a74ee61",
     "source": "manual",
     "runtimeRagRetrieved": false,
     "runtimeRagItemCount": 0
   },
   "memoryTask": {
-    "id": "39f00c86-14e9-430d-bb9c-6eb165c4f751",
+    "id": "c7db41e4-bc12-47fc-a240-9bad6a74ee61",
     "source": "manual",
     "runtimeMemoryInjected": false,
     "runtimeMemoryItemCount": 0

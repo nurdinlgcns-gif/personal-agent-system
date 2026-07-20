@@ -141,6 +141,35 @@ export type SemanticMemorySearchResponse = {
   results: SemanticMemorySearchResultItem[];
 };
 
+export type MemoryVaultMaintenanceResponse = {
+  startedAt: string;
+  completedAt: string;
+  memoryId?: string;
+  rebuildRequested: boolean;
+  embedRequested: boolean;
+  embedOnlyPending: boolean;
+  rebuildResult: RebuildMemoryChunksResponse | null;
+  embedResult: {
+    processedChunkCount: number;
+    embeddedChunkCount: number;
+    failedChunkCount: number;
+    skippedChunkCount: number;
+    provider: EmbeddingProviderInfo;
+  } | null;
+  summary: {
+    totalChunks: number;
+    chunkedMemoryCount: number;
+    pendingEmbeddings: number;
+    embeddedChunks: number;
+    failedEmbeddings: number;
+    totalChars: number;
+    totalTokenEstimate: number;
+    byAgent: Record<string, number>;
+    byType: Record<string, number>;
+    byScope: Record<string, number>;
+  };
+};
+
 async function readErrorMessage(response: Response, fallbackMessage: string) {
   const errorText = await response.text();
 
@@ -236,6 +265,40 @@ export async function rebuildMemoryVaultChunks(payload?: {
   }
 
   const data: RebuildMemoryChunksResponse = await response.json();
+  return data;
+}
+
+export async function runMemoryVaultMaintenance(payload?: {
+  memoryId?: string;
+  rebuild?: boolean;
+  embed?: boolean;
+  embedOnlyPending?: boolean;
+  limit?: number;
+  maxChunkChars?: number;
+  overlapChars?: number;
+  minChunkChars?: number;
+}) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/memory-vault/maintenance/rebuild-embed`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload || {}),
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to run Memory Vault maintenance"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const data: MemoryVaultMaintenanceResponse = await response.json();
   return data;
 }
 
