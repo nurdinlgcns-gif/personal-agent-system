@@ -1,8 +1,8 @@
 # Runtime RAG Stability + Regression QA Report
 
-Generated: 2026-07-20T02:49:03.354Z
+Generated: 2026-07-20T09:52:27.289Z
 Base URL: `http://localhost:3000`
-Duration: 8639 ms
+Duration: 2270 ms
 
 ## Summary
 
@@ -25,8 +25,8 @@ Backend /health returned status ok.
 {
   "app": "personal-agent-system",
   "status": "ok",
-  "uptime": 147.5323602,
-  "timestamp": "2026-07-20T02:48:54.805Z"
+  "uptime": 175.3389052,
+  "timestamp": "2026-07-20T09:52:25.106Z"
 }
 ```
 
@@ -126,61 +126,65 @@ LLM provider endpoint is reachable.
 
 Status: **PASS**
 
-Memory Vault has 10 memories, 10 chunks, 10 embedded chunks.
+Memory Vault has 27 memories, 40 chunks, 40 embedded chunks.
 
 <details>
 <summary>Evidence</summary>
 
 ```json
 {
-  "totalMemories": 10,
+  "totalMemories": 27,
   "agentCount": 6,
   "byAgent": {
-    "qa-agent": 3,
-    "image-agent": 1,
-    "writer-agent": 1,
-    "research-agent": 1,
-    "code-agent": 2,
-    "design-agent": 2
+    "design-agent": 9,
+    "writer-agent": 3,
+    "research-agent": 3,
+    "qa-agent": 5,
+    "image-agent": 3,
+    "code-agent": 4
   },
   "byType": {
+    "knowledge_source": 4,
+    "skill_knowledge": 13,
     "regression_policy": 2,
     "agent_scope": 6,
     "project_context": 1,
     "brand_tone": 1
   },
   "byScope": {
-    "project": 2,
-    "agent": 7,
-    "skill": 1
+    "project": 4,
+    "skill": 16,
+    "agent": 7
   },
-  "ragReadyCount": 0,
+  "ragReadyCount": 17,
   "runtimeInjectableCount": 9,
-  "totalChunks": 10,
-  "chunkedMemoryCount": 10,
+  "totalChunks": 40,
+  "chunkedMemoryCount": 27,
   "pendingEmbeddings": 0,
-  "embeddedChunks": 10,
+  "embeddedChunks": 40,
   "failedEmbeddings": 0,
-  "totalChunkChars": 1860,
-  "totalChunkTokenEstimate": 469,
+  "totalChunkChars": 18408,
+  "totalChunkTokenEstimate": 4619,
   "chunksByAgent": {
-    "qa-agent": 3,
-    "image-agent": 1,
-    "writer-agent": 1,
-    "research-agent": 1,
-    "code-agent": 2,
-    "design-agent": 2
+    "design-agent": 12,
+    "writer-agent": 5,
+    "research-agent": 5,
+    "qa-agent": 7,
+    "image-agent": 5,
+    "code-agent": 6
   },
   "chunksByType": {
+    "knowledge_source": 4,
+    "skill_knowledge": 26,
     "regression_policy": 2,
     "agent_scope": 6,
     "project_context": 1,
     "brand_tone": 1
   },
   "chunksByScope": {
-    "project": 2,
-    "agent": 7,
-    "skill": 1
+    "project": 4,
+    "skill": 29,
+    "agent": 7
   }
 }
 ```
@@ -191,7 +195,7 @@ Memory Vault has 10 memories, 10 chunks, 10 embedded chunks.
 
 Status: **PASS**
 
-Semantic search returned 2 results from 2 eligible candidates.
+Semantic search returned 5 results from 10 eligible candidates.
 
 <details>
 <summary>Evidence</summary>
@@ -208,9 +212,9 @@ Semantic search returned 2 results from 2 eligible candidates.
   },
   "topResult": {
     "agentName": "design-agent",
-    "memoryType": "agent_scope",
-    "scope": "agent",
-    "score": 0.304149,
+    "memoryType": "skill_knowledge",
+    "scope": "skill",
+    "score": 0.546051,
     "accessReasons": [
       "scope_allowed",
       "sensitivity_allowed",
@@ -220,6 +224,7 @@ Semantic search returned 2 results from 2 eligible candidates.
     ],
     "matchReasons": [
       "linked_skill_match",
+      "lexical_overlap",
       "semantic_similarity"
     ]
   }
@@ -262,7 +267,7 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
 
 ```json
 {
-  "result": "Lagi butuh mood booster? Segelas kopi susu creamy ini siap nemenin hari kamu biar makin asik. Yuk, pesan sekarang sebelum kehabisan! ☕️✨",
+  "result": "Lagi suntuk atau butuh mood booster? Segerin lagi hari kamu bareng kopi susu kita yang creamy dan pas banget di lidah. Yuk, pesan sekarang sebelum kehabisan! ☕✨",
   "runtimeMemoryContext": {
     "injected": true,
     "itemCount": 2,
@@ -289,53 +294,53 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
     "retrieved": true,
     "query": "buat caption promosi kopi susu dengan gaya santai",
     "itemCount": 2,
-    "totalChars": 945,
+    "totalChars": 1305,
     "usedChunkIds": [
-      "64c979bf-d6bb-4cb4-b1e1-1f96f4b280cb",
-      "b5094d0a-c8ee-4330-8f02-aa34a6136f2f"
+      "7137c09b-f7a1-4f28-a599-5a7af366fc3a",
+      "82e85b2a-1dca-4c53-833d-3bb3cd7cff02"
     ],
     "usedMemoryIds": [
-      "24ef5ceb-597b-4405-9b76-5ad8bc0e009a",
-      "4262ffc0-6864-4afe-8f15-9c3e689adade"
+      "d72eb8de-5777-441c-915d-f96e51e3669f",
+      "f0055c60-93ff-42ec-8d4a-b8ea5f139200"
     ],
     "usedMemoryTypes": [
-      "agent_scope",
-      "brand_tone"
+      "skill_knowledge",
+      "skill_knowledge"
     ],
     "usedMemoryScopes": [
-      "agent",
+      "skill",
       "skill"
     ],
     "usedMemorySources": [
-      "memory-foundation/design-agent-agent-scope",
-      "memory-foundation/brand-tone"
+      "skill/53736c54-feb0-4764-8988-5293527751da",
+      "skill/9d8a2625-87d6-4fc3-82eb-dbec9edd20b0"
     ],
     "scores": [
-      0.304149,
-      0.289186
+      0.546051,
+      0.485272
     ],
     "topResults": [
       {
-        "chunkId": "64c979bf-d6bb-4cb4-b1e1-1f96f4b280cb",
-        "memoryId": "24ef5ceb-597b-4405-9b76-5ad8bc0e009a",
+        "chunkId": "7137c09b-f7a1-4f28-a599-5a7af366fc3a",
+        "memoryId": "d72eb8de-5777-441c-915d-f96e51e3669f",
         "agentName": "design-agent",
-        "memoryType": "agent_scope",
-        "scope": "agent",
-        "score": 0.304149,
-        "contentPreview": "design-agent focuses on copywriting, captions, promotional copy, branding, slogans, headlines, CTA copy, and campaign wording."
+        "memoryType": "skill_knowledge",
+        "scope": "skill",
+        "score": 0.546051,
+        "contentPreview": "Skill name: generate_ad_copy Assigned agent: design-agent Skill description: Creates short promotional copy, ad copy, product messaging, captions, headlines, slogans, and campaign..."
       },
       {
-        "chunkId": "b5094d0a-c8ee-4330-8f02-aa34a6136f2f",
-        "memoryId": "4262ffc0-6864-4afe-8f15-9c3e689adade",
+        "chunkId": "82e85b2a-1dca-4c53-833d-3bb3cd7cff02",
+        "memoryId": "f0055c60-93ff-42ec-8d4a-b8ea5f139200",
         "agentName": "design-agent",
-        "memoryType": "brand_tone",
+        "memoryType": "skill_knowledge",
         "scope": "skill",
-        "score": 0.289186,
-        "contentPreview": "Preferred creative tone: concise, practical, friendly, modern, clear, and suitable for Indonesian social media or WhatsApp marketing copy."
+        "score": 0.485272,
+        "contentPreview": "Skill name: social_caption Assigned agent: design-agent Skill description: Creates social media captions and short content ideas for Instagram, TikTok, WhatsApp broadcast, and..."
       }
     ]
   },
-  "taskId": "613c70fb-135d-4d51-ab02-6aeadc594ba6"
+  "taskId": "217954c5-ce22-4d8e-b5ab-e0922767b118"
 }
 ```
 
@@ -398,13 +403,13 @@ Recent tasks include runtime memory and runtime RAG metadata.
 ```json
 {
   "ragTask": {
-    "id": "c7db41e4-bc12-47fc-a240-9bad6a74ee61",
+    "id": "64c3aad6-bbc4-43eb-be40-e39bff5f1196",
     "source": "manual",
     "runtimeRagRetrieved": false,
     "runtimeRagItemCount": 0
   },
   "memoryTask": {
-    "id": "c7db41e4-bc12-47fc-a240-9bad6a74ee61",
+    "id": "64c3aad6-bbc4-43eb-be40-e39bff5f1196",
     "source": "manual",
     "runtimeMemoryInjected": false,
     "runtimeMemoryItemCount": 0

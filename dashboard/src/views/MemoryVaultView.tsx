@@ -11,6 +11,10 @@ import {
   type SemanticMemorySearchResponse,
 } from "../services/memoryVaultApi";
 import { MemoryMaintenancePanel } from "../components/memory/MemoryMaintenancePanel";
+import { KnowledgeSourceImportPanel } from "../components/memory/KnowledgeSourceImportPanel";
+import { KnowledgeSourceAuditPanel } from "../components/memory/KnowledgeSourceAuditPanel";
+import { KnowledgeSourceImportHistoryPanel } from "../components/memory/KnowledgeSourceImportHistoryPanel";
+
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -932,6 +936,25 @@ export function MemoryVaultView() {
             disabled={isLoading || isRefreshing || isRebuildingChunks}
             onCompleted={() => loadMemoryVault(true)}
           />
+
+        <KnowledgeSourceImportPanel
+        agentOptions={agentOptions}
+        disabled={isLoading || isRefreshing || isRebuildingChunks}
+        onCompleted={() => loadMemoryVault(true)}
+        />
+
+        <KnowledgeSourceAuditPanel
+        memories={memories}
+        chunks={chunks}
+        selectedMemoryId={selectedMemory?.id || null}
+        onSelectMemory={setSelectedMemoryId}
+        />
+
+        <KnowledgeSourceImportHistoryPanel
+        selectedMemoryId={selectedMemory?.id || null}
+        selectedSourceRef={selectedMemory?.sourceRef || null}
+        onCompleted={() => loadMemoryVault(true)}
+        />
 
           <SemanticSearchPanel
             agentOptions={agentOptions}

@@ -100,6 +100,47 @@ export type EmbeddingProviderInfo = {
   description: string;
 };
 
+export type KnowledgeSourceFileItem = {
+  relativePath: string;
+  fileName: string;
+  extension: string;
+  size: number;
+};
+
+export type KnowledgeSourceImportResult = {
+  imported: boolean;
+  memoryId?: string;
+  title: string;
+  sourceRef: string;
+  agentName: string;
+  scope: string;
+  contentChars: number;
+  action: "created" | "updated" | "skipped";
+  reason?: string;
+};
+
+export type KnowledgeSourceFolderImportResult = {
+  processedFileCount: number;
+  importedCount: number;
+  skippedCount: number;
+  results: KnowledgeSourceImportResult[];
+};
+
+export type SkillRagSyncResult = {
+  processedSkillCount: number;
+  syncedSkillMemoryCount: number;
+  skippedSkillCount: number;
+  skillResults: Array<{
+    skillId: string;
+    skillName: string;
+    agentName: string;
+    memoryId?: string;
+    synced: boolean;
+    skipped: boolean;
+    reason?: string;
+  }>;
+};
+
 export type SemanticMemorySearchResultItem = {
   chunkId: string;
   memoryId: string;
@@ -145,9 +186,11 @@ export type MemoryVaultMaintenanceResponse = {
   startedAt: string;
   completedAt: string;
   memoryId?: string;
+  syncSkillsRequested: boolean;
   rebuildRequested: boolean;
   embedRequested: boolean;
   embedOnlyPending: boolean;
+  skillSyncResult: SkillRagSyncResult | null;
   rebuildResult: RebuildMemoryChunksResponse | null;
   embedResult: {
     processedChunkCount: number;
@@ -241,6 +284,92 @@ export async function fetchMemoryVaultChunks() {
   return data.chunks;
 }
 
+export async function fetchKnowledgeSourceFiles() {
+  const response = await fetch(
+    `${API_BASE_URL}/api/memory-vault/knowledge-sources/files`
+  );
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to fetch knowledge source files"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const data: { files: KnowledgeSourceFileItem[] } = await response.json();
+  return data.files;
+}
+
+export async function importKnowledgeSource(payload: {
+  title: string;
+  content?: string;
+  fileRelativePath?: string;
+  agentName: string;
+  scope?: string;
+  ownerAgentName?: string | null;
+  allowedAgents?: string[];
+  linkedSkillNames?: string[];
+  sensitivityLevel?: string;
+  sourceRef?: string;
+}) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/memory-vault/knowledge-sources/import`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to import knowledge source"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const data: KnowledgeSourceImportResult = await response.json();
+  return data;
+}
+
+export async function importKnowledgeSourceFolder(payload: {
+  agentName: string;
+  scope?: string;
+  ownerAgentName?: string | null;
+  allowedAgents?: string[];
+  linkedSkillNames?: string[];
+  sensitivityLevel?: string;
+}) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/memory-vault/knowledge-sources/import-folder`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to import knowledge source folder"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const data: KnowledgeSourceFolderImportResult = await response.json();
+  return data;
+}
+
 export async function rebuildMemoryVaultChunks(payload?: {
   memoryId?: string;
   maxChunkChars?: number;
@@ -268,8 +397,30 @@ export async function rebuildMemoryVaultChunks(payload?: {
   return data;
 }
 
+export async function syncSkillsToRag() {
+  const response = await fetch(`${API_BASE_URL}/api/memory-vault/skills/sync`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorMessage = await readErrorMessage(
+      response,
+      "Failed to sync skills into RAG memories"
+    );
+
+    throw new Error(errorMessage);
+  }
+
+  const data: SkillRagSyncResult = await response.json();
+  return data;
+}
+
 export async function runMemoryVaultMaintenance(payload?: {
   memoryId?: string;
+  syncSkills?: boolean;
   rebuild?: boolean;
   embed?: boolean;
   embedOnlyPending?: boolean;
@@ -331,3 +482,175 @@ export async function searchSemanticMemory(payload: {
   const data: SemanticMemorySearchResponse = await response.json();
   return data;
 }
+
+export type KnowledgeSourceImportHistoryItem = {
+    id: string;
+    memoryId?: string | null;
+    title: string;
+    sourceRef: string;
+    agentName: string;
+    scope: string;
+    action: string;
+    previousContentHash?: string | null;
+    nextContentHash: string;
+    previousContentChars: number;
+    nextContentChars: number;
+    allowedAgents: string[];
+    linkedSkillNames: string[];
+    sensitivityLevel: string;
+    sourceMode: string;
+    fileRelativePath?: string | null;
+    createdAt: string;
+  };
+
+  export async function fetchKnowledgeSourceImportHistory(payload?: {
+    sourceRef?: string;
+    memoryId?: string;
+    limit?: number;
+  }) {
+    const params = new URLSearchParams();
+  
+    if (payload?.sourceRef) {
+      params.set("sourceRef", payload.sourceRef);
+    }
+  
+    if (payload?.memoryId) {
+      params.set("memoryId", payload.memoryId);
+    }
+  
+    if (payload?.limit) {
+      params.set("limit", String(payload.limit));
+    }
+  
+    const queryString = params.toString();
+    const url = `${API_BASE_URL}/api/memory-vault/knowledge-sources/history${
+      queryString ? `?${queryString}` : ""
+    }`;
+  
+    const response = await fetch(url);
+  
+    if (!response.ok) {
+      const errorMessage = await readErrorMessage(
+        response,
+        "Failed to fetch knowledge source import history"
+      );
+  
+      throw new Error(errorMessage);
+    }
+  
+    const data: { histories: KnowledgeSourceImportHistoryItem[] } =
+      await response.json();
+  
+    return data.histories;
+  }
+
+  export async function fetchKnowledgeSourceImportHistoryDetail(historyId: string) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/memory-vault/knowledge-sources/history/${historyId}`
+    );
+  
+    if (!response.ok) {
+      const errorMessage = await readErrorMessage(
+        response,
+        "Failed to fetch knowledge source import history detail"
+      );
+  
+      throw new Error(errorMessage);
+    }
+  
+    const data: { detail: KnowledgeSourceImportHistoryDetail } =
+      await response.json();
+  
+    return data.detail;
+  }
+  
+  export async function fetchKnowledgeSourceImportHistoryDiff(historyId: string) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/memory-vault/knowledge-sources/history/${historyId}/diff`
+    );
+  
+    if (!response.ok) {
+      const errorMessage = await readErrorMessage(
+        response,
+        "Failed to fetch knowledge source import history diff"
+      );
+  
+      throw new Error(errorMessage);
+    }
+  
+    const data: { diff: KnowledgeSourceDiffResult } = await response.json();
+    return data.diff;
+  }
+  
+  export async function rollbackKnowledgeSourceImportHistory(payload: {
+    historyId: string;
+    target?: "previous" | "next";
+  }) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/memory-vault/knowledge-sources/history/${payload.historyId}/rollback`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          target: payload.target || "previous",
+        }),
+      }
+    );
+  
+    if (!response.ok) {
+      const errorMessage = await readErrorMessage(
+        response,
+        "Failed to rollback knowledge source import history"
+      );
+  
+      throw new Error(errorMessage);
+    }
+  
+    const data: KnowledgeSourceRollbackResult = await response.json();
+    return data;
+  }
+
+  export type KnowledgeSourceImportHistoryDetail =
+  KnowledgeSourceImportHistoryItem & {
+    previousContent?: string | null;
+    nextContent: string;
+  };
+
+export type KnowledgeSourceDiffLine = {
+  type: "added" | "removed" | "unchanged";
+  lineNumberBefore?: number;
+  lineNumberAfter?: number;
+  text: string;
+};
+
+export type KnowledgeSourceDiffResult = {
+  historyId: string;
+  title: string;
+  sourceRef: string;
+  action: string;
+  previousContentHash?: string | null;
+  nextContentHash: string;
+  previousContentChars: number;
+  nextContentChars: number;
+  addedLineCount: number;
+  removedLineCount: number;
+  unchangedLineCount: number;
+  lines: KnowledgeSourceDiffLine[];
+};
+
+export type KnowledgeSourceRollbackResult = {
+  rolledBack: boolean;
+  memoryId?: string;
+  historyId: string;
+  rollbackHistoryId?: string;
+  sourceRef: string;
+  title: string;
+  target: "previous" | "next";
+  previousContentChars: number;
+  nextContentChars: number;
+  reason?: string;
+};
+
+  

@@ -1,0 +1,135 @@
+{
+    "version": "8.59",
+    "name": "Runtime RAG Retrieval Evaluation Dataset",
+    "description": "Evaluation dataset for semantic retrieval quality across seed memory, skill knowledge, and imported knowledge sources.",
+    "cases": [
+      {
+        "id": "design-brand-tone-whatsapp",
+        "name": "Design brand tone for WhatsApp marketing",
+        "query": "tone santai WhatsApp marketing CTA natural",
+        "agentName": "design-agent",
+        "matchedSkillNames": ["generate_ad_copy", "social_caption"],
+        "allowedScopes": ["agent", "skill", "project", "global"],
+        "allowedSensitivityLevels": ["normal", "internal"],
+        "topK": 8,
+        "minScore": 0,
+        "expected": {
+          "minReturnedCount": 1,
+          "agentNames": ["design-agent"],
+          "memoryTypesAny": ["brand_tone", "knowledge_source", "skill_knowledge"],
+          "sourceTypesAny": ["seed", "knowledge_source", "skill"],
+          "mustNotAgentNames": ["code-agent", "qa-agent"]
+        }
+      },
+      {
+        "id": "design-ad-copy-skill",
+        "name": "Design ad copy skill knowledge",
+        "query": "cara menulis ad copy promosi dengan headline CTA singkat",
+        "agentName": "design-agent",
+        "matchedSkillNames": ["generate_ad_copy"],
+        "allowedScopes": ["agent", "skill", "project", "global"],
+        "allowedSensitivityLevels": ["normal", "internal"],
+        "topK": 8,
+        "minScore": 0,
+        "expected": {
+          "minReturnedCount": 1,
+          "agentNames": ["design-agent"],
+          "memoryTypesAny": ["skill_knowledge", "agent_scope", "brand_tone", "knowledge_source"],
+          "sourceTypesAny": ["skill", "seed", "knowledge_source"],
+          "linkedSkillNamesAny": ["generate_ad_copy"],
+          "mustNotAgentNames": ["code-agent", "qa-agent"]
+        }
+      },
+      {
+        "id": "design-caption-social",
+        "name": "Design social caption retrieval",
+        "query": "caption promosi kopi susu gaya santai untuk media sosial",
+        "agentName": "design-agent",
+        "matchedSkillNames": ["social_caption", "generate_ad_copy"],
+        "allowedScopes": ["agent", "skill", "project", "global"],
+        "allowedSensitivityLevels": ["normal", "internal"],
+        "topK": 8,
+        "minScore": 0,
+        "expected": {
+          "minReturnedCount": 1,
+          "agentNames": ["design-agent"],
+          "memoryTypesAny": ["agent_scope", "brand_tone", "skill_knowledge", "knowledge_source"],
+          "sourceTypesAny": ["seed", "skill", "knowledge_source"],
+          "linkedSkillNamesAny": ["social_caption", "generate_ad_copy"],
+          "mustNotAgentNames": ["code-agent", "qa-agent"]
+        }
+      },
+      {
+        "id": "code-prisma-debug",
+        "name": "Code Prisma backend debugging",
+        "query": "debug prisma typescript migration backend error",
+        "agentName": "code-agent",
+        "matchedSkillNames": [],
+        "allowedScopes": ["agent", "skill", "project", "global"],
+        "allowedSensitivityLevels": ["normal", "internal"],
+        "topK": 8,
+        "minScore": 0,
+        "expected": {
+          "minReturnedCount": 1,
+          "agentNames": ["code-agent"],
+          "memoryTypesAny": ["agent_scope", "project_context", "skill_knowledge", "knowledge_source"],
+          "sourceTypesAny": ["seed", "skill", "knowledge_source"],
+          "mustNotAgentNames": ["design-agent", "image-agent"]
+        }
+      },
+      {
+        "id": "qa-regression-policy",
+        "name": "QA regression policy retrieval",
+        "query": "jalankan regression QA sweep dan pastikan failed warning nol",
+        "agentName": "qa-agent",
+        "matchedSkillNames": [],
+        "allowedScopes": ["agent", "skill", "project", "global"],
+        "allowedSensitivityLevels": ["normal", "internal"],
+        "topK": 8,
+        "minScore": 0,
+        "expected": {
+          "minReturnedCount": 1,
+          "agentNames": ["qa-agent"],
+          "memoryTypesAny": ["regression_policy", "agent_scope", "skill_knowledge", "knowledge_source"],
+          "sourceTypesAny": ["seed", "skill", "knowledge_source"],
+          "mustNotAgentNames": ["design-agent", "image-agent"]
+        }
+      },
+      {
+        "id": "research-agent-scope",
+        "name": "Research agent retrieval",
+        "query": "ringkas hasil riset dan susun insight yang jelas",
+        "agentName": "research-agent",
+        "matchedSkillNames": [],
+        "allowedScopes": ["agent", "skill", "project", "global"],
+        "allowedSensitivityLevels": ["normal", "internal"],
+        "topK": 8,
+        "minScore": 0,
+        "expected": {
+          "minReturnedCount": 1,
+          "agentNames": ["research-agent"],
+          "memoryTypesAny": ["agent_scope", "skill_knowledge", "knowledge_source", "project_context"],
+          "sourceTypesAny": ["seed", "skill", "knowledge_source"],
+          "mustNotAgentNames": ["design-agent", "code-agent"]
+        }
+      },
+      {
+        "id": "project-context-rag-runtime",
+        "name": "Project context RAG runtime retrieval",
+        "query": "runtime rag manual widget whatsapp memory vault semantic retrieval",
+        "agentName": "code-agent",
+        "matchedSkillNames": [],
+        "allowedScopes": ["agent", "skill", "project", "global"],
+        "allowedSensitivityLevels": ["normal", "internal"],
+        "topK": 8,
+        "minScore": 0,
+        "expected": {
+          "minReturnedCount": 1,
+          "agentNames": ["code-agent"],
+          "memoryTypesAny": ["project_context", "agent_scope", "knowledge_source", "skill_knowledge"],
+          "sourceTypesAny": ["seed", "knowledge_source", "skill"],
+          "mustNotAgentNames": ["design-agent", "image-agent"]
+        }
+      }
+    ]
+  }

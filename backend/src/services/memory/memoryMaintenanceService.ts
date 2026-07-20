@@ -7,9 +7,14 @@ import {
   rebuildMemoryChunks,
   type RebuildMemoryChunksResult,
 } from "./memoryChunkingService";
+import {
+  syncSkillsToRagMemories,
+  type SkillRagSyncResult,
+} from "./skillRagLinkingService";
 
 export type MemoryVaultMaintenanceInput = {
   memoryId?: string;
+  syncSkills?: boolean;
   rebuild?: boolean;
   embed?: boolean;
   embedOnlyPending?: boolean;
@@ -23,9 +28,11 @@ export type MemoryVaultMaintenanceResult = {
   startedAt: string;
   completedAt: string;
   memoryId?: string;
+  syncSkillsRequested: boolean;
   rebuildRequested: boolean;
   embedRequested: boolean;
   embedOnlyPending: boolean;
+  skillSyncResult: SkillRagSyncResult | null;
   rebuildResult: RebuildMemoryChunksResult | null;
   embedResult: EmbedMemoryChunksResult | null;
   summary: Awaited<ReturnType<typeof getMemoryChunkSummary>>;
@@ -36,15 +43,24 @@ export async function runMemoryVaultMaintenance(
 ): Promise<MemoryVaultMaintenanceResult> {
   const startedAt = new Date().toISOString();
 
+  const syncSkillsRequested =
+    typeof input.syncSkills === "boolean" ? input.syncSkills : !input.memoryId;
+
   const rebuildRequested = input.rebuild !== false;
   const embedRequested = input.embed !== false;
+
   const embedOnlyPending =
     typeof input.embedOnlyPending === "boolean"
       ? input.embedOnlyPending
       : false;
 
+  let skillSyncResult: SkillRagSyncResult | null = null;
   let rebuildResult: RebuildMemoryChunksResult | null = null;
   let embedResult: EmbedMemoryChunksResult | null = null;
+
+  if (syncSkillsRequested) {
+    skillSyncResult = await syncSkillsToRagMemories();
+  }
 
   if (rebuildRequested) {
     rebuildResult = await rebuildMemoryChunks({
@@ -71,9 +87,11 @@ export async function runMemoryVaultMaintenance(
     startedAt,
     completedAt: new Date().toISOString(),
     memoryId: input.memoryId,
+    syncSkillsRequested,
     rebuildRequested,
     embedRequested,
     embedOnlyPending,
+    skillSyncResult,
     rebuildResult,
     embedResult,
     summary,

@@ -11,12 +11,14 @@ type MemoryMaintenancePanelProps = {
 };
 
 function formatResultSummary(result: MemoryVaultMaintenanceResponse) {
+  const syncedSkills = result.skillSyncResult?.syncedSkillMemoryCount ?? 0;
+  const processedSkills = result.skillSyncResult?.processedSkillCount ?? 0;
   const rebuilt = result.rebuildResult?.createdChunkCount ?? 0;
   const processedMemories = result.rebuildResult?.processedMemoryCount ?? 0;
   const embedded = result.embedResult?.embeddedChunkCount ?? 0;
   const processedChunks = result.embedResult?.processedChunkCount ?? 0;
 
-  return `Rebuilt ${rebuilt} chunks from ${processedMemories} memories. Embedded ${embedded}/${processedChunks} chunks.`;
+  return `Synced ${syncedSkills}/${processedSkills} skills. Rebuilt ${rebuilt} chunks from ${processedMemories} memories. Embedded ${embedded}/${processedChunks} chunks.`;
 }
 
 export function MemoryMaintenancePanel({
@@ -29,14 +31,18 @@ export function MemoryMaintenancePanel({
     useState<MemoryVaultMaintenanceResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function runMaintenance(memoryId?: string) {
+  async function runMaintenance(input?: {
+    memoryId?: string;
+    syncSkills?: boolean;
+  }) {
     try {
       setIsRunning(true);
       setErrorMessage(null);
       setLastResult(null);
 
       const result = await runMemoryVaultMaintenance({
-        memoryId,
+        memoryId: input?.memoryId,
+        syncSkills: input?.syncSkills,
         rebuild: true,
         embed: true,
         embedOnlyPending: false,
@@ -66,7 +72,7 @@ export function MemoryMaintenancePanel({
       <div className="memory-section-title">
         <div>
           <span>Maintenance automation</span>
-          <h3>Chunk + Embedding Refresh</h3>
+          <h3>Skill RAG + Chunk + Embedding Refresh</h3>
         </div>
 
         <div className="memory-page-badge">
@@ -75,23 +81,33 @@ export function MemoryMaintenancePanel({
       </div>
 
       <p>
-        Rebuild memory chunks and refresh embeddings in one action. Use this
-        after memory content, scope, skill links, or retrieval config changes.
+        Sync skill docs into RAG-ready memory records, rebuild chunks, and
+        refresh embeddings. Use this after changing skill files, skill
+        descriptions, memory content, scope, or retrieval behavior.
       </p>
 
       <div className="memory-maintenance-actions">
         <button
           type="button"
           disabled={disabled || isRunning}
-          onClick={() => runMaintenance()}
+          onClick={() =>
+            runMaintenance({
+              syncSkills: true,
+            })
+          }
         >
-          {isRunning ? "Running..." : "Rebuild + Embed All"}
+          {isRunning ? "Running..." : "Sync Skills + Rebuild + Embed All"}
         </button>
 
         <button
           type="button"
           disabled={disabled || isRunning || !selectedMemoryId}
-          onClick={() => runMaintenance(selectedMemoryId || undefined)}
+          onClick={() =>
+            runMaintenance({
+              memoryId: selectedMemoryId || undefined,
+              syncSkills: false,
+            })
+          }
         >
           {isRunning ? "Running..." : "Rebuild + Embed Selected"}
         </button>
@@ -103,6 +119,11 @@ export function MemoryMaintenancePanel({
           <span>{formatResultSummary(lastResult)}</span>
 
           <div className="memory-maintenance-grid">
+            <div>
+              <small>Skills synced</small>
+              <b>{lastResult.skillSyncResult?.syncedSkillMemoryCount ?? 0}</b>
+            </div>
+
             <div>
               <small>Total chunks</small>
               <b>{lastResult.summary.totalChunks}</b>

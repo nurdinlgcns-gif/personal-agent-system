@@ -14,6 +14,12 @@ import { getActiveEmbeddingProviderInfo } from "../services/embeddings/embedding
 import { embedMemoryChunks } from "../services/embeddings/memoryChunkEmbeddingService";
 import { searchSemanticMemoryChunks } from "../services/embeddings/semanticMemorySearchService";
 import { runMemoryVaultMaintenance } from "../services/memory/memoryMaintenanceService";
+import { syncSkillsToRagMemories } from "../services/memory/skillRagLinkingService";
+import {
+  importKnowledgeSourceFolder,
+  importKnowledgeSourceToMemory,
+  listKnowledgeSourceFiles,
+} from "../services/memory/knowledgeSourceImportService";
 
 export const memoryVaultRoutes = Router();
 
@@ -130,9 +136,7 @@ memoryVaultRoutes.get("/summary", async (_request, response) => {
   const byAgent = memories.reduce<Record<string, number>>(
     (accumulator, memory) => {
       const agentName = memory.agent.name;
-
       accumulator[agentName] = (accumulator[agentName] || 0) + 1;
-
       return accumulator;
     },
     {}
@@ -141,7 +145,6 @@ memoryVaultRoutes.get("/summary", async (_request, response) => {
   const byType = memories.reduce<Record<string, number>>(
     (accumulator, memory) => {
       accumulator[memory.type] = (accumulator[memory.type] || 0) + 1;
-
       return accumulator;
     },
     {}
@@ -151,9 +154,7 @@ memoryVaultRoutes.get("/summary", async (_request, response) => {
     (accumulator, memory) => {
       const scopedMemory = withScopeMetadata(memory);
       const scope = scopedMemory.scope || "agent";
-
       accumulator[scope] = (accumulator[scope] || 0) + 1;
-
       return accumulator;
     },
     {}
@@ -203,6 +204,126 @@ memoryVaultRoutes.get("/chunks", async (_request, response) => {
   response.json({
     chunks: chunks.map(mapMemoryChunk),
   });
+});
+
+memoryVaultRoutes.get("/knowledge-sources/files", async (_request, response) => {
+  const files = await listKnowledgeSourceFiles();
+
+  response.json({
+    files,
+  });
+});
+
+memoryVaultRoutes.post("/knowledge-sources/import", async (request, response) => {
+  const title =
+    typeof request.body?.title === "string" ? request.body.title : "";
+
+  const content =
+    typeof request.body?.content === "string" ? request.body.content : undefined;
+
+  const fileRelativePath =
+    typeof request.body?.fileRelativePath === "string"
+      ? request.body.fileRelativePath
+      : undefined;
+
+  const agentName =
+    typeof request.body?.agentName === "string"
+      ? request.body.agentName
+      : "design-agent";
+
+  const scope =
+    typeof request.body?.scope === "string" ? request.body.scope : "project";
+
+  const ownerAgentName =
+    typeof request.body?.ownerAgentName === "string"
+      ? request.body.ownerAgentName
+      : undefined;
+
+  const allowedAgents = Array.isArray(request.body?.allowedAgents)
+    ? request.body.allowedAgents.filter(
+        (item: unknown): item is string => typeof item === "string"
+      )
+    : undefined;
+
+  const linkedSkillNames = Array.isArray(request.body?.linkedSkillNames)
+    ? request.body.linkedSkillNames.filter(
+        (item: unknown): item is string => typeof item === "string"
+      )
+    : undefined;
+
+  const sensitivityLevel =
+    typeof request.body?.sensitivityLevel === "string"
+      ? request.body.sensitivityLevel
+      : "normal";
+
+  const sourceRef =
+    typeof request.body?.sourceRef === "string"
+      ? request.body.sourceRef
+      : undefined;
+
+  const result = await importKnowledgeSourceToMemory({
+    title,
+    content,
+    fileRelativePath,
+    agentName,
+    scope,
+    ownerAgentName,
+    allowedAgents,
+    linkedSkillNames,
+    sensitivityLevel,
+    sourceRef,
+  });
+
+  response.json(result);
+});
+
+memoryVaultRoutes.post("/knowledge-sources/import-folder", async (request, response) => {
+  const agentName =
+    typeof request.body?.agentName === "string"
+      ? request.body.agentName
+      : "design-agent";
+
+  const scope =
+    typeof request.body?.scope === "string" ? request.body.scope : "project";
+
+  const ownerAgentName =
+    typeof request.body?.ownerAgentName === "string"
+      ? request.body.ownerAgentName
+      : undefined;
+
+  const allowedAgents = Array.isArray(request.body?.allowedAgents)
+    ? request.body.allowedAgents.filter(
+        (item: unknown): item is string => typeof item === "string"
+      )
+    : undefined;
+
+  const linkedSkillNames = Array.isArray(request.body?.linkedSkillNames)
+    ? request.body.linkedSkillNames.filter(
+        (item: unknown): item is string => typeof item === "string"
+      )
+    : undefined;
+
+  const sensitivityLevel =
+    typeof request.body?.sensitivityLevel === "string"
+      ? request.body.sensitivityLevel
+      : "normal";
+
+  const result = await importKnowledgeSourceFolder({
+    agentName,
+    scope,
+    ownerAgentName,
+    allowedAgents,
+    linkedSkillNames,
+    sensitivityLevel,
+  });
+
+  response.json(result);
+});
+
+memoryVaultRoutes.post("/skills/sync", async (_request, response) => {
+  const result = await syncSkillsToRagMemories();
+
+  response.json(result);
 });
 
 memoryVaultRoutes.post("/chunks/rebuild", async (request, response) => {
@@ -275,6 +396,11 @@ memoryVaultRoutes.post("/maintenance/rebuild-embed", async (request, response) =
       ? request.body.memoryId
       : undefined;
 
+  const syncSkills =
+    typeof request.body?.syncSkills === "boolean"
+      ? request.body.syncSkills
+      : undefined;
+
   const rebuild =
     typeof request.body?.rebuild === "boolean" ? request.body.rebuild : true;
 
@@ -308,6 +434,7 @@ memoryVaultRoutes.post("/maintenance/rebuild-embed", async (request, response) =
 
   const result = await runMemoryVaultMaintenance({
     memoryId,
+    syncSkills,
     rebuild,
     embed,
     embedOnlyPending,

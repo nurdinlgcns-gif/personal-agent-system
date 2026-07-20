@@ -141,6 +141,38 @@ model MemoryChunk {
   @@index([embeddingStatus])
 }
 
+model KnowledgeSourceImportHistory {
+  id                   String   @id @default(uuid())
+
+  memoryId             String?
+  title                String
+  sourceRef            String
+  agentName            String
+  scope                String
+  action               String
+
+  previousContent      String?
+  nextContent          String
+  previousContentHash  String?
+  nextContentHash      String
+  previousContentChars Int      @default(0)
+  nextContentChars     Int      @default(0)
+
+  allowedAgentsJson    String   @default("[]")
+  linkedSkillNamesJson String   @default("[]")
+  sensitivityLevel     String   @default("normal")
+  sourceMode           String   @default("manual")
+  fileRelativePath     String?
+
+  createdAt            DateTime @default(now())
+
+  @@index([memoryId])
+  @@index([sourceRef])
+  @@index([agentName])
+  @@index([action])
+  @@index([createdAt])
+}
+
 model Skill {
   id          String   @id @default(uuid())
   agentId     String

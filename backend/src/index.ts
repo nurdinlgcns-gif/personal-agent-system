@@ -30,6 +30,7 @@ import {
 } from "./services/memory/runtimeRagQualityTuning";
 import { searchSemanticMemoryChunks } from "./services/embeddings/semanticMemorySearchService";
 import { formatManualRuntimeOutput } from "./services/llm/manualRuntimeOutputGuardrails";
+import { knowledgeSourceHistoryRoutes } from "./routes/knowledgeSourceHistoryRoutes";
 
 validateEnv();
 
@@ -42,6 +43,7 @@ app.use("/api/llm", llmRoutes);
 app.use("/api/llm/registry", llmProviderRegistryRoutes);
 app.use("/api/agent-governance", agentGovernanceRoutes);
 app.use("/api/memory-vault", memoryVaultRoutes);
+app.use("/api/memory-vault/knowledge-sources", knowledgeSourceHistoryRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({
