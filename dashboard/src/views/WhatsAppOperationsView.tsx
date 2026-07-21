@@ -8,6 +8,19 @@ import {
 import { RuntimeMemoryTaskMetadata } from "../components/runtime/RuntimeMemoryTaskMetadata";
 import { RuntimeRagTaskMetadata } from "../components/runtime/RuntimeRagTaskMetadata";
 import { WhatsAppConnectionCard } from "../components/whatsapp/WhatsAppConnectionCard";
+import {
+  ActionButton,
+  EmptyState,
+  ErrorState,
+  FilterGrid,
+  FormField,
+  InfoPill,
+  MetricCard,
+  MetricGrid,
+  PageHero,
+  PageShell,
+  PanelCard,
+} from "../components/ui";
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -157,20 +170,11 @@ function WhatsAppTaskDetailPanel({
         <span>Runtime Provider</span>
 
         <div className="whatsapp-ops-detail-grid">
-          <WhatsAppMetric
-            label="Provider"
-            value={task.runtimeProviderName || "-"}
-          />
-          <WhatsAppMetric
-            label="Type"
-            value={task.runtimeProviderType || "-"}
-          />
+          <WhatsAppMetric label="Provider" value={task.runtimeProviderName || "-"} />
+          <WhatsAppMetric label="Type" value={task.runtimeProviderType || "-"} />
           <WhatsAppMetric label="Model" value={task.runtimeModel || "-"} />
           <WhatsAppMetric label="Mode" value={task.runtimeMode || "-"} />
-          <WhatsAppMetric
-            label="Resolved"
-            value={task.runtimeResolvedFrom || "-"}
-          />
+          <WhatsAppMetric label="Resolved" value={task.runtimeResolvedFrom || "-"} />
         </div>
       </div>
 
@@ -328,58 +332,49 @@ export function WhatsAppOperationsView() {
   }, []);
 
   return (
-    <section className="whatsapp-ops-view">
-      <div className="whatsapp-ops-hero">
-        <div>
-          <span>WhatsApp Operations</span>
-          <h1>WhatsApp Runtime Monitor</h1>
-          <p>
-            Monitor WhatsApp task processing, clean replies, governance boundary,
-            runtime provider, memory context, and runtime RAG retrieval in one
-            read-only operations view.
-          </p>
-
-          <div className="whatsapp-ops-badges">
-            <span>Read-only</span>
-            <span>WhatsApp channel</span>
-            <span>Governance</span>
-            <span>Runtime Memory</span>
-            <span>Runtime RAG</span>
-          </div>
-        </div>
-
-        <div className="whatsapp-ops-actions">
-          <button
-            type="button"
+    <PageShell full className="whatsapp-ops-page">
+      <PageHero
+        eyebrow="WhatsApp Operations"
+        title="WhatsApp Runtime Monitor"
+        description="Monitor pairing status, WhatsApp task processing, clean replies, governance boundary, runtime provider, memory context, and runtime RAG retrieval."
+        badges={
+          <>
+            <InfoPill tone="green">Read-only</InfoPill>
+            <InfoPill tone="green">WhatsApp channel</InfoPill>
+            <InfoPill tone="purple">Governance</InfoPill>
+            <InfoPill tone="yellow">Runtime Memory</InfoPill>
+            <InfoPill tone="blue">Runtime RAG</InfoPill>
+          </>
+        }
+        actions={
+          <ActionButton
+            tone="green"
             onClick={() => loadWhatsAppOperations(true)}
             disabled={isLoading || isRefreshing}
           >
             {isRefreshing ? "Refreshing..." : "Refresh"}
-          </button>
-        </div>
-      </div>
+          </ActionButton>
+        }
+      />
 
       {errorMessage && (
-        <div className="whatsapp-ops-error">
-          <strong>WhatsApp Operations error</strong>
-          <span>{errorMessage}</span>
-        </div>
+        <ErrorState title="WhatsApp Operations error" message={errorMessage} />
       )}
 
       <WhatsAppConnectionCard />
 
-      <section className="whatsapp-ops-summary-card">
-        <div className="whatsapp-ops-summary-grid">
-          <WhatsAppMetric label="Loaded" value={tasks.length} />
-          <WhatsAppMetric label="Total matched" value={data?.totalCount ?? 0} />
-          <WhatsAppMetric label="Done" value={doneCount} />
-          <WhatsAppMetric label="Error" value={errorCount} />
-          <WhatsAppMetric label="Allowed" value={allowedCount} />
-          <WhatsAppMetric label="Denied" value={deniedCount} />
-          <WhatsAppMetric label="Memory" value={memoryInjectedCount} />
-          <WhatsAppMetric label="RAG" value={ragRetrievedCount} />
-        </div>
-      </section>
+      <PanelCard accent="green" compact className="whatsapp-ops-standard-panel">
+        <MetricGrid>
+          <MetricCard label="Loaded" value={tasks.length} />
+          <MetricCard label="Total matched" value={data?.totalCount ?? 0} />
+          <MetricCard label="Done" value={doneCount} />
+          <MetricCard label="Error" value={errorCount} />
+          <MetricCard label="Allowed" value={allowedCount} />
+          <MetricCard label="Denied" value={deniedCount} />
+          <MetricCard label="Memory" value={memoryInjectedCount} />
+          <MetricCard label="RAG" value={ragRetrievedCount} />
+        </MetricGrid>
+      </PanelCard>
 
       {latestWhatsAppTask && (
         <section className="whatsapp-ops-latest-card">
@@ -403,33 +398,27 @@ export function WhatsAppOperationsView() {
         </section>
       )}
 
-      <section className="whatsapp-ops-filter-card">
-        <div className="whatsapp-ops-filter-grid">
-          <label className="whatsapp-filter-field search">
-            <span>Search</span>
+      <PanelCard accent="green" compact className="whatsapp-ops-standard-panel">
+        <FilterGrid>
+          <FormField label="Search" wide>
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search WhatsApp input, reply, or RAG query..."
             />
-          </label>
+          </FormField>
 
-          <label className="whatsapp-filter-field">
-            <span>Status</span>
-            <select
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-            >
+          <FormField label="Status">
+            <select value={status} onChange={(event) => setStatus(event.target.value)}>
               <option value="all">All status</option>
               <option value="pending">pending</option>
               <option value="in_progress">in_progress</option>
               <option value="done">done</option>
               <option value="error">error</option>
             </select>
-          </label>
+          </FormField>
 
-          <label className="whatsapp-filter-field">
-            <span>Governance</span>
+          <FormField label="Governance">
             <select
               value={governanceAllowed}
               onChange={(event) =>
@@ -442,10 +431,9 @@ export function WhatsAppOperationsView() {
               <option value="true">Allowed</option>
               <option value="false">Denied</option>
             </select>
-          </label>
+          </FormField>
 
-          <label className="whatsapp-filter-field">
-            <span>Memory</span>
+          <FormField label="Memory">
             <select
               value={runtimeMemoryInjected}
               onChange={(event) =>
@@ -458,10 +446,9 @@ export function WhatsAppOperationsView() {
               <option value="true">Injected</option>
               <option value="false">Not injected</option>
             </select>
-          </label>
+          </FormField>
 
-          <label className="whatsapp-filter-field">
-            <span>RAG</span>
+          <FormField label="RAG">
             <select
               value={runtimeRagRetrieved}
               onChange={(event) =>
@@ -474,10 +461,9 @@ export function WhatsAppOperationsView() {
               <option value="true">Retrieved</option>
               <option value="false">None</option>
             </select>
-          </label>
+          </FormField>
 
-          <label className="whatsapp-filter-field">
-            <span>Limit</span>
+          <FormField label="Limit">
             <input
               type="number"
               min={10}
@@ -485,27 +471,27 @@ export function WhatsAppOperationsView() {
               value={limit}
               onChange={(event) => setLimit(Number(event.target.value))}
             />
-          </label>
-        </div>
+          </FormField>
+        </FilterGrid>
 
         <div className="whatsapp-ops-filter-actions">
-          <button type="button" onClick={() => loadWhatsAppOperations(true)}>
+          <ActionButton tone="green" onClick={() => loadWhatsAppOperations(true)}>
             Apply Filters
-          </button>
+          </ActionButton>
 
-          <button type="button" onClick={clearFilters}>
+          <ActionButton tone="ghost" onClick={clearFilters}>
             Clear Filters
-          </button>
+          </ActionButton>
         </div>
-      </section>
+      </PanelCard>
 
       {isLoading ? (
         <div className="whatsapp-ops-loading">Loading WhatsApp Operations...</div>
       ) : tasks.length === 0 ? (
-        <div className="whatsapp-ops-empty">
-          <strong>No WhatsApp tasks matched your filters.</strong>
-          <p>Send a WhatsApp task or clear filters to inspect channel activity.</p>
-        </div>
+        <EmptyState
+          title="No WhatsApp tasks matched your filters."
+          description="Send a WhatsApp task or clear filters to inspect channel activity."
+        />
       ) : (
         <div className="whatsapp-ops-layout">
           <main className="whatsapp-ops-list">
@@ -572,6 +558,6 @@ export function WhatsAppOperationsView() {
           />
         </div>
       )}
-    </section>
+    </PageShell>
   );
 }

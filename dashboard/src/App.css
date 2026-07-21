@@ -1,3 +1,6 @@
+@import "./styles/tokens/design-tokens.css";
+@import "./styles/components/shared-ui.css";
+
 @import "./styles/dashboard.css";
 
 /* Core components */

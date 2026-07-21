@@ -7,6 +7,19 @@ import {
 } from "../services/tasksCenterApi";
 import { RuntimeMemoryTaskMetadata } from "../components/runtime/RuntimeMemoryTaskMetadata";
 import { RuntimeRagTaskMetadata } from "../components/runtime/RuntimeRagTaskMetadata";
+import {
+  ActionButton,
+  EmptyState,
+  ErrorState,
+  FilterGrid,
+  FormField,
+  InfoPill,
+  MetricCard,
+  MetricGrid,
+  PageHero,
+  PageShell,
+  PanelCard,
+} from "../components/ui";
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -172,18 +185,12 @@ function TaskDetailPanel({
       <div className="tasks-detail-section">
         <span>Governance Boundary</span>
         <div className="tasks-detail-grid">
-          <TaskMetric
-            label="Allowed"
-            value={boolLabel(task.governanceAllowed)}
-          />
+          <TaskMetric label="Allowed" value={boolLabel(task.governanceAllowed)} />
           <TaskMetric
             label="Confidence"
             value={task.governanceConfidence || "-"}
           />
-          <TaskMetric
-            label="Reason"
-            value={task.governanceReason || "-"}
-          />
+          <TaskMetric label="Reason" value={task.governanceReason || "-"} />
         </div>
 
         <div className="tasks-center-pill-block">
@@ -318,67 +325,56 @@ export function TasksCenterView() {
   }, []);
 
   return (
-    <section className="tasks-center-view">
-      <div className="tasks-center-hero">
-        <div>
-          <span>Task Operations Center</span>
-          <h1>Tasks Center</h1>
-          <p>
-            Inspect manual and WhatsApp tasks with runtime provider,
-            governance, memory, and RAG audit metadata in one place.
-          </p>
-
-          <div className="tasks-center-badges">
-            <span>Manual</span>
-            <span>WhatsApp</span>
-            <span>Governance</span>
-            <span>Runtime Memory</span>
-            <span>Runtime RAG</span>
-          </div>
-        </div>
-
-        <div className="tasks-center-actions">
-          <button
-            type="button"
+    <PageShell full className="tasks-center-page">
+      <PageHero
+        eyebrow="Task Operations Center"
+        title="Tasks Center"
+        description="Inspect manual and WhatsApp tasks with runtime provider, governance, memory, and RAG audit metadata in one organized workspace."
+        badges={
+          <>
+            <InfoPill>Manual</InfoPill>
+            <InfoPill tone="green">WhatsApp</InfoPill>
+            <InfoPill tone="purple">Governance</InfoPill>
+            <InfoPill tone="yellow">Runtime Memory</InfoPill>
+            <InfoPill tone="blue">Runtime RAG</InfoPill>
+          </>
+        }
+        actions={
+          <ActionButton
             onClick={() => loadTasks(true)}
             disabled={isLoading || isRefreshing}
           >
             {isRefreshing ? "Refreshing..." : "Refresh"}
-          </button>
-        </div>
-      </div>
+          </ActionButton>
+        }
+      />
 
       {errorMessage && (
-        <div className="tasks-center-error">
-          <strong>Tasks Center error</strong>
-          <span>{errorMessage}</span>
-        </div>
+        <ErrorState title="Tasks Center error" message={errorMessage} />
       )}
 
-      <section className="tasks-center-summary-card">
-        <div className="tasks-center-summary-grid">
-          <TaskMetric label="Loaded" value={tasks.length} />
-          <TaskMetric label="Total matched" value={data?.totalCount ?? 0} />
-          <TaskMetric label="Manual" value={sourceCounts.manual ?? 0} />
-          <TaskMetric label="WhatsApp" value={sourceCounts.whatsapp ?? 0} />
-          <TaskMetric label="Done" value={statusCounts.done ?? 0} />
-          <TaskMetric label="Error" value={statusCounts.error ?? 0} />
-        </div>
-      </section>
+      <PanelCard accent="blue" compact className="tasks-center-standard-panel">
+        <MetricGrid>
+          <MetricCard label="Loaded" value={tasks.length} />
+          <MetricCard label="Total matched" value={data?.totalCount ?? 0} />
+          <MetricCard label="Manual" value={sourceCounts.manual ?? 0} />
+          <MetricCard label="WhatsApp" value={sourceCounts.whatsapp ?? 0} />
+          <MetricCard label="Done" value={statusCounts.done ?? 0} />
+          <MetricCard label="Error" value={statusCounts.error ?? 0} />
+        </MetricGrid>
+      </PanelCard>
 
-      <section className="tasks-center-filter-card">
-        <div className="tasks-center-filter-grid">
-          <label className="tasks-filter-field search">
-            <span>Search</span>
+      <PanelCard accent="blue" compact className="tasks-center-standard-panel">
+        <FilterGrid>
+          <FormField label="Search" wide>
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search input, output, or RAG query..."
             />
-          </label>
+          </FormField>
 
-          <label className="tasks-filter-field">
-            <span>Agent</span>
+          <FormField label="Agent">
             <select
               value={agentName}
               onChange={(event) => setAgentName(event.target.value)}
@@ -390,10 +386,9 @@ export function TasksCenterView() {
                 </option>
               ))}
             </select>
-          </label>
+          </FormField>
 
-          <label className="tasks-filter-field">
-            <span>Source</span>
+          <FormField label="Source">
             <select
               value={source}
               onChange={(event) => setSource(event.target.value)}
@@ -402,10 +397,9 @@ export function TasksCenterView() {
               <option value="manual">manual</option>
               <option value="whatsapp">whatsapp</option>
             </select>
-          </label>
+          </FormField>
 
-          <label className="tasks-filter-field">
-            <span>Status</span>
+          <FormField label="Status">
             <select
               value={status}
               onChange={(event) => setStatus(event.target.value)}
@@ -416,10 +410,9 @@ export function TasksCenterView() {
               <option value="done">done</option>
               <option value="error">error</option>
             </select>
-          </label>
+          </FormField>
 
-          <label className="tasks-filter-field">
-            <span>Governance</span>
+          <FormField label="Governance">
             <select
               value={governanceAllowed}
               onChange={(event) =>
@@ -432,10 +425,9 @@ export function TasksCenterView() {
               <option value="true">Allowed</option>
               <option value="false">Denied</option>
             </select>
-          </label>
+          </FormField>
 
-          <label className="tasks-filter-field">
-            <span>Memory</span>
+          <FormField label="Memory">
             <select
               value={runtimeMemoryInjected}
               onChange={(event) =>
@@ -448,10 +440,9 @@ export function TasksCenterView() {
               <option value="true">Injected</option>
               <option value="false">Not injected</option>
             </select>
-          </label>
+          </FormField>
 
-          <label className="tasks-filter-field">
-            <span>RAG</span>
+          <FormField label="RAG">
             <select
               value={runtimeRagRetrieved}
               onChange={(event) =>
@@ -464,10 +455,9 @@ export function TasksCenterView() {
               <option value="true">Retrieved</option>
               <option value="false">None</option>
             </select>
-          </label>
+          </FormField>
 
-          <label className="tasks-filter-field">
-            <span>Limit</span>
+          <FormField label="Limit">
             <input
               type="number"
               min={10}
@@ -475,27 +465,24 @@ export function TasksCenterView() {
               value={limit}
               onChange={(event) => setLimit(Number(event.target.value))}
             />
-          </label>
-        </div>
+          </FormField>
+        </FilterGrid>
 
         <div className="tasks-center-filter-actions">
-          <button type="button" onClick={() => loadTasks(true)}>
-            Apply Filters
-          </button>
-
-          <button type="button" onClick={clearFilters}>
+          <ActionButton onClick={() => loadTasks(true)}>Apply Filters</ActionButton>
+          <ActionButton tone="ghost" onClick={clearFilters}>
             Clear Filters
-          </button>
+          </ActionButton>
         </div>
-      </section>
+      </PanelCard>
 
       {isLoading ? (
         <div className="tasks-center-loading">Loading Tasks Center...</div>
       ) : tasks.length === 0 ? (
-        <div className="tasks-center-empty">
-          <strong>No tasks matched your filters.</strong>
-          <p>Try clearing filters or sending a task from Manual Widget or WhatsApp.</p>
-        </div>
+        <EmptyState
+          title="No tasks matched your filters."
+          description="Try clearing filters or sending a task from Manual Widget or WhatsApp."
+        />
       ) : (
         <div className="tasks-center-layout">
           <main className="tasks-center-list">
@@ -563,6 +550,6 @@ export function TasksCenterView() {
           />
         </div>
       )}
-    </section>
+    </PageShell>
   );
 }

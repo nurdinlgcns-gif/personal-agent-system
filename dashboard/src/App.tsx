@@ -254,7 +254,9 @@ function App() {
           isOfficeRoute ? "office-route-main" : "overview-route-main"
         }`}
       >
-        <TopHeader connectionStatus={connectionStatus} socketId={socketId} />
+        <div className="dashboard-sticky-header">
+          <TopHeader connectionStatus={connectionStatus} socketId={socketId} />
+        </div>
 
         <div className="dashboard-status-layer" aria-live="polite">
           {snapshotError && (

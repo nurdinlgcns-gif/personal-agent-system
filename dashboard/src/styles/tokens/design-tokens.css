@@ -1,0 +1,124 @@
+/* =========================
+   PHASE 8.61.1
+   DESIGN TOKENS
+========================= */
+
+:root {
+    /* Page */
+    --ui-page-bg: #020617;
+    --ui-page-bg-soft: #07111f;
+    --ui-page-max-width: 1480px;
+    --ui-page-padding: 22px;
+    --ui-page-gap: 18px;
+  
+    /* Surface */
+    --ui-surface-1: rgba(8, 15, 32, 0.78);
+    --ui-surface-2: rgba(15, 23, 42, 0.62);
+    --ui-surface-3: rgba(2, 6, 23, 0.42);
+    --ui-surface-hover: rgba(15, 23, 42, 0.86);
+  
+    /* Border */
+    --ui-border-soft: rgba(148, 163, 184, 0.14);
+    --ui-border-medium: rgba(148, 163, 184, 0.22);
+    --ui-border-strong: rgba(226, 232, 240, 0.28);
+  
+    /* Text */
+    --ui-text-main: #f8fafc;
+    --ui-text-soft: #cbd5e1;
+    --ui-text-muted: #94a3b8;
+    --ui-text-faint: #64748b;
+  
+    /* Accent */
+    --ui-accent-blue: #60a5fa;
+    --ui-accent-green: #4ade80;
+    --ui-accent-cyan: #22d3ee;
+    --ui-accent-purple: #a78bfa;
+    --ui-accent-pink: #f472b6;
+    --ui-accent-yellow: #facc15;
+    --ui-accent-orange: #fb923c;
+    --ui-accent-red: #f87171;
+  
+    /* Accent surfaces */
+    --ui-blue-soft: rgba(37, 99, 235, 0.14);
+    --ui-green-soft: rgba(34, 197, 94, 0.14);
+    --ui-cyan-soft: rgba(14, 165, 233, 0.14);
+    --ui-purple-soft: rgba(168, 85, 247, 0.14);
+    --ui-pink-soft: rgba(236, 72, 153, 0.14);
+    --ui-yellow-soft: rgba(245, 158, 11, 0.14);
+    --ui-red-soft: rgba(239, 68, 68, 0.14);
+  
+    /* Radius */
+    --ui-radius-xs: 8px;
+    --ui-radius-sm: 12px;
+    --ui-radius-md: 16px;
+    --ui-radius-lg: 22px;
+    --ui-radius-xl: 26px;
+    --ui-radius-pill: 999px;
+  
+    /* Spacing */
+    --ui-space-1: 4px;
+    --ui-space-2: 6px;
+    --ui-space-3: 8px;
+    --ui-space-4: 10px;
+    --ui-space-5: 12px;
+    --ui-space-6: 14px;
+    --ui-space-7: 16px;
+    --ui-space-8: 18px;
+    --ui-space-9: 22px;
+    --ui-space-10: 28px;
+  
+    /* Shadows */
+    --ui-shadow-card:
+      0 18px 44px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  
+    --ui-shadow-soft:
+      0 14px 34px rgba(0, 0, 0, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  
+    /* Typography */
+    --ui-font-size-eyebrow: 10px;
+    --ui-font-size-caption: 11px;
+    --ui-font-size-body: 12px;
+    --ui-font-size-body-lg: 13px;
+    --ui-font-size-title: 20px;
+    --ui-font-size-page-title: 30px;
+  
+    --ui-line-height-tight: 1.25;
+    --ui-line-height-normal: 1.55;
+    --ui-line-height-relaxed: 1.7;
+  
+    /* Layout */
+    --ui-control-height: 40px;
+    --ui-panel-min-height: 120px;
+  }
+  
+  :root[data-theme="m365-light"] {
+    --ui-page-bg: #f8fafc;
+    --ui-page-bg-soft: #f1f5f9;
+  
+    --ui-surface-1: #ffffff;
+    --ui-surface-2: #f8fafc;
+    --ui-surface-3: #f1f5f9;
+    --ui-surface-hover: #ffffff;
+  
+    --ui-border-soft: rgba(15, 23, 42, 0.08);
+    --ui-border-medium: rgba(15, 23, 42, 0.12);
+    --ui-border-strong: rgba(15, 23, 42, 0.18);
+  
+    --ui-text-main: #111827;
+    --ui-text-soft: #334155;
+    --ui-text-muted: #64748b;
+    --ui-text-faint: #94a3b8;
+  
+    --ui-shadow-card: 0 18px 42px rgba(15, 23, 42, 0.08);
+    --ui-shadow-soft: 0 14px 34px rgba(15, 23, 42, 0.06);
+  }
+  
+  @media (max-width: 760px) {
+    :root {
+      --ui-page-padding: 14px;
+      --ui-page-gap: 14px;
+      --ui-font-size-page-title: 24px;
+    }
+  }
