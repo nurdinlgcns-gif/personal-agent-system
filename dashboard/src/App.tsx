@@ -29,7 +29,8 @@ import { OfficeView } from "./views/OfficeView";
 import { SettingsView } from "./views/SettingsView";
 import { AgentsView } from "./views/AgentsView";
 import { SkillsView } from "./views/SkillsView";
-import { MemoryVaultView } from "./views/MemoryVaultView";
+import { TasksCenterView } from "./views/TasksCenterView";
+import { WhatsAppOperationsView } from "./views/WhatsAppOperationsView";
 
 function App() {
   const location = useLocation();
@@ -348,8 +349,9 @@ function App() {
           />
 
           <Route path="/agents" element={<AgentsView />} />
+          <Route path="/tasks" element={<TasksCenterView />} />
           <Route path="/skills" element={<SkillsView />} />
-          <Route path="/memory-vault" element={<MemoryVaultView />} />
+          <Route path="/whatsapp" element={<WhatsAppOperationsView />} />
           <Route path="/settings" element={<SettingsView />} />
 
           <Route path="/dashboard" element={<Navigate to="/" replace />} />

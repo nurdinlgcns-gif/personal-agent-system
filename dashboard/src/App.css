@@ -16,6 +16,8 @@
 @import "./styles/components/agents-governance.css";
 @import "./styles/components/skills-page.css";
 @import "./styles/components/memory-vault.css";
+@import "./styles/components/tasks-center.css";
+@import "./styles/components/whatsapp-operations.css";
 
 /* Sidebar */
 @import "./styles/components/sidebar-fixed-layout.css";

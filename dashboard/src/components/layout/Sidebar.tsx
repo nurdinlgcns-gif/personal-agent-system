@@ -28,6 +28,7 @@ const navItems: Array<{
   {
     label: "Tasks",
     icon: "▤",
+    path: "/tasks",
   },
   {
     label: "Skills",
@@ -42,6 +43,7 @@ const navItems: Array<{
   {
     label: "WhatsApp",
     icon: "◌",
+    path: "/whatsapp",
   },
   {
     label: "Settings",

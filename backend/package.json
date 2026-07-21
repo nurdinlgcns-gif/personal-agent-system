@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "ts-node-dev --respawn src/index.ts",
     "register:skill": "ts-node-dev --respawn --exit-child src/scripts/registerSkill.ts",
-    "qa:rag-retrieval": "node scripts/rag-retrieval-evaluation-qa.cjs"
+    "qa:rag-retrieval": "node scripts/rag-retrieval-evaluation-qa.cjs",
+    "qa:stable-release": "node scripts/final-stable-release-qa.cjs"
   },
   "keywords": [],
   "author": "",
