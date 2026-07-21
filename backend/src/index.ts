@@ -32,6 +32,7 @@ import { searchSemanticMemoryChunks } from "./services/embeddings/semanticMemory
 import { formatManualRuntimeOutput } from "./services/llm/manualRuntimeOutputGuardrails";
 import { knowledgeSourceHistoryRoutes } from "./routes/knowledgeSourceHistoryRoutes";
 import { tasksRoutes } from "./routes/tasksRoutes";
+import { whatsappRoutes } from "./routes/whatsappRoutes";
 
 validateEnv();
 
@@ -46,6 +47,7 @@ app.use("/api/agent-governance", agentGovernanceRoutes);
 app.use("/api/memory-vault", memoryVaultRoutes);
 app.use("/api/memory-vault/knowledge-sources", knowledgeSourceHistoryRoutes);
 app.use("/api/tasks", tasksRoutes);
+app.use("/api/whatsapp", whatsappRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({

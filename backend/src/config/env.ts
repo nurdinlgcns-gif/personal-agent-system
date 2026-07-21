@@ -16,6 +16,26 @@ function optionalEnv(key: string, defaultValue: string): string {
   return process.env[key] || defaultValue;
 }
 
+function optionalBooleanEnv(key: string, defaultValue: boolean): boolean {
+  const value = process.env[key];
+
+  if (!value) {
+    return defaultValue;
+  }
+
+  return value === "true";
+}
+
+function optionalNumberEnv(key: string, defaultValue: number): number {
+  const value = Number(process.env[key] || defaultValue);
+
+  if (Number.isNaN(value)) {
+    return defaultValue;
+  }
+
+  return value;
+}
+
 export const env = {
   PORT: optionalEnv("PORT", "3000"),
 
@@ -28,10 +48,20 @@ export const env = {
     .map((number) => number.trim())
     .filter(Boolean),
 
-  PROCESS_FROM_ME: optionalEnv("PROCESS_FROM_ME", "false") === "true",
+  PROCESS_FROM_ME: optionalBooleanEnv("PROCESS_FROM_ME", false),
 
-  WA_MAX_REQUEST_PER_MINUTE: Number(
-    optionalEnv("WA_MAX_REQUEST_PER_MINUTE", "5")
+  WA_MAX_REQUEST_PER_MINUTE: optionalNumberEnv(
+    "WA_MAX_REQUEST_PER_MINUTE",
+    5
+  ),
+
+  WHATSAPP_ENABLED: optionalEnv("WHATSAPP_ENABLED", "true") !== "false",
+
+  WHATSAPP_AUTH_DIR: optionalEnv("WHATSAPP_AUTH_DIR", "auth_info_baileys"),
+
+  WHATSAPP_RECONNECT_DELAY_MS: optionalNumberEnv(
+    "WHATSAPP_RECONNECT_DELAY_MS",
+    3000
   ),
 };
 
@@ -44,5 +74,9 @@ export function validateEnv() {
 
   if (!env.ANTHROPIC_API_KEY) {
     console.log("[ENV] Warning: ANTHROPIC_API_KEY kosong, agent masih dummy mode");
+  }
+
+  if (!env.WHATSAPP_ENABLED) {
+    console.log("[ENV] WhatsApp disabled by WHATSAPP_ENABLED=false");
   }
 }

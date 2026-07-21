@@ -7,6 +7,7 @@ import {
 } from "../services/whatsappOperationsApi";
 import { RuntimeMemoryTaskMetadata } from "../components/runtime/RuntimeMemoryTaskMetadata";
 import { RuntimeRagTaskMetadata } from "../components/runtime/RuntimeRagTaskMetadata";
+import { WhatsAppConnectionCard } from "../components/whatsapp/WhatsAppConnectionCard";
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -156,11 +157,20 @@ function WhatsAppTaskDetailPanel({
         <span>Runtime Provider</span>
 
         <div className="whatsapp-ops-detail-grid">
-          <WhatsAppMetric label="Provider" value={task.runtimeProviderName || "-"} />
-          <WhatsAppMetric label="Type" value={task.runtimeProviderType || "-"} />
+          <WhatsAppMetric
+            label="Provider"
+            value={task.runtimeProviderName || "-"}
+          />
+          <WhatsAppMetric
+            label="Type"
+            value={task.runtimeProviderType || "-"}
+          />
           <WhatsAppMetric label="Model" value={task.runtimeModel || "-"} />
           <WhatsAppMetric label="Mode" value={task.runtimeMode || "-"} />
-          <WhatsAppMetric label="Resolved" value={task.runtimeResolvedFrom || "-"} />
+          <WhatsAppMetric
+            label="Resolved"
+            value={task.runtimeResolvedFrom || "-"}
+          />
         </div>
       </div>
 
@@ -176,10 +186,7 @@ function WhatsAppTaskDetailPanel({
             label="Confidence"
             value={task.governanceConfidence || "-"}
           />
-          <WhatsAppMetric
-            label="Reason"
-            value={task.governanceReason || "-"}
-          />
+          <WhatsAppMetric label="Reason" value={task.governanceReason || "-"} />
         </div>
 
         <div className="whatsapp-ops-pill-block">
@@ -359,6 +366,8 @@ export function WhatsAppOperationsView() {
         </div>
       )}
 
+      <WhatsAppConnectionCard />
+
       <section className="whatsapp-ops-summary-card">
         <div className="whatsapp-ops-summary-grid">
           <WhatsAppMetric label="Loaded" value={tasks.length} />
@@ -407,7 +416,10 @@ export function WhatsAppOperationsView() {
 
           <label className="whatsapp-filter-field">
             <span>Status</span>
-            <select value={status} onChange={(event) => setStatus(event.target.value)}>
+            <select
+              value={status}
+              onChange={(event) => setStatus(event.target.value)}
+            >
               <option value="all">All status</option>
               <option value="pending">pending</option>
               <option value="in_progress">in_progress</option>
