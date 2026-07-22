@@ -16,6 +16,17 @@ import {
   type LlmProviderStatus,
   type LlmProvidersResponse,
 } from "../services/llmApi";
+import {
+  ActionButton,
+  EmptyState,
+  ErrorState,
+  InfoPill,
+  MetricCard,
+  MetricGrid,
+  PageHero,
+  PageShell,
+  PanelCard,
+} from "../components/ui";
 
 type ProviderFormState = {
   id?: string;
@@ -68,61 +79,6 @@ function getProviderKeyPreview(
   return "-";
 }
 
-function getProviderDescription(provider: LlmProviderStatus) {
-  if (provider.provider === "anthropic") {
-    return "Environment-based Claude bootstrap provider. Useful for local development, fallback, and future registry seeding.";
-  }
-
-  if (provider.provider === "google") {
-    return "Environment-based Gemini bootstrap provider. Useful for local development, fallback, and future registry seeding.";
-  }
-
-  return "Environment provider.";
-}
-
-function getProviderAccent(provider: LlmProviderStatus) {
-  if (provider.provider === "anthropic") {
-    return "claude";
-  }
-
-  if (provider.provider === "google") {
-    return "gemini";
-  }
-
-  return "default";
-}
-
-function getRegistryProviderAccent(provider: DynamicLlmProvider) {
-  if (provider.type === "anthropic") {
-    return "claude";
-  }
-
-  if (provider.type === "google") {
-    return "gemini";
-  }
-
-  if (provider.type === "fal") {
-    return "fal";
-  }
-
-  if (provider.type === "local" || provider.type === "openai-compatible") {
-    return "local";
-  }
-
-  return "default";
-}
-
-function parseCapabilities(inputText: string) {
-  return inputText
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function stringifyCapabilities(capabilities: string[]) {
-  return capabilities.join(", ");
-}
-
 function normalizeModelMode(mode?: string): LlmModelMode {
   if (
     mode === "auto" ||
@@ -134,6 +90,17 @@ function normalizeModelMode(mode?: string): LlmModelMode {
   }
 
   return "auto";
+}
+
+function parseCapabilities(inputText: string) {
+  return inputText
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function stringifyCapabilities(capabilities: string[]) {
+  return capabilities.join(", ");
 }
 
 function parseModelAliases(inputText: string): DynamicProviderModelAlias[] {
@@ -193,6 +160,182 @@ function formToPayload(form: ProviderFormState): CreateDynamicProviderPayload {
   return payload;
 }
 
+function getRegistryProviderTone(provider: DynamicLlmProvider) {
+  if (!provider.enabled) {
+    return "red";
+  }
+
+  if (provider.type === "anthropic") {
+    return "yellow";
+  }
+
+  if (provider.type === "google") {
+    return "green";
+  }
+
+  if (provider.type === "fal") {
+    return "purple";
+  }
+
+  return "blue";
+}
+
+function CompactCapabilityList({ values }: { values: string[] }) {
+  if (values.length === 0) {
+    return <span className="settings-muted">none</span>;
+  }
+
+  return (
+    <div className="settings-pill-row">
+      {values.slice(0, 4).map((value) => (
+        <span key={value}>{value}</span>
+      ))}
+      {values.length > 4 && <span>+{values.length - 4}</span>}
+    </div>
+  );
+}
+
+function ProviderDetailsModal({
+  provider,
+  onClose,
+  onEdit,
+  onTest,
+  onToggle,
+  onDelete,
+  isActionRunning,
+}: {
+  provider: DynamicLlmProvider;
+  onClose: () => void;
+  onEdit: (provider: DynamicLlmProvider) => void;
+  onTest: (provider: DynamicLlmProvider) => void;
+  onToggle: (provider: DynamicLlmProvider) => void;
+  onDelete: (provider: DynamicLlmProvider) => void;
+  isActionRunning: boolean;
+}) {
+  return (
+    <div className="llm-provider-modal-backdrop">
+      <section className="llm-provider-modal provider-detail-modal">
+        <header>
+          <div>
+            <span>Provider Details</span>
+            <h2>{provider.name}</h2>
+            <p>
+              Registry / {provider.type} ·{" "}
+              {provider.enabled ? "Enabled" : "Disabled"}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close provider details"
+          >
+            ×
+          </button>
+        </header>
+
+        <div className="settings-detail-grid">
+          <div>
+            <span>Provider ID</span>
+            <strong>{provider.id}</strong>
+          </div>
+
+          <div>
+            <span>Type</span>
+            <strong>{provider.type}</strong>
+          </div>
+
+          <div>
+            <span>Status</span>
+            <strong>{provider.enabled ? "Enabled" : "Disabled"}</strong>
+          </div>
+
+          <div>
+            <span>Default Model</span>
+            <strong>{provider.defaultModel || "auto"}</strong>
+          </div>
+
+          <div>
+            <span>API Key</span>
+            <strong>{provider.apiKeyPreview || "not configured"}</strong>
+          </div>
+
+          <div>
+            <span>Base URL</span>
+            <strong>{provider.baseUrl || "-"}</strong>
+          </div>
+        </div>
+
+        <div className="settings-detail-section">
+          <span>Capabilities</span>
+          <CompactCapabilityList values={provider.capabilities || []} />
+        </div>
+
+        <div className="settings-detail-section">
+          <span>Models</span>
+
+          {provider.modelAliases.length === 0 ? (
+            <EmptyState
+              title="No model aliases"
+              description="Add model aliases from Edit Provider."
+            />
+          ) : (
+            <div className="settings-model-table">
+              {provider.modelAliases.map((model) => (
+                <div key={model.id} className="settings-model-row">
+                  <div>
+                    <strong>{model.label}</strong>
+                    <small>{model.id}</small>
+                  </div>
+                  <span>{model.mode || "auto"}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <footer>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => onTest(provider)}
+            disabled={isActionRunning}
+          >
+            Test
+          </button>
+
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => onEdit(provider)}
+            disabled={isActionRunning}
+          >
+            Edit
+          </button>
+
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => onToggle(provider)}
+            disabled={isActionRunning}
+          >
+            {provider.enabled ? "Disable" : "Enable"}
+          </button>
+
+          <button
+            type="button"
+            className="danger"
+            onClick={() => onDelete(provider)}
+            disabled={isActionRunning}
+          >
+            Delete
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
 export function SettingsView() {
   const [providersData, setProvidersData] =
     useState<LlmProvidersResponse | null>(null);
@@ -220,6 +363,9 @@ export function SettingsView() {
     useState<ProviderFormState>(emptyProviderForm);
   const [isSavingProvider, setIsSavingProvider] = useState(false);
 
+  const [selectedProvider, setSelectedProvider] =
+    useState<DynamicLlmProvider | null>(null);
+
   const configuredCount = useMemo(() => {
     return (
       providersData?.providers.filter((provider) => provider.configured)
@@ -229,6 +375,10 @@ export function SettingsView() {
 
   const enabledRegistryCount = useMemo(() => {
     return registryProviders.filter((provider) => provider.enabled).length;
+  }, [registryProviders]);
+
+  const providerTypeOptions = useMemo(() => {
+    return Array.from(new Set(registryProviders.map((provider) => provider.type)));
   }, [registryProviders]);
 
   async function loadProviders(isSilent = false) {
@@ -280,9 +430,7 @@ export function SettingsView() {
 
   async function refreshAll() {
     setIsRefreshing(true);
-
     await Promise.all([loadProviders(true), loadRegistry(true)]);
-
     setIsRefreshing(false);
   }
 
@@ -328,6 +476,7 @@ export function SettingsView() {
   function openEditProviderForm(provider: DynamicLlmProvider) {
     setProviderForm(providerToForm(provider));
     setIsProviderFormOpen(true);
+    setSelectedProvider(null);
   }
 
   function closeProviderForm() {
@@ -345,9 +494,11 @@ export function SettingsView() {
   ) {
     setProviderForm((currentForm) => ({
       ...currentForm,
-      [key]: value, // <-- Perubahannya di sini, bungkus 'key' pakai kurung siku
+      [key]: value, // <-- Perubahan di sini, bungkus key dengan [ ]
     }));
   }
+  
+  
 
   async function handleSaveProvider() {
     const payload = formToPayload(providerForm);
@@ -392,6 +543,7 @@ export function SettingsView() {
       });
 
       await loadRegistry(true);
+      setSelectedProvider(null);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to update provider";
@@ -418,6 +570,7 @@ export function SettingsView() {
 
       await deleteDynamicLlmProvider(provider.id);
       await loadRegistry(true);
+      setSelectedProvider(null);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to delete provider";
@@ -457,55 +610,31 @@ export function SettingsView() {
   }, []);
 
   return (
-    <section className="settings-view">
-      <div className="settings-hero-card">
-        <div>
-          <span className="settings-eyebrow">System Settings</span>
-          <h1>Provider Registry Control Center</h1>
-          <p>
-            Manage AI provider configuration with a registry-first strategy.
-            Environment providers are kept as bootstrap/fallback, while Dynamic
-            Provider Registry is the future runtime source of truth.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="settings-refresh-button"
-          onClick={refreshAll}
-          disabled={isLoading || isRefreshing || isRegistryLoading}
-        >
-          {isRefreshing ? "Refreshing..." : "Refresh"}
-        </button>
-      </div>
-
-      <div className="provider-strategy-note">
-        <div>
-          <span>Current strategy</span>
-          <strong>Registry-first transition</strong>
-          <p>
-            Claude/Gemini from <code>.env</code> are bootstrap providers for
-            local dev and fallback. New custom/local/media providers should be
-            managed from Dynamic Provider Registry.
-          </p>
-        </div>
-
-        <div>
-          <span>Final direction</span>
-          <strong>One provider registry</strong>
-          <p>
-            Future runtime resolver should read enabled providers from the
-            registry, then select provider/model based on user preference,
-            agent preference, or default fallback.
-          </p>
-        </div>
-      </div>
+    <PageShell full className="settings-view settings-provider-page">
+      <PageHero
+        eyebrow="System Settings"
+        title="Provider Registry Control Center"
+        description="Manage AI providers with a clean registry-first workflow. Bootstrap .env providers stay available for local development and fallback."
+        badges={
+          <>
+            <InfoPill>Registry-first</InfoPill>
+            <InfoPill tone="green">Providers</InfoPill>
+            <InfoPill tone="purple">Models</InfoPill>
+            <InfoPill tone="yellow">Fallback</InfoPill>
+          </>
+        }
+        actions={
+          <ActionButton
+            onClick={refreshAll}
+            disabled={isLoading || isRefreshing || isRegistryLoading}
+          >
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </ActionButton>
+        }
+      />
 
       {errorMessage && (
-        <div className="settings-error-banner">
-          <strong>Settings error</strong>
-          <span>{errorMessage}</span>
-        </div>
+        <ErrorState title="Settings error" message={errorMessage} />
       )}
 
       {isLoading && (
@@ -517,128 +646,99 @@ export function SettingsView() {
 
       {!isLoading && providersData && (
         <>
-          <div className="settings-summary-grid">
-            <div className="settings-summary-card">
-              <span>Provider Strategy</span>
-              <strong>Registry-first</strong>
-            </div>
+          <PanelCard accent="blue" compact className="settings-strategy-panel">
+            <MetricGrid>
+              <MetricCard label="Strategy" value="Registry-first" />
+              <MetricCard label="Default Provider" value={providersData.defaultProvider} />
+              <MetricCard label="Default Model" value={providersData.defaultModel} />
+              <MetricCard
+                label="Env Bootstrap"
+                value={`${configuredCount}/${providersData.providers.length}`}
+              />
+              <MetricCard label="Registry Providers" value={registryProviders.length} />
+              <MetricCard
+                label="Registry Enabled"
+                value={`${enabledRegistryCount}/${registryProviders.length}`}
+              />
+            </MetricGrid>
 
-            <div className="settings-summary-card">
-              <span>Default Provider</span>
-              <strong>{providersData.defaultProvider}</strong>
-            </div>
-
-            <div className="settings-summary-card">
-              <span>Default Model</span>
-              <strong>{providersData.defaultModel}</strong>
-            </div>
-
-            <div className="settings-summary-card">
-              <span>Env Bootstrap</span>
-              <strong>
-                {configuredCount}/{providersData.providers.length}
-              </strong>
-            </div>
-
-            <div className="settings-summary-card">
-              <span>Registry Providers</span>
-              <strong>{registryProviders.length}</strong>
-            </div>
-
-            <div className="settings-summary-card">
-              <span>Registry Enabled</span>
-              <strong>
-                {enabledRegistryCount}/{registryProviders.length}
-              </strong>
-            </div>
-          </div>
-
-          <div className="llm-settings-section-header environment">
-            <div>
-              <span>Environment bootstrap providers</span>
-              <h2>Claude and Gemini from backend `.env`</h2>
-              <p>
-                These providers are still useful as bootstrap/fallback
-                configuration. Long-term runtime usage should gradually move to
-                Dynamic Provider Registry.
-              </p>
-            </div>
-          </div>
-
-          <div className="llm-provider-grid env-provider-grid">
-            {providersData.providers.map((provider) => (
-              <article
-                key={provider.provider}
-                className={`llm-provider-card env-provider-card ${getProviderAccent(
-                  provider
-                )} ${provider.configured ? "configured" : "not-configured"}`}
-              >
-                <div className="llm-provider-card-header">
-                  <div>
-                    <span className="llm-provider-type">
-                      ENV / {provider.provider}
-                    </span>
-                    <h2>{provider.displayName}</h2>
-                  </div>
-
-                  <span
-                    className={`llm-status-pill ${
-                      provider.configured ? "ready" : "missing"
-                    }`}
-                  >
-                    {provider.configured ? "Configured" : "Missing Key"}
-                  </span>
-                </div>
-
-                <p className="llm-provider-description">
-                  {getProviderDescription(provider)}
+            <details className="settings-strategy-details">
+              <summary>Show strategy details</summary>
+              <div>
+                <p>
+                  Claude and Gemini from <code>.env</code> are bootstrap
+                  providers for local development and fallback. New custom,
+                  local, OpenAI-compatible, and media providers should be
+                  managed from Dynamic Provider Registry.
                 </p>
+                <p>
+                  Final direction: one provider registry. The runtime resolver
+                  should read enabled providers from the registry, then select
+                  provider/model based on user preference, agent preference, or
+                  default fallback.
+                </p>
+              </div>
+            </details>
+          </PanelCard>
 
-                <div className="llm-provider-meta-grid">
+          <PanelCard accent="purple" compact className="settings-env-panel">
+            <div className="settings-section-row">
+              <div>
+                <span>Environment bootstrap providers</span>
+                <h2>Claude and Gemini from backend .env</h2>
+                <p>
+                  Compact bootstrap status. Use Test only when you need to
+                  validate local fallback provider access.
+                </p>
+              </div>
+            </div>
+
+            <div className="settings-table env-provider-table">
+              <div className="settings-table-row header">
+                <span>Provider</span>
+                <span>Status</span>
+                <span>Default Model</span>
+                <span>Aliases</span>
+                <span>API Key</span>
+                <span>Actions</span>
+              </div>
+
+              {providersData.providers.map((provider) => (
+                <div key={provider.provider} className="settings-table-row">
                   <div>
-                    <span>Default Model</span>
-                    <strong>{provider.defaultModel}</strong>
+                    <strong>{provider.displayName}</strong>
+                    <small>ENV / {provider.provider}</small>
                   </div>
 
                   <div>
-                    <span>API Key Preview</span>
-                    <strong>
-                      {getProviderKeyPreview(providersData, provider)}
-                    </strong>
+                    <span
+                      className={`llm-status-pill ${
+                        provider.configured ? "ready" : "missing"
+                      }`}
+                    >
+                      {provider.configured ? "Configured" : "Missing Key"}
+                    </span>
                   </div>
 
-                  <div>
-                    <span>Alias Count</span>
-                    <strong>{provider.availableModels.length}</strong>
+                  <div>{provider.defaultModel}</div>
+                  <div>{provider.availableModels.length} aliases</div>
+                  <div>{getProviderKeyPreview(providersData, provider)}</div>
+
+                  <div className="settings-table-actions">
+                    <button
+                      type="button"
+                      onClick={() => handlePreview(provider)}
+                      disabled={previewLoadingProvider === provider.provider}
+                    >
+                      {previewLoadingProvider === provider.provider
+                        ? "Testing..."
+                        : "Test"}
+                    </button>
                   </div>
                 </div>
-
-                <div className="llm-model-list compact">
-                  {provider.availableModels.map((model) => (
-                    <div key={model.id} className="llm-model-row">
-                      <div>
-                        <strong>{model.label}</strong>
-                        <small>{model.id}</small>
-                      </div>
-
-                      <span>{model.mode}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  className="llm-preview-button"
-                  onClick={() => handlePreview(provider)}
-                  disabled={previewLoadingProvider === provider.provider}
-                >
-                  {previewLoadingProvider === provider.provider
-                    ? "Testing..."
-                    : "Test Bootstrap Preview"}
-                </button>
-              </article>
-            ))}
-          </div>
+              ))}
+            </div>
+          </PanelCard>
 
           {previewResult && (
             <div className="llm-preview-result">
@@ -660,161 +760,106 @@ export function SettingsView() {
         </>
       )}
 
-      <div className="llm-settings-section-header registry primary-registry">
-        <div>
-          <span>Future source of truth</span>
-          <h2>Dynamic Provider Registry</h2>
-          <p>
-            Add and manage providers for local LLM, OpenAI-compatible
-            endpoints, custom HTTP providers, Claude/Gemini registry entries,
-            and media providers like fal.ai.
-          </p>
+      <PanelCard accent="blue" compact className="settings-registry-panel">
+        <div className="settings-section-row">
+          <div>
+            <span>Future source of truth</span>
+            <h2>Dynamic Provider Registry</h2>
+            <p>
+              Add and manage providers for local LLM, OpenAI-compatible
+              endpoints, custom HTTP providers, Claude/Gemini registry entries,
+              and media providers like fal.ai.
+            </p>
+          </div>
+
+          <ActionButton onClick={openCreateProviderForm}>Add Provider</ActionButton>
         </div>
 
-        <button
-          type="button"
-          className="settings-refresh-button"
-          onClick={openCreateProviderForm}
-        >
-          Add Provider
-        </button>
-      </div>
+        {providerTypeOptions.length > 0 && (
+          <div className="settings-provider-type-strip">
+            {providerTypeOptions.map((providerType) => (
+              <span key={providerType}>{providerType}</span>
+            ))}
+          </div>
+        )}
 
-      {isRegistryLoading ? (
-        <div className="settings-loading-card">
-          <span className="loading-spinner" />
-          Loading dynamic provider registry...
-        </div>
-      ) : registryProviders.length === 0 ? (
-        <div className="llm-registry-empty-card">
-          <strong>No dynamic provider registered yet.</strong>
-          <p>
-            Add a custom provider such as Local vLLM, OpenAI-compatible API,
-            fal.ai, or your own HTTP endpoint.
-          </p>
+        {isRegistryLoading ? (
+          <div className="settings-loading-card">
+            <span className="loading-spinner" />
+            Loading dynamic provider registry...
+          </div>
+        ) : registryProviders.length === 0 ? (
+          <EmptyState
+            title="No dynamic provider registered yet."
+            description="Add a custom provider such as Local vLLM, OpenAI-compatible API, fal.ai, or your own HTTP endpoint."
+          />
+        ) : (
+          <div className="settings-registry-table">
+            <div className="settings-registry-row header">
+              <span>Provider</span>
+              <span>Type</span>
+              <span>Status</span>
+              <span>Default Model</span>
+              <span>Capabilities</span>
+              <span>Models</span>
+              <span>Actions</span>
+            </div>
 
-          <button
-            type="button"
-            className="settings-refresh-button"
-            onClick={openCreateProviderForm}
-          >
-            Add First Provider
-          </button>
-        </div>
-      ) : (
-        <div className="llm-registry-grid">
-          {registryProviders.map((provider) => (
-            <article
-              key={provider.id}
-              className={`llm-registry-card ${getRegistryProviderAccent(
-                provider
-              )} ${provider.enabled ? "enabled" : "disabled"}`}
-            >
-              <div className="llm-provider-card-header">
+            {registryProviders.map((provider) => (
+              <div key={provider.id} className="settings-registry-row">
                 <div>
-                  <span className="llm-provider-type">
-                    Registry / {provider.type}
-                  </span>
-                  <h2>{provider.name}</h2>
+                  <strong>{provider.name}</strong>
+                  <small>Registry / {provider.type}</small>
                 </div>
 
-                <span
-                  className={`llm-status-pill ${
-                    provider.enabled ? "ready" : "missing"
-                  }`}
-                >
-                  {provider.enabled ? "Enabled" : "Disabled"}
-                </span>
-              </div>
-
-              <div className="llm-provider-meta-grid">
-                <div>
-                  <span>Default Model</span>
-                  <strong>{provider.defaultModel}</strong>
-                </div>
+                <div>{provider.type}</div>
 
                 <div>
-                  <span>API Key</span>
-                  <strong>{provider.apiKeyPreview || "-"}</strong>
+                  <InfoPill tone={getRegistryProviderTone(provider)}>
+                    {provider.enabled ? "Enabled" : "Disabled"}
+                  </InfoPill>
                 </div>
 
-                <div>
-                  <span>Base URL</span>
-                  <strong>{provider.baseUrl || "-"}</strong>
+                <div>{provider.defaultModel || "auto"}</div>
+
+                <CompactCapabilityList values={provider.capabilities || []} />
+
+                <div>{provider.modelAliases.length} models</div>
+
+                <div className="settings-table-actions">
+                  <button type="button" onClick={() => setSelectedProvider(provider)}>
+                    Details
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleTestRegistryProvider(provider)}
+                    disabled={registryActionId === provider.id}
+                  >
+                    {registryActionId === provider.id ? "Working..." : "Test"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => openEditProviderForm(provider)}
+                    disabled={registryActionId === provider.id}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleToggleProvider(provider)}
+                    disabled={registryActionId === provider.id}
+                  >
+                    {provider.enabled ? "Disable" : "Enable"}
+                  </button>
                 </div>
               </div>
-
-              <div className="llm-capability-list">
-                {provider.capabilities.length === 0 ? (
-                  <span>no capability</span>
-                ) : (
-                  provider.capabilities.map((capability) => (
-                    <span key={capability}>{capability}</span>
-                  ))
-                )}
-              </div>
-
-              <div className="llm-model-list">
-                {provider.modelAliases.length === 0 ? (
-                  <div className="llm-model-row">
-                    <div>
-                      <strong>No model aliases</strong>
-                      <small>Add aliases from Edit Provider.</small>
-                    </div>
-                    <span>auto</span>
-                  </div>
-                ) : (
-                  provider.modelAliases.map((model) => (
-                    <div key={model.id} className="llm-model-row">
-                      <div>
-                        <strong>{model.label}</strong>
-                        <small>{model.id}</small>
-                      </div>
-
-                      <span>{model.mode || "auto"}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="llm-registry-actions">
-                <button
-                  type="button"
-                  onClick={() => handleTestRegistryProvider(provider)}
-                  disabled={registryActionId === provider.id}
-                >
-                  {registryActionId === provider.id ? "Working..." : "Test"}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => openEditProviderForm(provider)}
-                  disabled={registryActionId === provider.id}
-                >
-                  Edit
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleToggleProvider(provider)}
-                  disabled={registryActionId === provider.id}
-                >
-                  {provider.enabled ? "Disable" : "Enable"}
-                </button>
-
-                <button
-                  type="button"
-                  className="danger"
-                  onClick={() => handleDeleteProvider(provider)}
-                  disabled={registryActionId === provider.id}
-                >
-                  Delete
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </PanelCard>
 
       {registryTestResult && (
         <div className="llm-preview-result">
@@ -825,6 +870,18 @@ export function SettingsView() {
 
           <p>{registryTestResult}</p>
         </div>
+      )}
+
+      {selectedProvider && (
+        <ProviderDetailsModal
+          provider={selectedProvider}
+          onClose={() => setSelectedProvider(null)}
+          onEdit={openEditProviderForm}
+          onTest={handleTestRegistryProvider}
+          onToggle={handleToggleProvider}
+          onDelete={handleDeleteProvider}
+          isActionRunning={registryActionId === selectedProvider.id}
+        />
       )}
 
       {isProviderFormOpen && (
@@ -973,6 +1030,6 @@ export function SettingsView() {
           </section>
         </div>
       )}
-    </section>
+    </PageShell>
   );
 }
