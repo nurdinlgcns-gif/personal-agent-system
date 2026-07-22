@@ -4,6 +4,8 @@ import type {
   MemoryVaultItem,
 } from "../../services/memoryVaultApi";
 
+const KNOWLEDGE_SOURCE_PAGE_SIZE = 10;
+
 type KnowledgeSourceAuditPanelProps = {
   memories: MemoryVaultItem[];
   chunks: MemoryVaultChunk[];
@@ -23,6 +25,14 @@ type KnowledgeSourceAuditItem = {
 
 function normalizeSearch(value: string) {
   return value.toLowerCase().trim();
+}
+
+function truncateText(value: string, maxLength = 140) {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength).trim()}...`;
 }
 
 function getKnowledgeTitle(memory: MemoryVaultItem) {
@@ -51,11 +61,7 @@ function getShortContentPreview(memory: MemoryVaultItem) {
     .filter((line) => !line.toLowerCase().startsWith("source reference:"))
     .join(" ");
 
-  if (cleaned.length <= 220) {
-    return cleaned;
-  }
-
-  return `${cleaned.slice(0, 220).trim()}...`;
+  return truncateText(cleaned, 260);
 }
 
 function uniqueSorted(values: string[]) {
@@ -145,11 +151,75 @@ function AuditPills({
 
   return (
     <div className="knowledge-audit-pills">
-      {values.slice(0, 5).map((value) => (
+      {values.slice(0, 8).map((value) => (
         <span key={value}>{value}</span>
       ))}
 
-      {values.length > 5 && <span>+{values.length - 5}</span>}
+      {values.length > 8 && <span>+{values.length - 8}</span>}
+    </div>
+  );
+}
+
+function KnowledgeSourceDetailModal({
+  item,
+  onClose,
+}: {
+  item: KnowledgeSourceAuditItem;
+  onClose: () => void;
+}) {
+  return (
+    <div className="knowledge-audit-modal-backdrop">
+      <section className="knowledge-audit-modal">
+        <header>
+          <div>
+            <span>Knowledge Source Detail</span>
+            <h2>{getKnowledgeTitle(item.memory)}</h2>
+            <p>{getShortContentPreview(item.memory)}</p>
+          </div>
+
+          <button type="button" onClick={onClose} aria-label="Close source detail">
+            ×
+          </button>
+        </header>
+
+        <div className="knowledge-audit-modal-grid">
+          <AuditMetric label="Agent" value={`@${item.memory.agentName}`} />
+          <AuditMetric label="Scope" value={item.memory.scope} />
+          <AuditMetric label="Chunks" value={item.chunks.length} />
+          <AuditMetric label="Embedded" value={item.embeddedCount} />
+          <AuditMetric label="Pending" value={item.pendingCount} />
+          <AuditMetric label="Failed" value={item.failedCount} />
+          <AuditMetric label="Tokens" value={item.totalTokens} />
+          <AuditMetric label="Chars" value={item.totalChars} />
+          <AuditMetric label="Sensitivity" value={item.memory.sensitivityLevel} />
+          <AuditMetric label="Runtime" value={item.memory.runtimeInjectable ? "Yes" : "No"} />
+          <AuditMetric label="RAG" value={item.memory.ragEnabled ? "Yes" : "No"} />
+          <AuditMetric label="Created" value={new Date(item.memory.createdAt).toLocaleString()} />
+        </div>
+
+        <section className="knowledge-audit-modal-section">
+          <span>Source reference</span>
+          <strong>{item.memory.sourceRef || "-"}</strong>
+        </section>
+
+        <section className="knowledge-audit-modal-section">
+          <span>Linked skills</span>
+          <AuditPills values={item.memory.linkedSkillNames} />
+        </section>
+
+        <section className="knowledge-audit-modal-section">
+          <span>Allowed agents</span>
+          <AuditPills
+            values={item.memory.allowedAgents.map((agent) => `@${agent}`)}
+            emptyLabel="project/global"
+          />
+        </section>
+
+        <section className="knowledge-audit-modal-section">
+          <span>Content preview</span>
+          <pre>{item.memory.content}</pre>
+        </section>
+      </section>
     </div>
   );
 }
@@ -163,11 +233,21 @@ export function KnowledgeSourceAuditPanel({
   const [searchQuery, setSearchQuery] = useState("");
   const [agentFilter, setAgentFilter] = useState("all");
   const [scopeFilter, setScopeFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
 
   const auditItems = useMemo(
     () => buildAuditItems(memories, chunks),
     [memories, chunks]
   );
+
+  const selectedSource = useMemo(() => {
+    if (!selectedSourceId) {
+      return null;
+    }
+
+    return auditItems.find((item) => item.memory.id === selectedSourceId) || null;
+  }, [auditItems, selectedSourceId]);
 
   const agentOptions = useMemo(
     () => uniqueSorted(auditItems.map((item) => item.memory.agentName)),
@@ -209,6 +289,16 @@ export function KnowledgeSourceAuditPanel({
     });
   }, [auditItems, agentFilter, scopeFilter, searchQuery]);
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredItems.length / KNOWLEDGE_SOURCE_PAGE_SIZE)
+  );
+
+  const normalizedPage = Math.min(currentPage, totalPages);
+  const pageStart = (normalizedPage - 1) * KNOWLEDGE_SOURCE_PAGE_SIZE;
+  const pageEnd = Math.min(pageStart + KNOWLEDGE_SOURCE_PAGE_SIZE, filteredItems.length);
+  const paginatedItems = filteredItems.slice(pageStart, pageEnd);
+
   const totalChunks = auditItems.reduce(
     (total, item) => total + item.chunks.length,
     0
@@ -233,6 +323,7 @@ export function KnowledgeSourceAuditPanel({
     setSearchQuery("");
     setAgentFilter("all");
     setScopeFilter("all");
+    setCurrentPage(1);
   }
 
   return (
@@ -255,6 +346,7 @@ export function KnowledgeSourceAuditPanel({
 
       <div className="knowledge-audit-summary-grid">
         <AuditMetric label="Sources" value={auditItems.length} />
+        <AuditMetric label="Filtered" value={filteredItems.length} />
         <AuditMetric label="Chunks" value={totalChunks} />
         <AuditMetric label="Embedded" value={embeddedChunks} />
         <AuditMetric label="Pending" value={pendingChunks} />
@@ -266,7 +358,10 @@ export function KnowledgeSourceAuditPanel({
           <span>Search sources</span>
           <input
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search title, sourceRef, skill, content..."
           />
         </label>
@@ -275,7 +370,10 @@ export function KnowledgeSourceAuditPanel({
           <span>Agent</span>
           <select
             value={agentFilter}
-            onChange={(event) => setAgentFilter(event.target.value)}
+            onChange={(event) => {
+              setAgentFilter(event.target.value);
+              setCurrentPage(1);
+            }}
           >
             <option value="all">All agents</option>
             {agentOptions.map((agent) => (
@@ -290,7 +388,10 @@ export function KnowledgeSourceAuditPanel({
           <span>Scope</span>
           <select
             value={scopeFilter}
-            onChange={(event) => setScopeFilter(event.target.value)}
+            onChange={(event) => {
+              setScopeFilter(event.target.value);
+              setCurrentPage(1);
+            }}
           >
             <option value="all">All scopes</option>
             {scopeOptions.map((scope) => (
@@ -327,67 +428,91 @@ export function KnowledgeSourceAuditPanel({
           <span>Try another keyword, agent, or scope.</span>
         </div>
       ) : (
-        <div className="knowledge-audit-list">
-          {filteredItems.map((item) => {
-            const isActive = selectedMemoryId === item.memory.id;
+        <>
+          <div className="knowledge-source-table">
+            <div className="knowledge-source-row header">
+              <span>Source</span>
+              <span>Agent</span>
+              <span>Scope</span>
+              <span>Chunks</span>
+              <span>Embedded</span>
+              <span>Tokens</span>
+              <span>Skills</span>
+              <span>Action</span>
+            </div>
 
-            return (
+            {paginatedItems.map((item) => {
+              const isActive = selectedMemoryId === item.memory.id;
+
+              return (
+                <button
+                  type="button"
+                  key={item.memory.id}
+                  className={`knowledge-source-row ${isActive ? "active" : ""}`}
+                  onClick={() => {
+                    onSelectMemory(item.memory.id);
+                    setSelectedSourceId(item.memory.id);
+                  }}
+                >
+                  <span className="source-title">
+                    <strong>{getKnowledgeTitle(item.memory)}</strong>
+                    <small>{truncateText(item.memory.sourceRef || "-", 70)}</small>
+                  </span>
+
+                  <span>@{item.memory.agentName}</span>
+                  <span>{item.memory.scope}</span>
+                  <span>{item.chunks.length}</span>
+                  <span>{item.embeddedCount}/{item.chunks.length}</span>
+                  <span>{item.totalTokens}</span>
+                  <span>{item.memory.linkedSkillNames.length}</span>
+
+                  <span>
+                    <strong className="knowledge-source-details">Details</strong>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="knowledge-source-pagination">
+            <div>
+              Showing <strong>{filteredItems.length === 0 ? 0 : pageStart + 1}</strong>{" "}
+              to <strong>{pageEnd}</strong> of <strong>{filteredItems.length}</strong>{" "}
+              sources
+            </div>
+
+            <div className="knowledge-source-pagination-actions">
               <button
                 type="button"
-                key={item.memory.id}
-                className={`knowledge-audit-item ${isActive ? "active" : ""}`}
-                onClick={() => onSelectMemory(item.memory.id)}
+                onClick={() => setCurrentPage((current) => Math.max(1, current - 1))}
+                disabled={normalizedPage <= 1}
               >
-                <div className="knowledge-audit-item-header">
-                  <div>
-                    <span>@{item.memory.agentName}</span>
-                    <strong>{getKnowledgeTitle(item.memory)}</strong>
-                  </div>
-
-                  <div className="knowledge-audit-source-status">
-                    {item.embeddedCount}/{item.chunks.length} embedded
-                  </div>
-                </div>
-
-                <p>{getShortContentPreview(item.memory)}</p>
-
-                <div className="knowledge-audit-stat-row">
-                  <AuditMetric label="Scope" value={item.memory.scope} />
-                  <AuditMetric label="Chunks" value={item.chunks.length} />
-                  <AuditMetric label="Tokens" value={item.totalTokens} />
-                  <AuditMetric label="Chars" value={item.totalChars} />
-                </div>
-
-                <div className="knowledge-audit-detail-grid">
-                  <div>
-                    <span>Source Ref</span>
-                    <strong title={item.memory.sourceRef || "-"}>
-                      {item.memory.sourceRef || "-"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>Sensitivity</span>
-                    <strong>{item.memory.sensitivityLevel}</strong>
-                  </div>
-                </div>
-
-                <div className="knowledge-audit-pill-section">
-                  <span>Linked skills</span>
-                  <AuditPills values={item.memory.linkedSkillNames} />
-                </div>
-
-                <div className="knowledge-audit-pill-section">
-                  <span>Allowed agents</span>
-                  <AuditPills
-                    values={item.memory.allowedAgents.map((agent) => `@${agent}`)}
-                    emptyLabel="project/global"
-                  />
-                </div>
+                Previous
               </button>
-            );
-          })}
-        </div>
+
+              <span>
+                Page {normalizedPage} / {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((current) => Math.min(totalPages, current + 1))
+                }
+                disabled={normalizedPage >= totalPages}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {selectedSource && (
+        <KnowledgeSourceDetailModal
+          item={selectedSource}
+          onClose={() => setSelectedSourceId(null)}
+        />
       )}
     </section>
   );

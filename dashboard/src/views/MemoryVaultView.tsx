@@ -14,7 +14,62 @@ import { MemoryMaintenancePanel } from "../components/memory/MemoryMaintenancePa
 import { KnowledgeSourceImportPanel } from "../components/memory/KnowledgeSourceImportPanel";
 import { KnowledgeSourceAuditPanel } from "../components/memory/KnowledgeSourceAuditPanel";
 import { KnowledgeSourceImportHistoryPanel } from "../components/memory/KnowledgeSourceImportHistoryPanel";
+import {
+  ActionButton,
+  EmptyState,
+  ErrorState,
+  InfoPill,
+  PageHero,
+  PageShell,
+  PanelCard,
+} from "../components/ui";
 
+type MemoryVaultTab =
+  | "overview"
+  | "memories"
+  | "knowledgeSources"
+  | "importAudit"
+  | "retrievalLab"
+  | "maintenance";
+
+const MEMORY_RECORDS_PAGE_SIZE = 10;
+
+const memoryVaultTabs: Array<{
+  id: MemoryVaultTab;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "overview",
+    label: "Overview",
+    description: "High-level memory, chunk, and retrieval readiness summary.",
+  },
+  {
+    id: "memories",
+    label: "Memories",
+    description: "Search, filter, inspect, and rebuild memory records.",
+  },
+  {
+    id: "knowledgeSources",
+    label: "Knowledge Sources",
+    description: "Review imported knowledge source registry and chunk mapping.",
+  },
+  {
+    id: "importAudit",
+    label: "Import & Audit",
+    description: "Import text or Markdown and inspect version history.",
+  },
+  {
+    id: "retrievalLab",
+    label: "Retrieval Lab",
+    description: "Preview semantic retrieval and RAG guard behavior.",
+  },
+  {
+    id: "maintenance",
+    label: "Maintenance",
+    description: "Run chunking, embedding, and skill-to-RAG refresh tasks.",
+  },
+];
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -90,49 +145,6 @@ function parseCommaList(value: string) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
-}
-
-function MemoryVaultCard({
-  memory,
-  isActive,
-  chunkCount,
-  onClick,
-}: {
-  memory: MemoryVaultItem;
-  isActive: boolean;
-  chunkCount: number;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={`memory-vault-card ${isActive ? "active" : ""}`}
-      onClick={onClick}
-    >
-      <div
-        className="memory-vault-avatar"
-        style={{
-          background: memory.agentColor
-            ? `linear-gradient(135deg, ${memory.agentColor}, rgba(37, 99, 235, 0.76))`
-            : undefined,
-        }}
-      >
-        {getMemoryInitial(memory.agentName)}
-      </div>
-
-      <div className="memory-vault-card-copy">
-        <span>@{memory.agentName}</span>
-        <strong>{getMemoryTypeLabel(memory.type)}</strong>
-        <p>{memory.content}</p>
-      </div>
-
-      <div className="memory-vault-card-footer">
-        <span>{memory.type}</span>
-        <span>{memory.scope}</span>
-        <span>{chunkCount} chunks</span>
-      </div>
-    </button>
-  );
 }
 
 function SummaryMetric({
@@ -579,17 +591,309 @@ function MemoryScopePlaceholder({ memory }: { memory: MemoryVaultItem }) {
   );
 }
 
+function MemoryChunkSummarySection({
+  summary,
+  chunks,
+}: {
+  summary: MemoryVaultSummary | null;
+  chunks: MemoryVaultChunk[];
+}) {
+  return (
+    <section className="memory-chunk-summary-card">
+      <div className="memory-section-title">
+        <div>
+          <span>Chunking foundation</span>
+          <h3>Memory Chunk Summary</h3>
+        </div>
+
+        <div className="memory-page-badge">
+          {summary?.totalChunks ?? chunks.length} chunks
+        </div>
+      </div>
+
+      <div className="memory-summary-grid">
+        <SummaryMetric
+          label="Total Chunks"
+          value={summary?.totalChunks ?? chunks.length}
+        />
+        <SummaryMetric
+          label="Chunked Memories"
+          value={summary?.chunkedMemoryCount ?? 0}
+        />
+        <SummaryMetric
+          label="Pending Embeddings"
+          value={summary?.pendingEmbeddings ?? 0}
+        />
+        <SummaryMetric
+          label="Embedded Chunks"
+          value={summary?.embeddedChunks ?? 0}
+        />
+        <SummaryMetric
+          label="Chunk Chars"
+          value={summary?.totalChunkChars ?? 0}
+        />
+        <SummaryMetric
+          label="Token Estimate"
+          value={summary?.totalChunkTokenEstimate ?? 0}
+        />
+      </div>
+    </section>
+  );
+}
+
+function MemoryOverviewTab({
+  memories,
+  chunks,
+  summary,
+  runtimeInjectableCount,
+  ragEnabledCount,
+  knowledgeSourceCount,
+}: {
+  memories: MemoryVaultItem[];
+  chunks: MemoryVaultChunk[];
+  summary: MemoryVaultSummary | null;
+  selectedMemory: MemoryVaultItem | null;
+  runtimeInjectableCount: number;
+  ragEnabledCount: number;
+  knowledgeSourceCount: number;
+  onOpenMemories: () => void;
+  onOpenKnowledgeSources: () => void;
+  onOpenRetrievalLab: () => void;
+  onOpenMaintenance: () => void;
+}) {
+  const totalMemories = summary?.totalMemories ?? memories.length;
+  const totalChunks = summary?.totalChunks ?? chunks.length;
+  const embeddedChunks = summary?.embeddedChunks ?? 0;
+  const pendingEmbeddings = summary?.pendingEmbeddings ?? 0;
+  const chunkedMemoryCount = summary?.chunkedMemoryCount ?? 0;
+  const failedEmbeddings = summary?.failedEmbeddings ?? 0;
+
+  const embeddingRate =
+    totalChunks > 0 ? Math.round((embeddedChunks / totalChunks) * 100) : 0;
+
+  const memoryCoverageRate =
+    totalMemories > 0
+      ? Math.round((chunkedMemoryCount / totalMemories) * 100)
+      : 0;
+
+  const healthLabel =
+    failedEmbeddings > 0
+      ? "Needs attention"
+      : pendingEmbeddings > 0
+        ? "Embedding pending"
+        : "Healthy";
+
+  return (
+    <div className="memory-overview-dashboard minimal">
+      <section className="memory-overview-hero-card minimal">
+        <div>
+          <span>Workspace overview</span>
+          <h3>Memory Vault Health</h3>
+          <p>
+            Ringkasan kondisi Memory Vault, chunk readiness, embedding progress,
+            knowledge sources, dan kesiapan retrieval. Detail operasional sudah
+            dipisah ke tab khusus supaya halaman utama tetap clean.
+          </p>
+
+          <div className="memory-overview-health-pills">
+            <span>{totalMemories} memories</span>
+            <span>{totalChunks} chunks</span>
+            <span>{embeddedChunks} embedded</span>
+            <span>{pendingEmbeddings} pending</span>
+            <span>{ragEnabledCount} RAG ready</span>
+            <span>{runtimeInjectableCount} runtime</span>
+            <span>{knowledgeSourceCount} sources</span>
+          </div>
+        </div>
+
+        <div
+          className={`memory-overview-health ${
+            healthLabel === "Healthy" ? "healthy" : "warning"
+          }`}
+        >
+          <strong>{healthLabel}</strong>
+          <span>
+            {embeddingRate}% embedded · {memoryCoverageRate}% chunked
+          </span>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function MemoryRecordDetailsModal({
+  memory,
+  chunks,
+  chunkCharCount,
+  chunkTokenEstimate,
+  isRebuildingChunks,
+  onClose,
+  onRebuildSelected,
+}: {
+  memory: MemoryVaultItem;
+  chunks: MemoryVaultChunk[];
+  chunkCharCount: number;
+  chunkTokenEstimate: number;
+  isRebuildingChunks: boolean;
+  onClose: () => void;
+  onRebuildSelected: () => void;
+}) {
+  return (
+    <div className="memory-record-modal-backdrop">
+      <section className="memory-record-modal">
+        <header>
+          <div className="memory-record-modal-title">
+            <div
+              className="memory-detail-avatar"
+              style={{
+                background: memory.agentColor
+                  ? `linear-gradient(135deg, ${memory.agentColor}, rgba(37, 99, 235, 0.76))`
+                  : undefined,
+              }}
+            >
+              {getMemoryInitial(memory.agentName)}
+            </div>
+
+            <div>
+              <span>@{memory.agentName}</span>
+              <h2>{getMemoryTypeLabel(memory.type)}</h2>
+              <p>
+                Agent-scoped memory record that can become retrieval context once
+                semantic retrieval is wired into runtime.
+              </p>
+            </div>
+          </div>
+
+          <button type="button" onClick={onClose} aria-label="Close memory detail">
+            ×
+          </button>
+        </header>
+
+        <div className="memory-record-detail-grid">
+          <SummaryMetric label="Memory ID" value={memory.id} />
+          <SummaryMetric label="Agent" value={`@${memory.agentName}`} />
+          <SummaryMetric label="Type" value={memory.type} />
+          <SummaryMetric label="Scope" value={memory.scope} />
+          <SummaryMetric
+            label="Owner"
+            value={memory.ownerAgentName || `@${memory.agentName}`}
+          />
+          <SummaryMetric
+            label="Runtime Injectable"
+            value={memory.runtimeInjectable ? "Yes" : "No"}
+          />
+          <SummaryMetric label="RAG Enabled" value={memory.ragEnabled ? "Yes" : "No"} />
+          <SummaryMetric label="Sensitivity" value={memory.sensitivityLevel} />
+          <SummaryMetric label="Source" value={memory.sourceRef || memory.sourceType} />
+          <SummaryMetric label="Created" value={formatDateTime(memory.createdAt)} />
+        </div>
+
+        <section className="memory-record-modal-section">
+          <div className="memory-section-title">
+            <div>
+              <span>Access mapping</span>
+              <h3>Allowed Agents + Linked Skills</h3>
+            </div>
+          </div>
+
+          <div className="memory-record-access-grid">
+            <div>
+              <span>Allowed Agents</span>
+              <div className="memory-roadmap-pills">
+                {memory.allowedAgents.length > 0 ? (
+                  memory.allowedAgents.map((agentName) => (
+                    <span key={agentName}>@{agentName}</span>
+                  ))
+                ) : (
+                  <span>none</span>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <span>Linked Skills</span>
+              <div className="memory-roadmap-pills">
+                {memory.linkedSkillNames.length > 0 ? (
+                  memory.linkedSkillNames.map((skillName) => (
+                    <span key={skillName}>{skillName}</span>
+                  ))
+                ) : (
+                  <span>none</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="memory-record-modal-section">
+          <div className="memory-section-title">
+            <div>
+              <span>Memory content</span>
+              <h3>Content Preview</h3>
+            </div>
+
+            <div className="memory-page-badge">{memory.content.length} chars</div>
+          </div>
+
+          <pre className="memory-record-content-preview">{memory.content}</pre>
+        </section>
+
+        <section className="memory-record-modal-section">
+          <div className="memory-section-title">
+            <div>
+              <span>Chunking</span>
+              <h3>Chunks for Selected Memory</h3>
+            </div>
+
+            <div className="memory-chunk-actions">
+              <span className="memory-page-badge">{chunks.length} chunks</span>
+
+              <button
+                type="button"
+                disabled={isRebuildingChunks}
+                onClick={onRebuildSelected}
+              >
+                {isRebuildingChunks ? "Rebuilding..." : "Rebuild selected"}
+              </button>
+            </div>
+          </div>
+
+          <div className="memory-summary-grid">
+            <SummaryMetric label="Chunk Count" value={chunks.length} />
+            <SummaryMetric label="Chunk Chars" value={chunkCharCount} />
+            <SummaryMetric label="Token Estimate" value={chunkTokenEstimate} />
+            <SummaryMetric
+              label="Embedding Status"
+              value={chunks.length > 0 ? chunks[0].embeddingStatus : "none"}
+            />
+          </div>
+
+          <MemoryChunkList chunks={chunks} />
+        </section>
+
+        <MemoryScopePlaceholder memory={memory} />
+      </section>
+    </div>
+  );
+}
+
 export function MemoryVaultView() {
   const [memories, setMemories] = useState<MemoryVaultItem[]>([]);
   const [chunks, setChunks] = useState<MemoryVaultChunk[]>([]);
   const [summary, setSummary] = useState<MemoryVaultSummary | null>(null);
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
+  const [selectedMemoryDetailId, setSelectedMemoryDetailId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<MemoryVaultTab>("overview");
+  const [memoryRecordsPage, setMemoryRecordsPage] = useState(1);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedAgent, setSelectedAgent] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
+
   const [semanticResult, setSemanticResult] =
     useState<SemanticMemorySearchResponse | null>(null);
   const [isSemanticSearching, setIsSemanticSearching] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRebuildingChunks, setIsRebuildingChunks] = useState(false);
@@ -631,6 +935,33 @@ export function MemoryVaultView() {
     });
   }, [memories, searchQuery, selectedAgent, selectedType]);
 
+  const memoryRecordsTotalPages = Math.max(
+    1,
+    Math.ceil(filteredMemories.length / MEMORY_RECORDS_PAGE_SIZE)
+  );
+
+  const normalizedMemoryRecordsPage = Math.min(
+    memoryRecordsPage,
+    memoryRecordsTotalPages
+  );
+
+  const memoryRecordsPageStartIndex =
+    (normalizedMemoryRecordsPage - 1) * MEMORY_RECORDS_PAGE_SIZE;
+
+  const memoryRecordsPageEndIndex = Math.min(
+    memoryRecordsPageStartIndex + MEMORY_RECORDS_PAGE_SIZE,
+    filteredMemories.length
+  );
+
+  const paginatedMemories = filteredMemories.slice(
+    memoryRecordsPageStartIndex,
+    memoryRecordsPageEndIndex
+  );
+
+  const selectedDetailMemory = selectedMemoryDetailId
+    ? memories.find((memory) => memory.id === selectedMemoryDetailId) || null
+    : null;
+
   const selectedMemory = useMemo(() => {
     if (filteredMemories.length === 0) {
       return null;
@@ -642,38 +973,21 @@ export function MemoryVaultView() {
     );
   }, [filteredMemories, selectedMemoryId]);
 
-  const selectedMemoryChunks = selectedMemory
-    ? chunksByMemoryId[selectedMemory.id] || []
-    : [];
+  const runtimeInjectableCount = memories.filter(
+    (memory) => memory.runtimeInjectable
+  ).length;
 
-  const selectedMemoryTokenEstimate = selectedMemoryChunks.reduce(
-    (total, chunk) => total + chunk.tokenEstimate,
-    0
-  );
+  const ragEnabledCount = memories.filter((memory) => memory.ragEnabled).length;
 
-  const selectedMemoryCharCount = selectedMemoryChunks.reduce(
-    (total, chunk) => total + chunk.charCount,
-    0
-  );
-
-  const groupedByAgent = useMemo(() => {
-    return filteredMemories.reduce<Record<string, MemoryVaultItem[]>>(
-      (accumulator, memory) => {
-        if (!accumulator[memory.agentName]) {
-          accumulator[memory.agentName] = [];
-        }
-
-        accumulator[memory.agentName].push(memory);
-        return accumulator;
-      },
-      {}
-    );
-  }, [filteredMemories]);
+  const knowledgeSourceCount = memories.filter(
+    (memory) => memory.sourceType === "knowledge_source" || memory.sourceRef
+  ).length;
 
   function clearFilters() {
     setSearchQuery("");
     setSelectedAgent("all");
     setSelectedType("all");
+    setMemoryRecordsPage(1);
   }
 
   async function loadMemoryVault(isSilent = false) {
@@ -746,25 +1060,21 @@ export function MemoryVaultView() {
     }
   }
 
-  async function handleRebuildSelectedMemoryChunks() {
-    if (!selectedMemory) {
-      return;
-    }
-
+  async function handleRebuildMemoryChunks(memory: MemoryVaultItem) {
     try {
       setIsRebuildingChunks(true);
       setChunkActionMessage(null);
       setErrorMessage(null);
 
       const result = await rebuildMemoryVaultChunks({
-        memoryId: selectedMemory.id,
+        memoryId: memory.id,
         maxChunkChars: 900,
         overlapChars: 120,
         minChunkChars: 40,
       });
 
       setChunkActionMessage(
-        `Rebuilt ${result.createdChunkCount} chunks for ${selectedMemory.type}.`
+        `Rebuilt ${result.createdChunkCount} chunks for ${memory.type}.`
       );
 
       await loadMemoryVault(true);
@@ -816,6 +1126,12 @@ export function MemoryVaultView() {
   }, []);
 
   useEffect(() => {
+    if (memoryRecordsPage > memoryRecordsTotalPages) {
+      setMemoryRecordsPage(memoryRecordsTotalPages);
+    }
+  }, [memoryRecordsPage, memoryRecordsTotalPages]);
+
+  useEffect(() => {
     if (
       selectedMemoryId &&
       filteredMemories.length > 0 &&
@@ -830,49 +1146,42 @@ export function MemoryVaultView() {
   }, [filteredMemories, selectedMemoryId]);
 
   return (
-    <section className="memory-vault-view">
-      <div className="memory-vault-hero">
-        <div>
-          <span className="memory-vault-eyebrow">Memory Vault Foundation</span>
-          <h1>Memory Vault Control Center</h1>
-          <p>
-            Monitor agent-scoped memories, chunking readiness, embeddings,
-            semantic retrieval guard checks, and future RAG-powered runtime
-            grounding.
-          </p>
+    <PageShell full className="memory-vault-view memory-vault-workspace">
+      <PageHero
+        eyebrow="Memory Vault Foundation"
+        title="Memory Vault Control Center"
+        description="Monitor agent-scoped memories, knowledge sources, chunking readiness, embeddings, semantic retrieval guard checks, and RAG-powered runtime grounding."
+        badges={
+          <>
+            <InfoPill tone="green">Agent-scoped memory</InfoPill>
+            <InfoPill tone="blue">Chunk-ready</InfoPill>
+            <InfoPill tone="purple">Semantic guard</InfoPill>
+            <InfoPill tone="yellow">Audit + rollback</InfoPill>
+          </>
+        }
+        actions={
+          <div className="memory-hero-actions">
+            <ActionButton
+              tone="green"
+              disabled={isLoading || isRefreshing || isRebuildingChunks}
+              onClick={() => loadMemoryVault(true)}
+            >
+              {isRefreshing ? "Refreshing..." : "Refresh"}
+            </ActionButton>
 
-          <div className="memory-vault-badge-row">
-            <span>Agent-scoped memory</span>
-            <span>Chunk-ready</span>
-            <span>Semantic guard</span>
-            <span>RAG foundation planned</span>
+            <ActionButton
+              tone="ghost"
+              disabled={isLoading || isRebuildingChunks}
+              onClick={handleRebuildAllChunks}
+            >
+              {isRebuildingChunks ? "Rebuilding..." : "Rebuild Chunks"}
+            </ActionButton>
           </div>
-        </div>
-
-        <div className="memory-hero-actions">
-          <button
-            type="button"
-            disabled={isLoading || isRefreshing || isRebuildingChunks}
-            onClick={() => loadMemoryVault(true)}
-          >
-            {isRefreshing ? "Refreshing..." : "Refresh"}
-          </button>
-
-          <button
-            type="button"
-            disabled={isLoading || isRebuildingChunks}
-            onClick={handleRebuildAllChunks}
-          >
-            {isRebuildingChunks ? "Rebuilding..." : "Rebuild Chunks"}
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {errorMessage && (
-        <div className="memory-vault-error">
-          <strong>Memory Vault error</strong>
-          <span>{errorMessage}</span>
-        </div>
+        <ErrorState title="Memory Vault error" message={errorMessage} />
       )}
 
       {chunkActionMessage && (
@@ -882,326 +1191,299 @@ export function MemoryVaultView() {
       {isLoading ? (
         <div className="memory-vault-loading">Loading Memory Vault...</div>
       ) : memories.length === 0 ? (
-        <div className="memory-vault-empty">
-          <strong>No memory records found.</strong>
-          <p>
-            Run the Memory Vault seed script to create initial agent-scoped
-            memories.
-          </p>
-        </div>
+        <EmptyState
+          title="No memory records found."
+          description="Run the Memory Vault seed script to create initial agent-scoped memories."
+        />
       ) : (
         <>
-          <section className="memory-chunk-summary-card">
-            <div className="memory-section-title">
-              <div>
-                <span>Chunking foundation</span>
-                <h3>Memory Chunk Summary</h3>
-              </div>
-
-              <div className="memory-page-badge">
-                {summary?.totalChunks ?? chunks.length} chunks
-              </div>
-            </div>
-
-            <div className="memory-summary-grid">
+          <PanelCard accent="green" compact className="memory-workspace-summary">
+            <div className="memory-workspace-summary-grid">
               <SummaryMetric
-                label="Total Chunks"
+                label="Memories"
+                value={summary?.totalMemories ?? memories.length}
+              />
+              <SummaryMetric
+                label="Chunks"
                 value={summary?.totalChunks ?? chunks.length}
               />
               <SummaryMetric
-                label="Chunked Memories"
-                value={summary?.chunkedMemoryCount ?? 0}
-              />
-              <SummaryMetric
-                label="Pending Embeddings"
-                value={summary?.pendingEmbeddings ?? 0}
-              />
-              <SummaryMetric
-                label="Embedded Chunks"
+                label="Embedded"
                 value={summary?.embeddedChunks ?? 0}
               />
               <SummaryMetric
-                label="Chunk Chars"
-                value={summary?.totalChunkChars ?? 0}
+                label="Pending"
+                value={summary?.pendingEmbeddings ?? 0}
               />
-              <SummaryMetric
-                label="Token Estimate"
-                value={summary?.totalChunkTokenEstimate ?? 0}
+              <SummaryMetric label="RAG Ready" value={ragEnabledCount} />
+              <SummaryMetric label="Runtime" value={runtimeInjectableCount} />
+              <SummaryMetric label="Sources" value={knowledgeSourceCount} />
+            </div>
+          </PanelCard>
+
+          <PanelCard accent="green" compact className="memory-workspace-tabs-card">
+            <div className="memory-workspace-tabs">
+              {memoryVaultTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={activeTab === tab.id ? "active" : ""}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  <strong>{tab.label}</strong>
+                  <span>{tab.description}</span>
+                </button>
+              ))}
+            </div>
+          </PanelCard>
+
+          {activeTab === "overview" && (
+            <MemoryOverviewTab
+              memories={memories}
+              chunks={chunks}
+              summary={summary}
+              selectedMemory={selectedMemory}
+              runtimeInjectableCount={runtimeInjectableCount}
+              ragEnabledCount={ragEnabledCount}
+              knowledgeSourceCount={knowledgeSourceCount}
+              onOpenMemories={() => setActiveTab("memories")}
+              onOpenKnowledgeSources={() => setActiveTab("knowledgeSources")}
+              onOpenRetrievalLab={() => setActiveTab("retrievalLab")}
+              onOpenMaintenance={() => setActiveTab("maintenance")}
+            />
+          )}
+
+          {activeTab === "memories" && (
+            <div className="memory-workspace-tab-content">
+              <MemoryFilterPanel
+                searchQuery={searchQuery}
+                selectedAgent={selectedAgent}
+                selectedType={selectedType}
+                agentOptions={agentOptions}
+                typeOptions={typeOptions}
+                totalCount={memories.length}
+                filteredCount={filteredMemories.length}
+                onSearchChange={(value) => {
+                  setSearchQuery(value);
+                  setMemoryRecordsPage(1);
+                }}
+                onAgentChange={(value) => {
+                  setSelectedAgent(value);
+                  setMemoryRecordsPage(1);
+                }}
+                onTypeChange={(value) => {
+                  setSelectedType(value);
+                  setMemoryRecordsPage(1);
+                }}
+                onClearFilters={clearFilters}
               />
-            </div>
-          </section>
 
-          <MemoryMaintenancePanel
-            selectedMemoryId={selectedMemory?.id || null}
-            disabled={isLoading || isRefreshing || isRebuildingChunks}
-            onCompleted={() => loadMemoryVault(true)}
-          />
-
-        <KnowledgeSourceImportPanel
-        agentOptions={agentOptions}
-        disabled={isLoading || isRefreshing || isRebuildingChunks}
-        onCompleted={() => loadMemoryVault(true)}
-        />
-
-        <KnowledgeSourceAuditPanel
-        memories={memories}
-        chunks={chunks}
-        selectedMemoryId={selectedMemory?.id || null}
-        onSelectMemory={setSelectedMemoryId}
-        />
-
-        <KnowledgeSourceImportHistoryPanel
-        selectedMemoryId={selectedMemory?.id || null}
-        selectedSourceRef={selectedMemory?.sourceRef || null}
-        onCompleted={() => loadMemoryVault(true)}
-        />
-
-          <SemanticSearchPanel
-            agentOptions={agentOptions}
-            defaultQuery={
-              selectedMemory
-                ? selectedMemory.content.slice(0, 120)
-                : "buat caption promosi kopi susu dengan gaya santai"
-            }
-            isSearching={isSemanticSearching}
-            result={semanticResult}
-            onRunSearch={handleRunSemanticSearch}
-          />
-
-          <MemoryFilterPanel
-            searchQuery={searchQuery}
-            selectedAgent={selectedAgent}
-            selectedType={selectedType}
-            agentOptions={agentOptions}
-            typeOptions={typeOptions}
-            totalCount={memories.length}
-            filteredCount={filteredMemories.length}
-            onSearchChange={setSearchQuery}
-            onAgentChange={setSelectedAgent}
-            onTypeChange={setSelectedType}
-            onClearFilters={clearFilters}
-          />
-
-          {filteredMemories.length === 0 ? (
-            <div className="memory-vault-empty filtered-empty">
-              <strong>No memory matched your filters.</strong>
-              <p>
-                Try clearing the filters or searching for another agent, memory
-                type, or content keyword.
-              </p>
-
-              <button type="button" onClick={clearFilters}>
-                Clear filters
-              </button>
-            </div>
-          ) : (
-            <div className="memory-vault-layout">
-              <aside className="memory-vault-list">
-                <div className="memory-vault-list-header">
-                  <span>Memory Records</span>
-                  <strong>{filteredMemories.length}</strong>
+              <PanelCard accent="green" compact className="memory-records-summary-panel">
+                <div className="memory-records-summary-grid">
+                  <SummaryMetric label="Total" value={memories.length} />
+                  <SummaryMetric label="Filtered" value={filteredMemories.length} />
+                  <SummaryMetric label="Agents" value={agentOptions.length} />
+                  <SummaryMetric label="Types" value={typeOptions.length} />
+                  <SummaryMetric
+                    label="Runtime"
+                    value={
+                      filteredMemories.filter((memory) => memory.runtimeInjectable)
+                        .length
+                    }
+                  />
+                  <SummaryMetric
+                    label="RAG"
+                    value={
+                      filteredMemories.filter((memory) => memory.ragEnabled).length
+                    }
+                  />
                 </div>
+              </PanelCard>
 
-                {Object.entries(groupedByAgent).map(
-                  ([agentName, agentMemories]) => (
-                    <div key={agentName} className="memory-agent-group">
-                      <div className="memory-agent-group-header">
-                        <span>@{agentName}</span>
-                        <strong>{agentMemories.length}</strong>
-                      </div>
+              {filteredMemories.length === 0 ? (
+                <div className="memory-vault-empty filtered-empty">
+                  <strong>No memory matched your filters.</strong>
+                  <p>
+                    Try clearing the filters or searching for another agent, memory
+                    type, or content keyword.
+                  </p>
 
-                      <div className="memory-agent-group-list">
-                        {agentMemories.map((memory) => (
-                          <MemoryVaultCard
-                            key={memory.id}
-                            memory={memory}
-                            chunkCount={chunksByMemoryId[memory.id]?.length || 0}
-                            isActive={selectedMemory?.id === memory.id}
-                            onClick={() => setSelectedMemoryId(memory.id)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )
-                )}
-              </aside>
-
-              {selectedMemory && (
-                <main className="memory-vault-detail">
-                  <section className="memory-vault-main-card">
-                    <div className="memory-detail-header">
-                      <div
-                        className="memory-detail-avatar"
-                        style={{
-                          background: selectedMemory.agentColor
-                            ? `linear-gradient(135deg, ${selectedMemory.agentColor}, rgba(37, 99, 235, 0.76))`
-                            : undefined,
-                        }}
-                      >
-                        {getMemoryInitial(selectedMemory.agentName)}
-                      </div>
-
-                      <div>
-                        <span>@{selectedMemory.agentName}</span>
-                        <h2>{getMemoryTypeLabel(selectedMemory.type)}</h2>
-                        <p>
-                          Agent-scoped memory record that can become retrieval
-                          context once semantic retrieval is wired into runtime.
-                        </p>
-                      </div>
-
-                      <div className="memory-page-status-pill">
-                        {selectedMemory.type}
-                      </div>
+                  <button type="button" onClick={clearFilters}>
+                    Clear filters
+                  </button>
+                </div>
+              ) : (
+                <PanelCard accent="green" compact className="memory-records-table-panel">
+                  <div className="memory-records-table">
+                    <div className="memory-records-row header">
+                      <span>Agent</span>
+                      <span>Type</span>
+                      <span>Content Preview</span>
+                      <span>Scope</span>
+                      <span>Runtime</span>
+                      <span>RAG</span>
+                      <span>Chunks</span>
+                      <span>Source</span>
+                      <span>Action</span>
                     </div>
 
-                    <div className="memory-summary-grid">
-                      <SummaryMetric
-                        label="Total memories"
-                        value={summary?.totalMemories ?? memories.length}
-                      />
-                      <SummaryMetric
-                        label="Filtered results"
-                        value={filteredMemories.length}
-                      />
-                      <SummaryMetric
-                        label="Selected agent"
-                        value={`@${selectedMemory.agentName}`}
-                      />
-                      <SummaryMetric
-                        label="Created"
-                        value={formatDateTime(selectedMemory.createdAt)}
-                      />
-                    </div>
+                    {paginatedMemories.map((memory) => {
+                      const memoryChunks = chunksByMemoryId[memory.id] || [];
 
-                    <div className="memory-scope-metadata-grid">
-                      <SummaryMetric label="Scope" value={selectedMemory.scope} />
-                      <SummaryMetric
-                        label="Owner"
-                        value={
-                          selectedMemory.ownerAgentName ||
-                          `@${selectedMemory.agentName}`
-                        }
-                      />
-                      <SummaryMetric
-                        label="Runtime Injectable"
-                        value={selectedMemory.runtimeInjectable ? "Yes" : "No"}
-                      />
-                      <SummaryMetric
-                        label="RAG Enabled"
-                        value={selectedMemory.ragEnabled ? "Yes" : "No"}
-                      />
-                      <SummaryMetric
-                        label="Sensitivity"
-                        value={selectedMemory.sensitivityLevel}
-                      />
-                      <SummaryMetric
-                        label="Source"
-                        value={selectedMemory.sourceRef || selectedMemory.sourceType}
-                      />
-                    </div>
-
-                    <div className="memory-scope-pills-panel">
-                      <div>
-                        <span>Allowed Agents</span>
-                        <div className="memory-roadmap-pills">
-                          {selectedMemory.allowedAgents.length > 0 ? (
-                            selectedMemory.allowedAgents.map((agentName) => (
-                              <span key={agentName}>@{agentName}</span>
-                            ))
-                          ) : (
-                            <span>none</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <span>Linked Skills</span>
-                        <div className="memory-roadmap-pills">
-                          {selectedMemory.linkedSkillNames.length > 0 ? (
-                            selectedMemory.linkedSkillNames.map((skillName) => (
-                              <span key={skillName}>{skillName}</span>
-                            ))
-                          ) : (
-                            <span>none</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="memory-content-card">
-                    <div className="memory-section-title">
-                      <div>
-                        <span>Memory content</span>
-                        <h3>Content Preview</h3>
-                      </div>
-
-                      <div className="memory-page-badge">
-                        {selectedMemory.content.length} chars
-                      </div>
-                    </div>
-
-                    <pre>{selectedMemory.content}</pre>
-                  </section>
-
-                  <section className="memory-chunk-detail-card">
-                    <div className="memory-section-title">
-                      <div>
-                        <span>Chunking</span>
-                        <h3>Chunks for Selected Memory</h3>
-                      </div>
-
-                      <div className="memory-chunk-actions">
-                        <span className="memory-page-badge">
-                          {selectedMemoryChunks.length} chunks
-                        </span>
-
+                      return (
                         <button
                           type="button"
-                          disabled={isRebuildingChunks}
-                          onClick={handleRebuildSelectedMemoryChunks}
+                          key={memory.id}
+                          className="memory-records-row"
+                          onClick={() => {
+                            setSelectedMemoryId(memory.id);
+                            setSelectedMemoryDetailId(memory.id);
+                          }}
                         >
-                          {isRebuildingChunks
-                            ? "Rebuilding..."
-                            : "Rebuild selected"}
+                          <span className="agent">@{memory.agentName}</span>
+                          <span className="type">{getMemoryTypeLabel(memory.type)}</span>
+                          <span className="content">
+                            {truncateText(memory.content, 170)}
+                          </span>
+                          <span>{memory.scope}</span>
+                          <span>{memory.runtimeInjectable ? "Yes" : "No"}</span>
+                          <span>{memory.ragEnabled ? "Yes" : "No"}</span>
+                          <span>{memoryChunks.length}</span>
+                          <span>
+                            {truncateText(memory.sourceRef || memory.sourceType, 80)}
+                          </span>
+                          <span>
+                            <strong className="memory-records-details">
+                              Details
+                            </strong>
+                          </span>
                         </button>
-                      </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="memory-records-pagination">
+                    <div>
+                      Showing{" "}
+                      <strong>
+                        {filteredMemories.length === 0
+                          ? 0
+                          : memoryRecordsPageStartIndex + 1}
+                      </strong>{" "}
+                      to <strong>{memoryRecordsPageEndIndex}</strong> of{" "}
+                      <strong>{filteredMemories.length}</strong> memory records
                     </div>
 
-                    <div className="memory-summary-grid">
-                      <SummaryMetric
-                        label="Chunk Count"
-                        value={selectedMemoryChunks.length}
-                      />
-                      <SummaryMetric
-                        label="Chunk Chars"
-                        value={selectedMemoryCharCount}
-                      />
-                      <SummaryMetric
-                        label="Token Estimate"
-                        value={selectedMemoryTokenEstimate}
-                      />
-                      <SummaryMetric
-                        label="Embedding Status"
-                        value={
-                          selectedMemoryChunks.length > 0
-                            ? selectedMemoryChunks[0].embeddingStatus
-                            : "none"
+                    <div className="memory-records-pagination-actions">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMemoryRecordsPage((current) =>
+                            Math.max(1, current - 1)
+                          )
                         }
-                      />
+                        disabled={normalizedMemoryRecordsPage <= 1}
+                      >
+                        Previous
+                      </button>
+
+                      <span>
+                        Page {normalizedMemoryRecordsPage} /{" "}
+                        {memoryRecordsTotalPages}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMemoryRecordsPage((current) =>
+                            Math.min(memoryRecordsTotalPages, current + 1)
+                          )
+                        }
+                        disabled={
+                          normalizedMemoryRecordsPage >= memoryRecordsTotalPages
+                        }
+                      >
+                        Next
+                      </button>
                     </div>
-
-                    <MemoryChunkList chunks={selectedMemoryChunks} />
-                  </section>
-
-                  <MemoryScopePlaceholder memory={selectedMemory} />
-                </main>
+                  </div>
+                </PanelCard>
               )}
+
+              {selectedDetailMemory && (
+                <MemoryRecordDetailsModal
+                  memory={selectedDetailMemory}
+                  chunks={chunksByMemoryId[selectedDetailMemory.id] || []}
+                  chunkCharCount={(
+                    chunksByMemoryId[selectedDetailMemory.id] || []
+                  ).reduce((total, chunk) => total + chunk.charCount, 0)}
+                  chunkTokenEstimate={(
+                    chunksByMemoryId[selectedDetailMemory.id] || []
+                  ).reduce((total, chunk) => total + chunk.tokenEstimate, 0)}
+                  isRebuildingChunks={isRebuildingChunks}
+                  onClose={() => setSelectedMemoryDetailId(null)}
+                  onRebuildSelected={() => handleRebuildMemoryChunks(selectedDetailMemory)}
+                />
+              )}
+            </div>
+          )}
+
+          {activeTab === "knowledgeSources" && (
+            <div className="memory-workspace-tab-content">
+              <KnowledgeSourceAuditPanel
+                memories={memories}
+                chunks={chunks}
+                selectedMemoryId={selectedMemory?.id || null}
+                onSelectMemory={setSelectedMemoryId}
+              />
+            </div>
+          )}
+
+          {activeTab === "importAudit" && (
+            <div className="memory-workspace-tab-content">
+              <KnowledgeSourceImportPanel
+                agentOptions={agentOptions}
+                disabled={isLoading || isRefreshing || isRebuildingChunks}
+                onCompleted={() => loadMemoryVault(true)}
+              />
+
+              <KnowledgeSourceImportHistoryPanel
+                selectedMemoryId={selectedMemory?.id || null}
+                selectedSourceRef={selectedMemory?.sourceRef || null}
+                onCompleted={() => loadMemoryVault(true)}
+              />
+            </div>
+          )}
+
+          {activeTab === "retrievalLab" && (
+            <div className="memory-workspace-tab-content">
+              <SemanticSearchPanel
+                agentOptions={agentOptions}
+                defaultQuery={
+                  selectedMemory
+                    ? selectedMemory.content.slice(0, 120)
+                    : "buat caption promosi kopi susu dengan gaya santai"
+                }
+                isSearching={isSemanticSearching}
+                result={semanticResult}
+                onRunSearch={handleRunSemanticSearch}
+              />
+            </div>
+          )}
+
+          {activeTab === "maintenance" && (
+            <div className="memory-workspace-tab-content">
+              <MemoryMaintenancePanel
+                selectedMemoryId={selectedMemory?.id || null}
+                disabled={isLoading || isRefreshing || isRebuildingChunks}
+                onCompleted={() => loadMemoryVault(true)}
+              />
+
+              <MemoryChunkSummarySection summary={summary} chunks={chunks} />
             </div>
           )}
         </>
       )}
-    </section>
+    </PageShell>
   );
 }

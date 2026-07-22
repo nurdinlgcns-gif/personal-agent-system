@@ -30,6 +30,76 @@ function getDefaultAgent(agentOptions: string[]) {
   return agentOptions[0] || "design-agent";
 }
 
+function ImportResultCard({
+  result,
+  folderResult,
+}: {
+  result: KnowledgeSourceImportResult | null;
+  folderResult: KnowledgeSourceFolderImportResult | null;
+}) {
+  if (!result && !folderResult) {
+    return null;
+  }
+
+  if (folderResult) {
+    return (
+      <div className="knowledge-import-result-card">
+        <div>
+          <span>Folder import completed</span>
+          <strong>
+            {folderResult.importedCount}/{folderResult.processedFileCount} files imported
+          </strong>
+        </div>
+
+        <div className="knowledge-import-result-grid">
+          <div>
+            <span>Processed</span>
+            <strong>{folderResult.processedFileCount}</strong>
+          </div>
+          <div>
+            <span>Imported</span>
+            <strong>{folderResult.importedCount}</strong>
+          </div>
+          <div>
+            <span>Skipped</span>
+            <strong>{folderResult.skippedCount}</strong>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!result) {
+    return null;
+  }
+
+  return (
+    <div className="knowledge-import-result-card">
+      <div>
+        <span>{result.imported ? `Knowledge source ${result.action}` : "Knowledge source skipped"}</span>
+        <strong>{result.title}</strong>
+      </div>
+
+      <div className="knowledge-import-result-grid">
+        <div>
+          <span>Source Ref</span>
+          <strong title={result.sourceRef}>{result.sourceRef}</strong>
+        </div>
+        <div>
+          <span>Chars</span>
+          <strong>{result.contentChars}</strong>
+        </div>
+        <div>
+          <span>Status</span>
+          <strong>{result.imported ? "Imported" : "Skipped"}</strong>
+        </div>
+      </div>
+
+      {result.reason && <p>{result.reason}</p>}
+    </div>
+  );
+}
+
 export function KnowledgeSourceImportPanel({
   agentOptions,
   disabled = false,
@@ -57,9 +127,15 @@ export function KnowledgeSourceImportPanel({
     return agentOptions.length > 0 ? agentOptions : ["design-agent"];
   }, [agentOptions]);
 
+  const canImportText = mode !== "text" || content.trim().length > 0;
+  const canImportFile = mode !== "file" || Boolean(selectedFile);
+  const canImport = canImportText && canImportFile && !disabled && !isImporting;
+
   async function loadFiles() {
     try {
       setIsLoadingFiles(true);
+      setErrorMessage(null);
+
       const nextFiles = await fetchKnowledgeSourceFiles();
       setFiles(nextFiles);
 
@@ -80,6 +156,7 @@ export function KnowledgeSourceImportPanel({
 
   useEffect(() => {
     loadFiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -107,6 +184,10 @@ export function KnowledgeSourceImportPanel({
   }
 
   async function handleImport() {
+    if (!canImport) {
+      return;
+    }
+
     try {
       setIsImporting(true);
       setErrorMessage(null);
@@ -173,7 +254,7 @@ export function KnowledgeSourceImportPanel({
   }
 
   return (
-    <section className="knowledge-source-import-card">
+    <section className="knowledge-source-import-card knowledge-import-polish-card">
       <div className="memory-section-title">
         <div>
           <span>Knowledge source import</span>
@@ -181,7 +262,7 @@ export function KnowledgeSourceImportPanel({
         </div>
 
         <div className="memory-page-badge">
-          {isImporting ? "Importing" : "Foundation"}
+          {isImporting ? "Importing" : mode}
         </div>
       </div>
 
@@ -191,7 +272,7 @@ export function KnowledgeSourceImportPanel({
         embedded after import.
       </p>
 
-      <div className="knowledge-source-mode-tabs">
+      <div className="knowledge-import-mode-bar">
         <button
           type="button"
           className={mode === "text" ? "active" : ""}
@@ -217,7 +298,7 @@ export function KnowledgeSourceImportPanel({
         </button>
       </div>
 
-      <div className="knowledge-source-grid">
+      <div className="knowledge-import-grid">
         {mode !== "folder" && (
           <label className="memory-filter-field">
             <span>Title</span>
@@ -284,7 +365,7 @@ export function KnowledgeSourceImportPanel({
       </div>
 
       {mode === "text" && (
-        <label className="knowledge-source-textarea">
+        <label className="knowledge-source-textarea knowledge-import-textarea">
           <span>Knowledge content</span>
           <textarea
             value={content}
@@ -296,7 +377,7 @@ export function KnowledgeSourceImportPanel({
       )}
 
       {mode === "file" && (
-        <div className="knowledge-source-file-panel">
+        <div className="knowledge-import-file-panel">
           <label className="memory-filter-field">
             <span>Backend file</span>
             <select
@@ -323,50 +404,22 @@ export function KnowledgeSourceImportPanel({
       )}
 
       {mode === "folder" && (
-        <div className="knowledge-source-folder-note">
+        <div className="knowledge-import-folder-note">
           <strong>Folder import</strong>
           <span>
-            Imports all .md and .txt files from backend/knowledge-sources and then
-            rebuilds + embeds all chunks.
+            Imports all .md and .txt files from backend/knowledge-sources and
+            then rebuilds + embeds all chunks.
           </span>
         </div>
       )}
 
-      <div className="knowledge-source-actions">
-        <button
-          type="button"
-          disabled={disabled || isImporting}
-          onClick={handleImport}
-        >
+      <div className="knowledge-import-actions">
+        <button type="button" disabled={!canImport} onClick={handleImport}>
           {isImporting ? "Importing..." : "Import + Rebuild + Embed"}
         </button>
       </div>
 
-      {lastImportResult && (
-        <div className="knowledge-source-result">
-          <strong>
-            {lastImportResult.imported
-              ? `Knowledge source ${lastImportResult.action}`
-              : "Knowledge source skipped"}
-          </strong>
-          <span>
-            {lastImportResult.title} · {lastImportResult.sourceRef} ·{" "}
-            {lastImportResult.contentChars} chars
-          </span>
-          {lastImportResult.reason && <span>{lastImportResult.reason}</span>}
-        </div>
-      )}
-
-      {lastFolderResult && (
-        <div className="knowledge-source-result">
-          <strong>Folder import completed</strong>
-          <span>
-            Imported {lastFolderResult.importedCount}/
-            {lastFolderResult.processedFileCount} files. Skipped{" "}
-            {lastFolderResult.skippedCount}.
-          </span>
-        </div>
-      )}
+      <ImportResultCard result={lastImportResult} folderResult={lastFolderResult} />
 
       {errorMessage && (
         <div className="knowledge-source-error">

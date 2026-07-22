@@ -15,6 +15,8 @@ type KnowledgeSourceImportHistoryPanelProps = {
   onCompleted?: () => Promise<void>;
 };
 
+const HISTORY_PAGE_SIZE = 10;
+
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString();
 }
@@ -53,6 +55,14 @@ function shortHash(value?: string | null) {
   return value.slice(0, 10);
 }
 
+function truncateText(value: string, maxLength = 100) {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength).trim()}...`;
+}
+
 function matchesSearch(history: KnowledgeSourceImportHistoryItem, query: string) {
   const normalizedQuery = query.toLowerCase().trim();
 
@@ -77,6 +87,83 @@ function matchesSearch(history: KnowledgeSourceImportHistoryItem, query: string)
     .includes(normalizedQuery);
 }
 
+function DiffModal({
+  diff,
+  onClose,
+}: {
+  diff: KnowledgeSourceDiffResult;
+  onClose: () => void;
+}) {
+  return (
+    <div className="knowledge-history-modal-backdrop">
+      <section className="knowledge-history-modal">
+        <header>
+          <div>
+            <span>Diff preview</span>
+            <h2>{diff.title}</h2>
+            <p>{diff.sourceRef}</p>
+          </div>
+
+          <button type="button" onClick={onClose} aria-label="Close diff">
+            ×
+          </button>
+        </header>
+
+        <div className="knowledge-diff-summary-grid">
+          <div>
+            <span>Added</span>
+            <strong>{diff.addedLineCount}</strong>
+          </div>
+
+          <div>
+            <span>Removed</span>
+            <strong>{diff.removedLineCount}</strong>
+          </div>
+
+          <div>
+            <span>Unchanged</span>
+            <strong>{diff.unchangedLineCount}</strong>
+          </div>
+
+          <div>
+            <span>Chars</span>
+            <strong>
+              {diff.previousContentChars} → {diff.nextContentChars}
+            </strong>
+          </div>
+        </div>
+
+        <div className="knowledge-diff-list modal-list">
+          {diff.lines.slice(0, 180).map((line, index) => (
+            <div
+              key={`${line.type}-${index}-${line.text}`}
+              className={`knowledge-diff-line ${line.type}`}
+            >
+              <span>
+                {line.type === "added"
+                  ? "+"
+                  : line.type === "removed"
+                    ? "-"
+                    : " "}
+              </span>
+              <small>
+                {line.lineNumberBefore || "-"} / {line.lineNumberAfter || "-"}
+              </small>
+              <code>{line.text || " "}</code>
+            </div>
+          ))}
+        </div>
+
+        {diff.lines.length > 180 && (
+          <div className="knowledge-diff-truncated">
+            Showing first 180 lines from {diff.lines.length} diff entries.
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
 export function KnowledgeSourceImportHistoryPanel({
   selectedMemoryId,
   selectedSourceRef,
@@ -87,6 +174,7 @@ export function KnowledgeSourceImportHistoryPanel({
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [scopeMode, setScopeMode] = useState<"all" | "selected">("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDiff, setSelectedDiff] = useState<KnowledgeSourceDiffResult | null>(
     null
@@ -109,10 +197,11 @@ export function KnowledgeSourceImportHistoryPanel({
           scopeMode === "selected" && !selectedMemoryId
             ? selectedSourceRef || undefined
             : undefined,
-        limit: 80,
+        limit: 120,
       });
 
       setHistories(nextHistories);
+      setCurrentPage(1);
     } catch (error) {
       const message =
         error instanceof Error
@@ -199,11 +288,22 @@ export function KnowledgeSourceImportHistoryPanel({
 
   useEffect(() => {
     loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scopeMode, selectedMemoryId, selectedSourceRef]);
 
   const filteredHistories = useMemo(() => {
     return histories.filter((history) => matchesSearch(history, searchQuery));
   }, [histories, searchQuery]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredHistories.length / HISTORY_PAGE_SIZE)
+  );
+
+  const normalizedPage = Math.min(currentPage, totalPages);
+  const pageStartIndex = (normalizedPage - 1) * HISTORY_PAGE_SIZE;
+  const pageEndIndex = Math.min(pageStartIndex + HISTORY_PAGE_SIZE, filteredHistories.length);
+  const paginatedHistories = filteredHistories.slice(pageStartIndex, pageEndIndex);
 
   const createdCount = histories.filter(
     (history) => history.action === "created"
@@ -218,7 +318,7 @@ export function KnowledgeSourceImportHistoryPanel({
   ).length;
 
   return (
-    <section className="knowledge-history-card">
+    <section className="knowledge-history-card knowledge-history-polish-card">
       <div className="memory-section-title">
         <div>
           <span>Diff + rollback foundation</span>
@@ -268,7 +368,10 @@ export function KnowledgeSourceImportHistoryPanel({
           <span>Search history</span>
           <input
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search title, sourceRef, scope, skill..."
           />
         </label>
@@ -317,75 +420,6 @@ export function KnowledgeSourceImportHistoryPanel({
         </div>
       )}
 
-      {selectedDiff && (
-        <div className="knowledge-diff-panel">
-          <div className="knowledge-diff-header">
-            <div>
-              <span>Diff preview</span>
-              <strong>{selectedDiff.title}</strong>
-              <small>{selectedDiff.sourceRef}</small>
-            </div>
-
-            <button type="button" onClick={() => setSelectedDiff(null)}>
-              Close diff
-            </button>
-          </div>
-
-          <div className="knowledge-diff-summary-grid">
-            <div>
-              <span>Added</span>
-              <strong>{selectedDiff.addedLineCount}</strong>
-            </div>
-
-            <div>
-              <span>Removed</span>
-              <strong>{selectedDiff.removedLineCount}</strong>
-            </div>
-
-            <div>
-              <span>Unchanged</span>
-              <strong>{selectedDiff.unchangedLineCount}</strong>
-            </div>
-
-            <div>
-              <span>Chars</span>
-              <strong>
-                {selectedDiff.previousContentChars} →{" "}
-                {selectedDiff.nextContentChars}
-              </strong>
-            </div>
-          </div>
-
-          <div className="knowledge-diff-list">
-            {selectedDiff.lines.slice(0, 160).map((line, index) => (
-              <div
-                key={`${line.type}-${index}-${line.text}`}
-                className={`knowledge-diff-line ${line.type}`}
-              >
-                <span>
-                  {line.type === "added"
-                    ? "+"
-                    : line.type === "removed"
-                      ? "-"
-                      : " "}
-                </span>
-                <small>
-                  {line.lineNumberBefore || "-"} / {line.lineNumberAfter || "-"}
-                </small>
-                <code>{line.text || " "}</code>
-              </div>
-            ))}
-          </div>
-
-          {selectedDiff.lines.length > 160 && (
-            <div className="knowledge-diff-truncated">
-              Showing first 160 lines from {selectedDiff.lines.length} diff
-              entries.
-            </div>
-          )}
-        </div>
-      )}
-
       {filteredHistories.length === 0 ? (
         <div className="knowledge-history-empty">
           <strong>No import history found.</strong>
@@ -395,99 +429,109 @@ export function KnowledgeSourceImportHistoryPanel({
           </span>
         </div>
       ) : (
-        <div className="knowledge-history-list">
-          {filteredHistories.map((history) => (
-            <article key={history.id} className="knowledge-history-item">
-              <div className="knowledge-history-item-header">
-                <div>
-                  <span>@{history.agentName}</span>
+        <>
+          <div className="knowledge-history-table">
+            <div className="knowledge-history-row header">
+              <span>Created</span>
+              <span>Title</span>
+              <span>Action</span>
+              <span>Agent</span>
+              <span>Scope</span>
+              <span>Mode</span>
+              <span>Delta</span>
+              <span>Hash</span>
+              <span>Actions</span>
+            </div>
+
+            {paginatedHistories.map((history) => (
+              <article key={history.id} className="knowledge-history-row">
+                <span>{formatDateTime(history.createdAt)}</span>
+
+                <span className="history-title">
                   <strong>{history.title}</strong>
-                </div>
+                  <small title={history.sourceRef}>{truncateText(history.sourceRef, 84)}</small>
+                </span>
 
-                <div className={`knowledge-history-action ${history.action}`}>
-                  {getActionLabel(history.action)}
-                </div>
-              </div>
-
-              <div className="knowledge-history-meta-grid">
-                <div>
-                  <span>Source Ref</span>
-                  <strong title={history.sourceRef}>{history.sourceRef}</strong>
-                </div>
-
-                <div>
-                  <span>Scope</span>
-                  <strong>{history.scope}</strong>
-                </div>
-
-                <div>
-                  <span>Mode</span>
-                  <strong>{history.sourceMode}</strong>
-                </div>
-
-                <div>
-                  <span>Delta chars</span>
-                  <strong>{getDeltaLabel(history)}</strong>
-                </div>
-              </div>
-
-              <div className="knowledge-history-hash-row">
-                <div>
-                  <span>Previous hash</span>
-                  <strong title={history.previousContentHash || ""}>
-                    {shortHash(history.previousContentHash)}
+                <span>
+                  <strong className={`knowledge-history-action ${history.action}`}>
+                    {getActionLabel(history.action)}
                   </strong>
-                </div>
+                </span>
 
-                <div>
-                  <span>Next hash</span>
-                  <strong title={history.nextContentHash}>
-                    {shortHash(history.nextContentHash)}
-                  </strong>
-                </div>
+                <span>@{history.agentName}</span>
+                <span>{history.scope}</span>
+                <span>{history.sourceMode}</span>
+                <span>{getDeltaLabel(history)}</span>
 
-                <div>
-                  <span>Created</span>
-                  <strong>{formatDateTime(history.createdAt)}</strong>
-                </div>
-              </div>
+                <span className="history-hash">
+                  {shortHash(history.previousContentHash)} →{" "}
+                  {shortHash(history.nextContentHash)}
+                </span>
 
-              <div className="knowledge-history-pill-row">
-                {history.linkedSkillNames.slice(0, 5).map((skillName) => (
-                  <span key={`${history.id}-${skillName}`}>{skillName}</span>
-                ))}
+                <span className="history-actions">
+                  <button
+                    type="button"
+                    onClick={() => handleViewDiff(history.id)}
+                    disabled={isDiffLoading}
+                  >
+                    {isDiffLoading ? "Loading..." : "Diff"}
+                  </button>
 
-                {history.allowedAgents.slice(0, 5).map((agentName) => (
-                  <span key={`${history.id}-${agentName}`}>@{agentName}</span>
-                ))}
+                  <button
+                    type="button"
+                    onClick={() => handleRollback(history.id)}
+                    disabled={
+                      isRollingBack ||
+                      !history.previousContentHash ||
+                      history.action === "created"
+                    }
+                  >
+                    {isRollingBack ? "Rolling..." : "Rollback"}
+                  </button>
+                </span>
+              </article>
+            ))}
+          </div>
 
-                <span>{history.sensitivityLevel}</span>
-              </div>
+          <div className="knowledge-history-pagination">
+            <div>
+              Showing{" "}
+              <strong>
+                {filteredHistories.length === 0 ? 0 : pageStartIndex + 1}
+              </strong>{" "}
+              to <strong>{pageEndIndex}</strong> of{" "}
+              <strong>{filteredHistories.length}</strong> events
+            </div>
 
-              <div className="knowledge-history-actions">
-                <button
-                  type="button"
-                  onClick={() => handleViewDiff(history.id)}
-                  disabled={isDiffLoading}
-                >
-                  {isDiffLoading ? "Loading diff..." : "View Diff"}
-                </button>
+            <div className="knowledge-history-pagination-actions">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((current) => Math.max(1, current - 1))}
+                disabled={normalizedPage <= 1}
+              >
+                Previous
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleRollback(history.id)}
-                  disabled={
-                    isRollingBack ||
-                    !history.previousContentHash ||
-                    history.action === "created"
-                  }
-                >
-                  {isRollingBack ? "Rolling back..." : "Rollback Previous"}
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+              <span>
+                Page {normalizedPage} / {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((current) => Math.min(totalPages, current + 1))
+                }
+                disabled={normalizedPage >= totalPages}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {selectedDiff && (
+        <DiffModal diff={selectedDiff} onClose={() => setSelectedDiff(null)} />
       )}
     </section>
   );
