@@ -1,5 +1,7 @@
 @import "./styles/tokens/design-tokens.css";
 @import "./styles/components/shared-ui.css";
+@import "./styles/components/memory-vault.css";
+@import "./styles/components/tasks-center.css";
 
 @import "./styles/dashboard.css";
 

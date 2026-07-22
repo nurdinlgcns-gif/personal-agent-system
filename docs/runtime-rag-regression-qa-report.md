@@ -1,8 +1,8 @@
 # Runtime RAG Stability + Regression QA Report
 
-Generated: 2026-07-21T08:57:48.839Z
+Generated: 2026-07-22T01:14:22.786Z
 Base URL: `http://localhost:3000`
-Duration: 2090 ms
+Duration: 2432 ms
 
 ## Summary
 
@@ -25,8 +25,8 @@ Backend /health returned status ok.
 {
   "app": "personal-agent-system",
   "status": "ok",
-  "uptime": 661.1867515,
-  "timestamp": "2026-07-21T08:57:46.829Z"
+  "uptime": 63.6768369,
+  "timestamp": "2026-07-22T01:14:20.418Z"
 }
 ```
 
@@ -267,7 +267,7 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
 
 ```json
 {
-  "result": "Lagi suntuk atau butuh mood booster? Segerin lagi hari kamu dengan segelas kopi susu favorit yang creamy dan pas banget manisnya. Yuk, pesan sekarang sebelum kehabisan! ☕✨",
+  "result": "Lagi suntuk atau butuh mood booster? Segerin lagi hari kamu dengan manisnya kopi susu kita. Pas banget buat nemenin kerja atau sekadar santai sore. Yuk, pesan sekarang sebelum kehabisan! ☕✨",
   "runtimeMemoryContext": {
     "injected": true,
     "itemCount": 2,
@@ -340,7 +340,7 @@ Manual task returned clean result with runtime memory and runtime RAG metadata.
       }
     ]
   },
-  "taskId": "9afbd26e-3737-4433-8378-e751df9b567a"
+  "taskId": "412476c2-3b21-44b7-a3f6-136b63b5787f"
 }
 ```
 
@@ -403,13 +403,13 @@ Recent tasks include runtime memory and runtime RAG metadata.
 ```json
 {
   "ragTask": {
-    "id": "13a7beeb-3209-4d6f-b10d-193e791994c0",
+    "id": "0a8fe27c-dac9-4a99-8ec6-fc85c1e42168",
     "source": "manual",
     "runtimeRagRetrieved": false,
     "runtimeRagItemCount": 0
   },
   "memoryTask": {
-    "id": "13a7beeb-3209-4d6f-b10d-193e791994c0",
+    "id": "0a8fe27c-dac9-4a99-8ec6-fc85c1e42168",
     "source": "manual",
     "runtimeMemoryInjected": false,
     "runtimeMemoryItemCount": 0

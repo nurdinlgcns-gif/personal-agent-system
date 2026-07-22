@@ -1,0 +1,403 @@
+/* =========================
+   PHASE 8.61.4
+   MEMORY VAULT SHARED UI STANDARDIZATION
+========================= */
+
+/* Page-level breathing room */
+.memory-vault-view,
+.memory-page,
+.memory-vault-page {
+  max-width: var(--ui-page-max-width, 1480px);
+  margin: 0 auto;
+  padding: var(--ui-page-padding, 22px);
+  display: grid;
+  gap: var(--ui-page-gap, 18px);
+}
+
+/* Normalize major Memory Vault cards */
+.memory-maintenance-card,
+.knowledge-source-import-card,
+.knowledge-source-audit-card,
+.knowledge-history-card,
+.memory-chunk-summary-card,
+.memory-summary-card,
+.memory-search-card,
+.memory-detail-card,
+.memory-list-card {
+  border-radius: var(--ui-radius-lg, 22px);
+  border: 1px solid var(--ui-border-soft, rgba(148, 163, 184, 0.14));
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.08), transparent 34%),
+    var(--ui-surface-1, rgba(8, 15, 32, 0.78));
+  box-shadow: var(--ui-shadow-soft);
+  padding: var(--ui-space-8, 18px);
+}
+
+/* Reduce dense card feel */
+.memory-maintenance-card,
+.knowledge-source-import-card,
+.knowledge-source-audit-card,
+.knowledge-history-card {
+  gap: var(--ui-space-6, 14px);
+}
+
+/* Section headers */
+.memory-section-title {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ui-space-5, 12px);
+  align-items: flex-start;
+}
+
+.memory-section-title > div {
+  display: grid;
+  gap: var(--ui-space-2, 6px);
+  min-width: 0;
+}
+
+.memory-section-title span {
+  color: var(--ui-accent-blue, #60a5fa);
+  font-size: var(--ui-font-size-eyebrow, 10px);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.32px;
+}
+
+.memory-section-title h3 {
+  margin: 0;
+  color: var(--ui-text-main, #f8fafc);
+  font-size: var(--ui-font-size-title, 20px);
+  line-height: var(--ui-line-height-tight, 1.25);
+  letter-spacing: -0.02em;
+}
+
+.memory-page-badge {
+  border-radius: var(--ui-radius-pill, 999px);
+  padding: 7px 10px;
+  color: #bfdbfe;
+  background: var(--ui-blue-soft, rgba(37, 99, 235, 0.14));
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Descriptions */
+.memory-maintenance-card p,
+.knowledge-source-import-card p,
+.knowledge-source-audit-card > p,
+.knowledge-history-card > p {
+  margin: 0;
+  color: var(--ui-text-soft, #cbd5e1);
+  font-size: var(--ui-font-size-body, 12px);
+  line-height: var(--ui-line-height-relaxed, 1.7);
+}
+
+/* Normalize form fields used by Memory Vault */
+.memory-filter-field {
+  display: grid;
+  gap: var(--ui-space-2, 6px);
+  min-width: 0;
+}
+
+.memory-filter-field span,
+.knowledge-source-textarea span {
+  color: var(--ui-accent-blue, #60a5fa);
+  font-size: var(--ui-font-size-eyebrow, 10px);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.28px;
+}
+
+.memory-filter-field input,
+.memory-filter-field select,
+.knowledge-source-textarea textarea {
+  width: 100%;
+  min-height: var(--ui-control-height, 40px);
+  border-radius: var(--ui-radius-sm, 12px);
+  color: var(--ui-text-main, #f8fafc);
+  background: var(--ui-surface-3, rgba(2, 6, 23, 0.42));
+  border: 1px solid var(--ui-border-soft, rgba(148, 163, 184, 0.14));
+  outline: none;
+  font-size: var(--ui-font-size-body, 12px);
+}
+
+.memory-filter-field input,
+.memory-filter-field select {
+  padding: 0 var(--ui-space-5, 12px);
+}
+
+.knowledge-source-textarea textarea {
+  padding: var(--ui-space-5, 12px);
+  min-height: 140px;
+  resize: vertical;
+  line-height: var(--ui-line-height-normal, 1.55);
+}
+
+.memory-filter-field input:focus,
+.memory-filter-field select:focus,
+.knowledge-source-textarea textarea:focus {
+  border-color: rgba(96, 165, 250, 0.54);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.12);
+}
+
+/* Normalize action buttons */
+.memory-maintenance-actions button,
+.knowledge-source-mode-tabs button,
+.knowledge-source-actions button,
+.knowledge-source-file-panel button,
+.knowledge-audit-clear-button,
+.knowledge-history-toolbar button,
+.knowledge-history-actions button,
+.knowledge-diff-header button {
+  min-height: var(--ui-control-height, 40px);
+  border-radius: var(--ui-radius-pill, 999px);
+  padding: 0 var(--ui-space-7, 16px);
+  font-size: var(--ui-font-size-caption, 11px);
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.memory-maintenance-actions button:disabled,
+.knowledge-source-mode-tabs button:disabled,
+.knowledge-source-actions button:disabled,
+.knowledge-source-file-panel button:disabled,
+.knowledge-audit-clear-button:disabled,
+.knowledge-history-toolbar button:disabled,
+.knowledge-history-actions button:disabled,
+.knowledge-diff-header button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Metric grids */
+.memory-maintenance-grid,
+.knowledge-audit-summary-grid,
+.knowledge-history-summary-grid,
+.knowledge-diff-summary-grid {
+  gap: var(--ui-space-4, 10px);
+}
+
+.memory-maintenance-grid div,
+.knowledge-audit-metric,
+.knowledge-history-summary-grid div,
+.knowledge-history-meta-grid div,
+.knowledge-history-hash-row div,
+.knowledge-diff-summary-grid div {
+  border-radius: var(--ui-radius-md, 16px);
+  background: var(--ui-surface-3, rgba(2, 6, 23, 0.42));
+  border: 1px solid var(--ui-border-soft, rgba(148, 163, 184, 0.14));
+  padding: var(--ui-space-5, 12px);
+}
+
+/* Knowledge source import grid */
+.knowledge-source-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--ui-space-5, 12px);
+}
+
+.knowledge-source-mode-tabs {
+  gap: var(--ui-space-3, 8px);
+}
+
+/* Audit list containment */
+.knowledge-audit-list,
+.knowledge-history-list {
+  max-height: 640px;
+  overflow: auto;
+  padding-right: 4px;
+  border-radius: var(--ui-radius-md, 16px);
+}
+
+.knowledge-audit-item,
+.knowledge-history-item {
+  gap: var(--ui-space-5, 12px);
+  padding: var(--ui-space-6, 14px);
+  border-radius: var(--ui-radius-md, 16px);
+  background: var(--ui-surface-3, rgba(2, 6, 23, 0.42));
+  border: 1px solid var(--ui-border-soft, rgba(148, 163, 184, 0.14));
+  box-shadow: none;
+}
+
+.knowledge-audit-item:hover,
+.knowledge-audit-item.active,
+.knowledge-history-item:hover {
+  background: var(--ui-surface-hover, rgba(15, 23, 42, 0.86));
+  border-color: var(--ui-border-medium, rgba(148, 163, 184, 0.22));
+}
+
+/* Audit stat rows */
+.knowledge-audit-stat-row,
+.knowledge-audit-detail-grid,
+.knowledge-history-meta-grid,
+.knowledge-history-hash-row {
+  gap: var(--ui-space-3, 8px);
+}
+
+/* Pills */
+.knowledge-audit-pills,
+.knowledge-history-pill-row {
+  gap: var(--ui-space-2, 6px);
+}
+
+.knowledge-audit-pills span,
+.knowledge-history-pill-row span {
+  border-radius: var(--ui-radius-pill, 999px);
+  padding: 5px 8px;
+  font-size: 9.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* Diff panel containment */
+.knowledge-diff-panel {
+  gap: var(--ui-space-5, 12px);
+  border-radius: var(--ui-radius-lg, 22px);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 34%),
+    var(--ui-surface-1, rgba(8, 15, 32, 0.78));
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.knowledge-diff-list {
+  max-height: 420px;
+  overflow: auto;
+  border-radius: var(--ui-radius-md, 16px);
+}
+
+/* Empty/error/success blocks */
+.memory-maintenance-result,
+.memory-maintenance-error,
+.knowledge-source-folder-note,
+.knowledge-source-result,
+.knowledge-source-error,
+.knowledge-audit-empty,
+.knowledge-history-error,
+.knowledge-history-success,
+.knowledge-history-empty,
+.knowledge-diff-truncated {
+  border-radius: var(--ui-radius-md, 16px);
+  font-size: var(--ui-font-size-body, 12px);
+  line-height: var(--ui-line-height-normal, 1.55);
+}
+
+/* Scrollbar polish for dense memory panels */
+.knowledge-audit-list::-webkit-scrollbar,
+.knowledge-history-list::-webkit-scrollbar,
+.knowledge-diff-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.knowledge-audit-list::-webkit-scrollbar-thumb,
+.knowledge-history-list::-webkit-scrollbar-thumb,
+.knowledge-diff-list::-webkit-scrollbar-thumb {
+  border-radius: var(--ui-radius-pill, 999px);
+  background: rgba(148, 163, 184, 0.28);
+}
+
+.knowledge-audit-list::-webkit-scrollbar-track,
+.knowledge-history-list::-webkit-scrollbar-track,
+.knowledge-diff-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Light theme */
+:root[data-theme="m365-light"] .memory-maintenance-card,
+:root[data-theme="m365-light"] .knowledge-source-import-card,
+:root[data-theme="m365-light"] .knowledge-source-audit-card,
+:root[data-theme="m365-light"] .knowledge-history-card,
+:root[data-theme="m365-light"] .memory-chunk-summary-card,
+:root[data-theme="m365-light"] .memory-summary-card,
+:root[data-theme="m365-light"] .memory-search-card,
+:root[data-theme="m365-light"] .memory-detail-card,
+:root[data-theme="m365-light"] .memory-list-card {
+  background: var(--ui-surface-1, #ffffff);
+  border-color: var(--ui-border-soft, rgba(15, 23, 42, 0.08));
+  box-shadow: var(--ui-shadow-soft);
+}
+
+:root[data-theme="m365-light"] .memory-filter-field input,
+:root[data-theme="m365-light"] .memory-filter-field select,
+:root[data-theme="m365-light"] .knowledge-source-textarea textarea,
+:root[data-theme="m365-light"] .knowledge-audit-item,
+:root[data-theme="m365-light"] .knowledge-history-item,
+:root[data-theme="m365-light"] .memory-maintenance-grid div,
+:root[data-theme="m365-light"] .knowledge-audit-metric,
+:root[data-theme="m365-light"] .knowledge-history-summary-grid div,
+:root[data-theme="m365-light"] .knowledge-history-meta-grid div,
+:root[data-theme="m365-light"] .knowledge-history-hash-row div,
+:root[data-theme="m365-light"] .knowledge-diff-summary-grid div {
+  background: var(--ui-surface-2, #f8fafc);
+  border-color: var(--ui-border-soft, rgba(15, 23, 42, 0.08));
+  color: var(--ui-text-main, #111827);
+}
+
+:root[data-theme="m365-light"] .memory-section-title h3,
+:root[data-theme="m365-light"] .knowledge-audit-item-header strong,
+:root[data-theme="m365-light"] .knowledge-history-item-header strong,
+:root[data-theme="m365-light"] .knowledge-diff-header strong {
+  color: var(--ui-text-main, #111827);
+}
+
+:root[data-theme="m365-light"] .memory-maintenance-card p,
+:root[data-theme="m365-light"] .knowledge-source-import-card p,
+:root[data-theme="m365-light"] .knowledge-source-audit-card > p,
+:root[data-theme="m365-light"] .knowledge-history-card > p,
+:root[data-theme="m365-light"] .knowledge-audit-item p {
+  color: var(--ui-text-soft, #334155);
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .knowledge-audit-summary-grid,
+  .knowledge-history-summary-grid,
+  .memory-maintenance-grid,
+  .knowledge-diff-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .knowledge-audit-list,
+  .knowledge-history-list,
+  .knowledge-diff-list {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .memory-vault-view,
+  .memory-page,
+  .memory-vault-page {
+    padding: var(--ui-page-padding, 14px);
+  }
+
+  .memory-section-title {
+    flex-direction: column;
+  }
+
+  .knowledge-audit-summary-grid,
+  .knowledge-history-summary-grid,
+  .memory-maintenance-grid,
+  .knowledge-diff-summary-grid,
+  .knowledge-audit-stat-row,
+  .knowledge-audit-detail-grid,
+  .knowledge-history-meta-grid,
+  .knowledge-history-hash-row {
+    grid-template-columns: 1fr;
+  }
+
+  .memory-maintenance-actions button,
+  .knowledge-source-mode-tabs button,
+  .knowledge-source-actions button,
+  .knowledge-source-file-panel button,
+  .knowledge-audit-clear-button,
+  .knowledge-history-toolbar button,
+  .knowledge-history-actions button,
+  .knowledge-diff-header button {
+    width: 100%;
+  }
+}

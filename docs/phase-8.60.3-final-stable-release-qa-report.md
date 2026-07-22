@@ -1,9 +1,9 @@
 # Phase 8.60.3 Final Stable Release QA Report
 
-Generated: 2026-07-21T08:57:49.084Z
+Generated: 2026-07-22T01:14:23.073Z
 Backend base URL: `http://localhost:3000`
 Dashboard base URL: `http://localhost:5173`
-Duration: 2639 ms
+Duration: 2979 ms
 
 ## Summary
 
@@ -26,8 +26,8 @@ Endpoint /health is healthy.
 {
   "app": "personal-agent-system",
   "status": "ok",
-  "uptime": 660.8741496,
-  "timestamp": "2026-07-21T08:57:46.516Z"
+  "uptime": 63.4155079,
+  "timestamp": "2026-07-22T01:14:20.156Z"
 }
 ```
 
@@ -45,6 +45,178 @@ Endpoint /api/tasks?limit=5 is healthy.
 ```json
 {
   "tasks": [
+    {
+      "id": "28ddd446-7385-4439-a132-e51d59794470",
+      "agentName": "design-agent",
+      "inputText": "generate gambar isometric vehicle",
+      "outputText": "Maaf, @design-agent belum punya capability untuk membuat atau menghasilkan gambar/visual. Saya bisa bantu untuk copywriting, caption, slogan, headline, CTA, atau kata-kata promosi. Untuk gambar/visual, coba arahkan ke @image-agent. Request ini terdeteksi mengarah ke area di luar scope: gambar, generate gambar, isometric, vehicle. Coba arahkan ke @writer-agent, @code-agent, @research-agent.",
+      "status": "done",
+      "source": "manual",
+      "runtimeProviderId": null,
+      "runtimeProviderName": null,
+      "runtimeProviderType": null,
+      "runtimeModel": null,
+      "runtimeMode": null,
+      "runtimeResolvedFrom": null,
+      "governanceAllowed": false,
+      "governanceReason": "Request matched denied keywords. For strict agents, denied domains take precedence over allowed keywords and skill matches.",
+      "governanceConfidence": "medium",
+      "governanceMatchedAllowedJson": "[]",
+      "governanceMatchedDeniedJson": "[\"gambar\",\"generate gambar\",\"isometric\",\"vehicle\"]",
+      "governanceMatchedSoftJson": "[\"generate\",\"skill:generate\"]",
+      "governanceMatchedSmallTalkJson": "[]",
+      "governanceSuggestedAgentsJson": "[\"writer-agent\",\"code-agent\",\"research-agent\",\"skill:generate_ad_copy\"]",
+      "runtimeMemoryInjected": false,
+      "runtimeMemoryItemCount": 0,
+      "runtimeMemoryTotalChars": 0,
+      "runtimeMemoryIdsJson": "[]",
+      "runtimeMemoryTypesJson": "[]",
+      "runtimeMemoryScopesJson": "[]",
+      "runtimeMemorySourcesJson": "[]",
+      "runtimeRagPreviewOnly": true,
+      "runtimeRagRetrieved": false,
+      "runtimeRagQuery": null,
+      "runtimeRagItemCount": 0,
+      "runtimeRagTotalChars": 0,
+      "runtimeRagChunkIdsJson": "[]",
+      "runtimeRagMemoryIdsJson": "[]",
+      "runtimeRagTypesJson": "[]",
+      "runtimeRagScopesJson": "[]",
+      "runtimeRagSourcesJson": "[]",
+      "runtimeRagScoresJson": "[]",
+      "runtimeRagTopResultsJson": "[]",
+      "createdAt": "2026-07-22T01:13:49.864Z",
+      "updatedAt": "2026-07-22T01:13:49.864Z"
+    },
+    {
+      "id": "7d21dd1a-45d6-47d9-b1a9-2dc5d048cc4c",
+      "agentName": "design-agent",
+      "inputText": "buat caption promosi kopi susu dengan gaya santai",
+      "outputText": "Lagi butuh mood booster? Segerin hari kamu dengan manisnya kopi susu kita yang creamy dan pas banget buat nemenin aktivitasmu. Yuk, pesan sekarang! ☕✨",
+      "status": "done",
+      "source": "manual",
+      "runtimeProviderId": "cmrk1lnct0001ix48skmjfn9r",
+      "runtimeProviderName": "Gemini Built-in ENV",
+      "runtimeProviderType": "google",
+      "runtimeModel": "gemma-4-26b-a4b-it",
+      "runtimeMode": "auto",
+      "runtimeResolvedFrom": "registry",
+      "governanceAllowed": true,
+      "governanceReason": "Request matched allowed capability keywords.",
+      "governanceConfidence": "high",
+      "governanceMatchedAllowedJson": "[\"caption\",\"promosi\"]",
+      "governanceMatchedDeniedJson": "[]",
+      "governanceMatchedSoftJson": "[\"buat\",\"skill:promosi\",\"skill:caption\"]",
+      "governanceMatchedSmallTalkJson": "[]",
+      "governanceSuggestedAgentsJson": "[\"writer-agent\",\"code-agent\",\"research-agent\",\"skill:generate_ad_copy\",\"skill:social_caption\"]",
+      "runtimeMemoryInjected": true,
+      "runtimeMemoryItemCount": 2,
+      "runtimeMemoryTotalChars": 937,
+      "runtimeMemoryIdsJson": "[\"24ef5ceb-597b-4405-9b76-5ad8bc0e009a\",\"4262ffc0-6864-4afe-8f15-9c3e689adade\"]",
+      "runtimeMemoryTypesJson": "[\"agent_scope\",\"brand_tone\"]",
+      "runtimeMemoryScopesJson": "[\"agent\",\"skill\"]",
+      "runtimeMemorySourcesJson": "[\"memory-foundation/design-agent-agent-scope\",\"memory-foundation/brand-tone\"]",
+      "runtimeRagPreviewOnly": false,
+      "runtimeRagRetrieved": true,
+      "runtimeRagQuery": "buat caption promosi kopi susu dengan gaya santai",
+      "runtimeRagItemCount": 2,
+      "runtimeRagTotalChars": 1305,
+      "runtimeRagChunkIdsJson": "[\"7137c09b-f7a1-4f28-a599-5a7af366fc3a\",\"82e85b2a-1dca-4c53-833d-3bb3cd7cff02\"]",
+      "runtimeRagMemoryIdsJson": "[\"d72eb8de-5777-441c-915d-f96e51e3669f\",\"f0055c60-93ff-42ec-8d4a-b8ea5f139200\"]",
+      "runtimeRagTypesJson": "[\"skill_knowledge\",\"skill_knowledge\"]",
+      "runtimeRagScopesJson": "[\"skill\",\"skill\"]",
+      "runtimeRagSourcesJson": "[\"skill/53736c54-feb0-4764-8988-5293527751da\",\"skill/9d8a2625-87d6-4fc3-82eb-dbec9edd20b0\"]",
+      "runtimeRagScoresJson": "[0.546051,0.485272]",
+      "runtimeRagTopResultsJson": "[{\"chunkId\":\"7137c09b-f7a1-4f28-a599-5a7af366fc3a\",\"memoryId\":\"d72eb8de-5777-441c-915d-f96e51e3669f\",\"agentName\":\"design-agent\",\"memoryType\":\"skill_knowledge\",\"scope\":\"skill\",\"score\":0.546051,\"contentPreview\":\"Skill name: generate_ad_copy Assigned agent: design-agent Skill description: Creates short promotional copy, ad copy, product messaging, captions, headlines, slogans, and campaign...\"},{\"chunkId\":\"82e85b2a-1dca-4c53-833d-3bb3cd7cff02\",\"memoryId\":\"f0055c60-93ff-42ec-8d4a-b8ea5f139200\",\"agentName\":\"design-agent\",\"memoryType\":\"skill_knowledge\",\"scope\":\"skill\",\"score\":0.485272,\"contentPreview\":\"Skill name: social_caption Assigned agent: design-agent Skill description: Creates social media captions and short content ideas for Instagram, TikTok, WhatsApp broadcast, and...\"}]",
+      "createdAt": "2026-07-22T01:13:47.547Z",
+      "updatedAt": "2026-07-22T01:13:49.845Z"
+    },
+    {
+      "id": "13a7beeb-3209-4d6f-b10d-193e791994c0",
+      "agentName": "design-agent",
+      "inputText": "generate gambar isometric vehicle",
+      "outputText": "Maaf, @design-agent belum punya capability untuk membuat atau menghasilkan gambar/visual. Saya bisa bantu untuk copywriting, caption, slogan, headline, CTA, atau kata-kata promosi. Untuk gambar/visual, coba arahkan ke @image-agent. Request ini terdeteksi mengarah ke area di luar scope: gambar, generate gambar, isometric, vehicle. Coba arahkan ke @writer-agent, @code-agent, @research-agent.",
+      "status": "done",
+      "source": "manual",
+      "runtimeProviderId": null,
+      "runtimeProviderName": null,
+      "runtimeProviderType": null,
+      "runtimeModel": null,
+      "runtimeMode": null,
+      "runtimeResolvedFrom": null,
+      "governanceAllowed": false,
+      "governanceReason": "Request matched denied keywords. For strict agents, denied domains take precedence over allowed keywords and skill matches.",
+      "governanceConfidence": "medium",
+      "governanceMatchedAllowedJson": "[]",
+      "governanceMatchedDeniedJson": "[\"gambar\",\"generate gambar\",\"isometric\",\"vehicle\"]",
+      "governanceMatchedSoftJson": "[\"generate\",\"skill:generate\"]",
+      "governanceMatchedSmallTalkJson": "[]",
+      "governanceSuggestedAgentsJson": "[\"writer-agent\",\"code-agent\",\"research-agent\",\"skill:generate_ad_copy\"]",
+      "runtimeMemoryInjected": false,
+      "runtimeMemoryItemCount": 0,
+      "runtimeMemoryTotalChars": 0,
+      "runtimeMemoryIdsJson": "[]",
+      "runtimeMemoryTypesJson": "[]",
+      "runtimeMemoryScopesJson": "[]",
+      "runtimeMemorySourcesJson": "[]",
+      "runtimeRagPreviewOnly": true,
+      "runtimeRagRetrieved": false,
+      "runtimeRagQuery": null,
+      "runtimeRagItemCount": 0,
+      "runtimeRagTotalChars": 0,
+      "runtimeRagChunkIdsJson": "[]",
+      "runtimeRagMemoryIdsJson": "[]",
+      "runtimeRagTypesJson": "[]",
+      "runtimeRagScopesJson": "[]",
+      "runtimeRagSourcesJson": "[]",
+      "runtimeRagScoresJson": "[]",
+      "runtimeRagTopResultsJson": "[]",
+      "createdAt": "2026-07-21T08:57:48.828Z",
+      "updatedAt": "2026-07-21T08:57:48.828Z"
+    },
+    {
+      "id": "9afbd26e-3737-4433-8378-e751df9b567a",
+      "agentName": "design-agent",
+      "inputText": "buat caption promosi kopi susu dengan gaya santai",
+      "outputText": "Lagi suntuk atau butuh mood booster? Segerin lagi hari kamu dengan segelas kopi susu favorit yang creamy dan pas banget manisnya. Yuk, pesan sekarang sebelum kehabisan! ☕✨",
+      "status": "done",
+      "source": "manual",
+      "runtimeProviderId": "cmrk1lnct0001ix48skmjfn9r",
+      "runtimeProviderName": "Gemini Built-in ENV",
+      "runtimeProviderType": "google",
+      "runtimeModel": "gemma-4-26b-a4b-it",
+      "runtimeMode": "auto",
+      "runtimeResolvedFrom": "registry",
+      "governanceAllowed": true,
+      "governanceReason": "Request matched allowed capability keywords.",
+      "governanceConfidence": "high",
+      "governanceMatchedAllowedJson": "[\"caption\",\"promosi\"]",
+      "governanceMatchedDeniedJson": "[]",
+      "governanceMatchedSoftJson": "[\"buat\",\"skill:promosi\",\"skill:caption\"]",
+      "governanceMatchedSmallTalkJson": "[]",
+      "governanceSuggestedAgentsJson": "[\"writer-agent\",\"code-agent\",\"research-agent\",\"skill:generate_ad_copy\",\"skill:social_caption\"]",
+      "runtimeMemoryInjected": true,
+      "runtimeMemoryItemCount": 2,
+      "runtimeMemoryTotalChars": 937,
+      "runtimeMemoryIdsJson": "[\"24ef5ceb-597b-4405-9b76-5ad8bc0e009a\",\"4262ffc0-6864-4afe-8f15-9c3e689adade\"]",
+      "runtimeMemoryTypesJson": "[\"agent_scope\",\"brand_tone\"]",
+      "runtimeMemoryScopesJson": "[\"agent\",\"skill\"]",
+      "runtimeMemorySourcesJson": "[\"memory-foundation/design-agent-agent-scope\",\"memory-foundation/brand-tone\"]",
+      "runtimeRagPreviewOnly": false,
+      "runtimeRagRetrieved": true,
+      "runtimeRagQuery": "buat caption promosi kopi susu dengan gaya santai",
+      "runtimeRagItemCount": 2,
+      "runtimeRagTotalChars": 1305,
+      "runtimeRagChunkIdsJson": "[\"7137c09b-f7a1-4f28-a599-5a7af366fc3a\",\"82e85b2a-1dca-4c53-833d-3bb3cd7cff02\"]",
+      "runtimeRagMemoryIdsJson": "[\"d72eb8de-5777-441c-915d-f96e51e3669f\",\"f0055c60-93ff-42ec-8d4a-b8ea5f139200\"]",
+      "runtimeRagTypesJson": "[\"skill_knowledge\",\"skill_knowledge\"]",
+      "runtimeRagScopesJson": "[\"skill\",\"skill\"]",
+      "runtimeRagSourcesJson": "[\"skill/53736c54-feb0-4764-8988-5293527751da\",\"skill/9d8a2625-87d6-4fc3-82eb-dbec9edd20b0\"]",
+      "runtimeRagScoresJson": "[0.546051,0.485272]",
+      "runtimeRagTopResultsJson": "[{\"chunkId\":\"7137c09b-f7a1-4f28-a599-5a7af366fc3a\",\"memoryId\":\"d72eb8de-5777-441c-915d-f96e51e3669f\",\"agentName\":\"design-agent\",\"memoryType\":\"skill_knowledge\",\"scope\":\"skill\",\"score\":0.546051,\"contentPreview\":\"Skill name: generate_ad_copy Assigned agent: design-agent Skill description: Creates short promotional copy, ad copy, product messaging, captions, headlines, slogans, and campaign...\"},{\"chunkId\":\"82e85b2a-1dca-4c53-833d-3bb3cd7cff02\",\"memoryId\":\"f0055c60-93ff-42ec-8d4a-b8ea5f139200\",\"agentName\":\"design-agent\",\"memoryType\":\"skill_knowledge\",\"scope\":\"skill\",\"score\":0.485272,\"contentPreview\":\"Skill name: social_caption Assigned agent: design-agent Skill description: Creates social media captions and short content ideas for Instagram, TikTok, WhatsApp broadcast, and...\"}]",
+      "createdAt": "2026-07-21T08:57:46.882Z",
+      "updatedAt": "2026-07-21T08:57:48.814Z"
+    },
     {
       "id": "25daca1d-b572-477f-9bd7-f555ccabc5e0",
       "agentName": "design-agent",
@@ -87,181 +259,9 @@ Endpoint /api/tasks?limit=5 is healthy.
       "runtimeRagTopResultsJson": "[]",
       "createdAt": "2026-07-21T08:57:34.047Z",
       "updatedAt": "2026-07-21T08:57:34.047Z"
-    },
-    {
-      "id": "458a6244-275e-47dd-b6fa-2c5c8dfc6ac8",
-      "agentName": "design-agent",
-      "inputText": "buat caption promosi kopi susu dengan gaya santai",
-      "outputText": "Butuh mood booster biar nggak suntuk? Segerin hari kamu dengan kopi susu kita yang creamy dan pas banget manisnya. Yuk, pesan sekarang! ☕✨",
-      "status": "done",
-      "source": "manual",
-      "runtimeProviderId": "cmrk1lnct0001ix48skmjfn9r",
-      "runtimeProviderName": "Gemini Built-in ENV",
-      "runtimeProviderType": "google",
-      "runtimeModel": "gemma-4-26b-a4b-it",
-      "runtimeMode": "auto",
-      "runtimeResolvedFrom": "registry",
-      "governanceAllowed": true,
-      "governanceReason": "Request matched allowed capability keywords.",
-      "governanceConfidence": "high",
-      "governanceMatchedAllowedJson": "[\"caption\",\"promosi\"]",
-      "governanceMatchedDeniedJson": "[]",
-      "governanceMatchedSoftJson": "[\"buat\",\"skill:promosi\",\"skill:caption\"]",
-      "governanceMatchedSmallTalkJson": "[]",
-      "governanceSuggestedAgentsJson": "[\"writer-agent\",\"code-agent\",\"research-agent\",\"skill:generate_ad_copy\",\"skill:social_caption\"]",
-      "runtimeMemoryInjected": true,
-      "runtimeMemoryItemCount": 2,
-      "runtimeMemoryTotalChars": 937,
-      "runtimeMemoryIdsJson": "[\"24ef5ceb-597b-4405-9b76-5ad8bc0e009a\",\"4262ffc0-6864-4afe-8f15-9c3e689adade\"]",
-      "runtimeMemoryTypesJson": "[\"agent_scope\",\"brand_tone\"]",
-      "runtimeMemoryScopesJson": "[\"agent\",\"skill\"]",
-      "runtimeMemorySourcesJson": "[\"memory-foundation/design-agent-agent-scope\",\"memory-foundation/brand-tone\"]",
-      "runtimeRagPreviewOnly": false,
-      "runtimeRagRetrieved": true,
-      "runtimeRagQuery": "buat caption promosi kopi susu dengan gaya santai",
-      "runtimeRagItemCount": 2,
-      "runtimeRagTotalChars": 1305,
-      "runtimeRagChunkIdsJson": "[\"7137c09b-f7a1-4f28-a599-5a7af366fc3a\",\"82e85b2a-1dca-4c53-833d-3bb3cd7cff02\"]",
-      "runtimeRagMemoryIdsJson": "[\"d72eb8de-5777-441c-915d-f96e51e3669f\",\"f0055c60-93ff-42ec-8d4a-b8ea5f139200\"]",
-      "runtimeRagTypesJson": "[\"skill_knowledge\",\"skill_knowledge\"]",
-      "runtimeRagScopesJson": "[\"skill\",\"skill\"]",
-      "runtimeRagSourcesJson": "[\"skill/53736c54-feb0-4764-8988-5293527751da\",\"skill/9d8a2625-87d6-4fc3-82eb-dbec9edd20b0\"]",
-      "runtimeRagScoresJson": "[0.546051,0.485272]",
-      "runtimeRagTopResultsJson": "[{\"chunkId\":\"7137c09b-f7a1-4f28-a599-5a7af366fc3a\",\"memoryId\":\"d72eb8de-5777-441c-915d-f96e51e3669f\",\"agentName\":\"design-agent\",\"memoryType\":\"skill_knowledge\",\"scope\":\"skill\",\"score\":0.546051,\"contentPreview\":\"Skill name: generate_ad_copy Assigned agent: design-agent Skill description: Creates short promotional copy, ad copy, product messaging, captions, headlines, slogans, and campaign...\"},{\"chunkId\":\"82e85b2a-1dca-4c53-833d-3bb3cd7cff02\",\"memoryId\":\"f0055c60-93ff-42ec-8d4a-b8ea5f139200\",\"agentName\":\"design-agent\",\"memoryType\":\"skill_knowledge\",\"scope\":\"skill\",\"score\":0.485272,\"contentPreview\":\"Skill name: social_caption Assigned agent: design-agent Skill description: Creates social media captions and short content ideas for Instagram, TikTok, WhatsApp broadcast, and...\"}]",
-      "createdAt": "2026-07-21T08:57:32.088Z",
-      "updatedAt": "2026-07-21T08:57:34.032Z"
-    },
-    {
-      "id": "84b43d01-7dc6-468d-ae54-b9d7a845d7b6",
-      "agentName": "design-agent",
-      "inputText": "buat caption promosi kopi susu dengan gaya santai",
-      "outputText": "Lagi butuh yang seger-seger? Kopi susu kita siap nemenin santai kamu hari ini. Yuk, order sekarang! ☕️✨",
-      "status": "done",
-      "source": "whatsapp",
-      "runtimeProviderId": "cmrk1lnct0001ix48skmjfn9r",
-      "runtimeProviderName": "Gemini Built-in ENV",
-      "runtimeProviderType": "google",
-      "runtimeModel": "gemma-4-26b-a4b-it",
-      "runtimeMode": "auto",
-      "runtimeResolvedFrom": "registry",
-      "governanceAllowed": true,
-      "governanceReason": "Request matched allowed capability keywords.",
-      "governanceConfidence": "high",
-      "governanceMatchedAllowedJson": "[\"caption\",\"promosi\"]",
-      "governanceMatchedDeniedJson": "[]",
-      "governanceMatchedSoftJson": "[\"buat\",\"skill:promosi\",\"skill:caption\"]",
-      "governanceMatchedSmallTalkJson": "[]",
-      "governanceSuggestedAgentsJson": "[\"writer-agent\",\"code-agent\",\"research-agent\",\"skill:generate_ad_copy\",\"skill:social_caption\"]",
-      "runtimeMemoryInjected": true,
-      "runtimeMemoryItemCount": 1,
-      "runtimeMemoryTotalChars": 652,
-      "runtimeMemoryIdsJson": "[\"24ef5ceb-597b-4405-9b76-5ad8bc0e009a\"]",
-      "runtimeMemoryTypesJson": "[\"agent_scope\"]",
-      "runtimeMemoryScopesJson": "[\"agent\"]",
-      "runtimeMemorySourcesJson": "[\"memory-foundation/design-agent-agent-scope\"]",
-      "runtimeRagPreviewOnly": false,
-      "runtimeRagRetrieved": true,
-      "runtimeRagQuery": "buat caption promosi kopi susu dengan gaya santai",
-      "runtimeRagItemCount": 1,
-      "runtimeRagTotalChars": 658,
-      "runtimeRagChunkIdsJson": "[\"7137c09b-f7a1-4f28-a599-5a7af366fc3a\"]",
-      "runtimeRagMemoryIdsJson": "[\"d72eb8de-5777-441c-915d-f96e51e3669f\"]",
-      "runtimeRagTypesJson": "[\"skill_knowledge\"]",
-      "runtimeRagScopesJson": "[\"skill\"]",
-      "runtimeRagSourcesJson": "[\"skill/53736c54-feb0-4764-8988-5293527751da\"]",
-      "runtimeRagScoresJson": "[0.546051]",
-      "runtimeRagTopResultsJson": "[{\"chunkId\":\"7137c09b-f7a1-4f28-a599-5a7af366fc3a\",\"memoryId\":\"d72eb8de-5777-441c-915d-f96e51e3669f\",\"agentName\":\"design-agent\",\"memoryType\":\"skill_knowledge\",\"scope\":\"skill\",\"score\":0.546051,\"contentPreview\":\"Skill name: generate_ad_copy Assigned agent: design-agent Skill description: Creates short promotional copy, ad copy, product messaging, captions, headlines, slogans, and campaign...\"}]",
-      "createdAt": "2026-07-21T08:47:48.452Z",
-      "updatedAt": "2026-07-21T08:47:58.181Z"
-    },
-    {
-      "id": "c97bc0de-75fc-422f-9417-0e0de816752b",
-      "agentName": "design-agent",
-      "inputText": "buat caption promosi kopi susu dengan gaya santai",
-      "outputText": "Lagi butuh mood booster? ☕️ Rehat sejenak bareng kopi susu creamy kita biar harimu makin chill. Yuk, pesan sekarang!",
-      "status": "done",
-      "source": "whatsapp",
-      "runtimeProviderId": "cmrk1lnct0001ix48skmjfn9r",
-      "runtimeProviderName": "Gemini Built-in ENV",
-      "runtimeProviderType": "google",
-      "runtimeModel": "gemma-4-26b-a4b-it",
-      "runtimeMode": "auto",
-      "runtimeResolvedFrom": "registry",
-      "governanceAllowed": true,
-      "governanceReason": "Request matched allowed capability keywords.",
-      "governanceConfidence": "high",
-      "governanceMatchedAllowedJson": "[\"caption\",\"promosi\"]",
-      "governanceMatchedDeniedJson": "[]",
-      "governanceMatchedSoftJson": "[\"buat\",\"skill:promosi\",\"skill:caption\"]",
-      "governanceMatchedSmallTalkJson": "[]",
-      "governanceSuggestedAgentsJson": "[\"writer-agent\",\"code-agent\",\"research-agent\",\"skill:generate_ad_copy\",\"skill:social_caption\"]",
-      "runtimeMemoryInjected": true,
-      "runtimeMemoryItemCount": 1,
-      "runtimeMemoryTotalChars": 652,
-      "runtimeMemoryIdsJson": "[\"24ef5ceb-597b-4405-9b76-5ad8bc0e009a\"]",
-      "runtimeMemoryTypesJson": "[\"agent_scope\"]",
-      "runtimeMemoryScopesJson": "[\"agent\"]",
-      "runtimeMemorySourcesJson": "[\"memory-foundation/design-agent-agent-scope\"]",
-      "runtimeRagPreviewOnly": false,
-      "runtimeRagRetrieved": true,
-      "runtimeRagQuery": "buat caption promosi kopi susu dengan gaya santai",
-      "runtimeRagItemCount": 1,
-      "runtimeRagTotalChars": 658,
-      "runtimeRagChunkIdsJson": "[\"7137c09b-f7a1-4f28-a599-5a7af366fc3a\"]",
-      "runtimeRagMemoryIdsJson": "[\"d72eb8de-5777-441c-915d-f96e51e3669f\"]",
-      "runtimeRagTypesJson": "[\"skill_knowledge\"]",
-      "runtimeRagScopesJson": "[\"skill\"]",
-      "runtimeRagSourcesJson": "[\"skill/53736c54-feb0-4764-8988-5293527751da\"]",
-      "runtimeRagScoresJson": "[0.546051]",
-      "runtimeRagTopResultsJson": "[{\"chunkId\":\"7137c09b-f7a1-4f28-a599-5a7af366fc3a\",\"memoryId\":\"d72eb8de-5777-441c-915d-f96e51e3669f\",\"agentName\":\"design-agent\",\"memoryType\":\"skill_knowledge\",\"scope\":\"skill\",\"score\":0.546051,\"contentPreview\":\"Skill name: generate_ad_copy Assigned agent: design-agent Skill description: Creates short promotional copy, ad copy, product messaging, captions, headlines, slogans, and campaign...\"}]",
-      "createdAt": "2026-07-21T08:41:28.814Z",
-      "updatedAt": "2026-07-21T08:41:36.467Z"
-    },
-    {
-      "id": "04d2bc68-db0a-4147-8a60-7412a364d8c3",
-      "agentName": "design-agent",
-      "inputText": "generate gambar isometric vehicle",
-      "outputText": "Maaf, @design-agent belum punya capability untuk membuat atau menghasilkan gambar/visual. Saya bisa bantu untuk copywriting, caption, slogan, headline, CTA, atau kata-kata promosi. Untuk gambar/visual, coba arahkan ke @image-agent. Request ini terdeteksi mengarah ke area di luar scope: gambar, generate gambar, isometric, vehicle. Coba arahkan ke @writer-agent, @code-agent, @research-agent.",
-      "status": "done",
-      "source": "manual",
-      "runtimeProviderId": null,
-      "runtimeProviderName": null,
-      "runtimeProviderType": null,
-      "runtimeModel": null,
-      "runtimeMode": null,
-      "runtimeResolvedFrom": null,
-      "governanceAllowed": false,
-      "governanceReason": "Request matched denied keywords. For strict agents, denied domains take precedence over allowed keywords and skill matches.",
-      "governanceConfidence": "medium",
-      "governanceMatchedAllowedJson": "[]",
-      "governanceMatchedDeniedJson": "[\"gambar\",\"generate gambar\",\"isometric\",\"vehicle\"]",
-      "governanceMatchedSoftJson": "[\"generate\",\"skill:generate\"]",
-      "governanceMatchedSmallTalkJson": "[]",
-      "governanceSuggestedAgentsJson": "[\"writer-agent\",\"code-agent\",\"research-agent\",\"skill:generate_ad_copy\"]",
-      "runtimeMemoryInjected": false,
-      "runtimeMemoryItemCount": 0,
-      "runtimeMemoryTotalChars": 0,
-      "runtimeMemoryIdsJson": "[]",
-      "runtimeMemoryTypesJson": "[]",
-      "runtimeMemoryScopesJson": "[]",
-      "runtimeMemorySourcesJson": "[]",
-      "runtimeRagPreviewOnly": true,
-      "runtimeRagRetrieved": false,
-      "runtimeRagQuery": null,
-      "runtimeRagItemCount": 0,
-      "runtimeRagTotalChars": 0,
-      "runtimeRagChunkIdsJson": "[]",
-      "runtimeRagMemoryIdsJson": "[]",
-      "runtimeRagTypesJson": "[]",
-      "runtimeRagScopesJson": "[]",
-      "runtimeRagSourcesJson": "[]",
-      "runtimeRagScoresJson": "[]",
-      "runtimeRagTopResultsJson": "[]",
-      "createdAt": "2026-07-21T01:52:46.098Z",
-      "updatedAt": "2026-07-21T01:52:46.098Z"
     }
   ],
-  "totalCount": 150,
+  "totalCount": 154,
   "limit": 5,
   "filters": {
     "agentName": "all",
@@ -274,11 +274,11 @@ Endpoint /api/tasks?limit=5 is healthy.
   },
   "summary": {
     "bySource": {
-      "manual": 105,
+      "manual": 109,
       "whatsapp": 45
     },
     "byStatus": {
-      "done": 150
+      "done": 154
     }
   }
 }
@@ -527,11 +527,11 @@ Endpoint /api/tasks?source=whatsapp&limit=5 is healthy.
   },
   "summary": {
     "bySource": {
-      "manual": 105,
+      "manual": 109,
       "whatsapp": 45
     },
     "byStatus": {
-      "done": 150
+      "done": 154
     }
   }
 }
@@ -1079,7 +1079,7 @@ Runtime RAG Regression QA completed successfully.
 ```json
 {
   "command": "node scripts/runtime-rag-regression-qa.cjs",
-  "durationMs": 2195,
+  "durationMs": 2533,
   "stdoutTail": "\n===============================================\n Runtime RAG Stability + Regression QA Sweep\n===============================================\n\n[QA] Base URL: http://localhost:3000\n\n\n===============================================\n QA SUMMARY\n===============================================\nPassed:   8\nFailed:   0\nWarnings: 0\n\n[QA] Report written to: D:\\Belajar Agentic Ai\\personal-agent-system\\docs\\runtime-rag-regression-qa-report.md\n\n"
 }
 ```
@@ -1098,7 +1098,7 @@ RAG Retrieval Evaluation QA completed successfully.
 ```json
 {
   "command": "node scripts/rag-retrieval-evaluation-qa.cjs",
-  "durationMs": 234,
+  "durationMs": 274,
   "stdoutTail": "\n===============================================\n RAG Retrieval Evaluation QA\n===============================================\n\n[QA] Base URL: http://localhost:3000\n[QA] Dataset:  D:\\Belajar Agentic Ai\\personal-agent-system\\backend\\evaluation\\rag-retrieval-evaluation-dataset.json\n\n[PASS] design-brand-tone-whatsapp - Design brand tone for WhatsApp marketing\n[PASS] design-ad-copy-skill - Design ad copy skill knowledge\n[PASS] design-caption-social - Design social caption retrieval\n[PASS] code-prisma-debug - Code Prisma backend debugging\n[PASS] qa-regression-policy - QA regression policy retrieval\n[PASS] research-agent-scope - Research agent retrieval\n[PASS] project-context-rag-runtime - Project context RAG runtime retrieval\n\n===============================================\n RETRIEVAL QA SUMMARY\n===============================================\nPassed cases: 7\nFailed cases: 0\nWarnings:     0\n\n[QA] Report written to: D:\\Belajar Agentic Ai\\personal-agent-system\\docs\\rag-retrieval-evaluation-report.md\n\n"
 }
 ```
@@ -1111,7 +1111,7 @@ RAG Retrieval Evaluation QA completed successfully.
 
 Command: `node scripts/runtime-rag-regression-qa.cjs`
 Exit code: **0**
-Duration: 2195 ms
+Duration: 2533 ms
 
 <details>
 <summary>stdout tail</summary>
@@ -1143,7 +1143,7 @@ Warnings: 0
 
 Command: `node scripts/rag-retrieval-evaluation-qa.cjs`
 Exit code: **0**
-Duration: 234 ms
+Duration: 274 ms
 
 <details>
 <summary>stdout tail</summary>

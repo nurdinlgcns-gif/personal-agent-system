@@ -1,10 +1,10 @@
 # RAG Retrieval Evaluation QA Report
 
-Generated: 2026-07-21T08:57:49.044Z
+Generated: 2026-07-22T01:14:23.024Z
 Base URL: `http://localhost:3000`
 Dataset: `D:\Belajar Agentic Ai\personal-agent-system\backend\evaluation\rag-retrieval-evaluation-dataset.json`
 Dataset version: **8.59**
-Duration: 119 ms
+Duration: 143 ms
 
 ## Summary
 
