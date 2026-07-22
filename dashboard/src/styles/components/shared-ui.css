@@ -696,3 +696,13 @@
       10px;
   }
 }
+
+.ui-button.purple {
+  color: #ddd6fe;
+  background: rgba(124, 58, 237, 0.16);
+  border-color: rgba(167, 139, 250, 0.28);
+}
+
+.ui-button.purple:hover {
+  background: rgba(124, 58, 237, 0.26);
+}

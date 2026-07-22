@@ -33,7 +33,7 @@ function getStatusDescription(status?: WhatsAppConnectionSnapshot | null) {
   }
 
   if (status.status === "connected") {
-    return "WhatsApp is connected and ready to process authorized incoming messages.";
+    return "WhatsApp is connected and ready. QR is hidden after successful pairing.";
   }
 
   if (status.status === "qr_required") {
@@ -59,6 +59,14 @@ function getStatusDescription(status?: WhatsAppConnectionSnapshot | null) {
   return "WhatsApp client is currently disconnected.";
 }
 
+function getConnectionTone(status?: WhatsAppConnectionSnapshot | null) {
+  if (!status) {
+    return "unknown";
+  }
+
+  return status.status;
+}
+
 export function WhatsAppConnectionCard() {
   const [status, setStatus] = useState<WhatsAppConnectionSnapshot | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -71,9 +79,9 @@ export function WhatsAppConnectionCard() {
     status?.status === "initializing" ||
     status?.status === "reconnecting";
 
-  const statusClass = useMemo(() => {
-    return status?.status || "unknown";
-  }, [status]);
+  const showQrImage = status?.status === "qr_required" && Boolean(qrDataUrl);
+  const isConnected = status?.status === "connected";
+  const statusClass = useMemo(() => getConnectionTone(status), [status]);
 
   async function loadStatus(isSilent = false) {
     try {
@@ -193,10 +201,12 @@ export function WhatsAppConnectionCard() {
     };
   }, [status?.qr]);
 
-  const showQrImage = status?.status === "qr_required" && Boolean(qrDataUrl);
-
   return (
-    <section className="whatsapp-connection-card">
+    <section
+      className={`whatsapp-connection-card ${statusClass} ${
+        isConnected ? "compact" : ""
+      }`}
+    >
       <div className="whatsapp-connection-header">
         <div>
           <span>Connection + QR Pairing</span>
@@ -209,49 +219,71 @@ export function WhatsAppConnectionCard() {
         </div>
       </div>
 
-      <div className="whatsapp-connection-grid">
-        <div className="whatsapp-connection-info">
-          <div>
+      {isConnected ? (
+        <div className="whatsapp-connection-compact-grid">
+          <div className="whatsapp-connection-compact-item">
             <span>Status</span>
-            <strong>{getStatusLabel(status?.status || "unknown")}</strong>
+            <strong>Connected</strong>
           </div>
 
-          <div>
+          <div className="whatsapp-connection-compact-item">
             <span>Last connected</span>
             <strong>{formatDateTime(status?.lastConnectedAt)}</strong>
           </div>
 
-          <div>
-            <span>Last disconnected</span>
-            <strong>{formatDateTime(status?.lastDisconnectedAt)}</strong>
-          </div>
-
-          <div>
+          <div className="whatsapp-connection-compact-item">
             <span>Updated</span>
             <strong>{formatDateTime(status?.updatedAt)}</strong>
           </div>
-        </div>
 
-        <div className="whatsapp-qr-panel">
-          {showQrImage && qrDataUrl ? (
-            <>
-              {/* BAGIAN YANG SUDAH DIPERBAIKI */}
-              <img src={qrDataUrl} alt="WhatsApp QR Code" />
-              <span>Scan with WhatsApp mobile app</span>
-            </>
-          ) : status?.status === "connected" ? (
-            <div className="whatsapp-qr-placeholder connected">
-              <strong>Connected</strong>
-              <span>QR hidden after successful pairing.</span>
-            </div>
-          ) : (
-            <div className="whatsapp-qr-placeholder">
-              <strong>No QR available</strong>
-              <span>Reconnect if a new pairing QR is needed.</span>
-            </div>
-          )}
+          <div className="whatsapp-connection-compact-note">
+            <strong>QR hidden</strong>
+            <span>Pairing QR is hidden because the session is already connected.</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="whatsapp-connection-grid">
+          <div className="whatsapp-connection-info">
+            <div>
+              <span>Status</span>
+              <strong>{getStatusLabel(status?.status || "unknown")}</strong>
+            </div>
+
+            <div>
+              <span>Last connected</span>
+              <strong>{formatDateTime(status?.lastConnectedAt)}</strong>
+            </div>
+
+            <div>
+              <span>Last disconnected</span>
+              <strong>{formatDateTime(status?.lastDisconnectedAt)}</strong>
+            </div>
+
+            <div>
+              <span>Updated</span>
+              <strong>{formatDateTime(status?.updatedAt)}</strong>
+            </div>
+          </div>
+
+          <div className="whatsapp-qr-panel">
+            {showQrImage && qrDataUrl ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+                <img 
+                  src={qrDataUrl} 
+                  alt="WhatsApp Pairing QR Code" 
+                  style={{ display: "block", maxWidth: "100%", height: "auto", borderRadius: "4px" }}
+                />
+                <span style={{ fontSize: "12px", opacity: 0.7 }}>Scan with WhatsApp mobile app</span>
+              </div>
+            ) : (
+              <div className="whatsapp-qr-placeholder">
+                <strong>No QR available</strong>
+                <span>Reconnect if a new pairing QR is needed.</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {status?.lastError && (
         <div className="whatsapp-connection-warning">
@@ -270,25 +302,27 @@ export function WhatsAppConnectionCard() {
       <div className="whatsapp-connection-actions">
         <button
           type="button"
+          className="btn-refresh"
+          disabled={isLoading || isActionRunning}
           onClick={() => loadStatus()}
-          disabled={isActionRunning}
         >
           Refresh Status
         </button>
 
         <button
           type="button"
+          className="btn-reconnect"
+          disabled={isLoading || isActionRunning}
           onClick={handleReconnect}
-          disabled={isActionRunning}
         >
-          {isActionRunning ? "Running..." : "Reconnect"}
+          Reconnect
         </button>
 
         <button
           type="button"
-          className="danger"
+          className="btn-logout"
+          disabled={isLoading || isActionRunning}
           onClick={handleLogout}
-          disabled={isActionRunning}
         >
           Logout Session
         </button>

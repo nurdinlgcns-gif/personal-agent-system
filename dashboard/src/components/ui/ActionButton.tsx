@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-export type ActionButtonTone = "blue" | "green" | "red" | "ghost";
+export type ActionButtonTone = "blue" | "green" | "red" | "purple" | "ghost";
 
 export function ActionButton({
   children,

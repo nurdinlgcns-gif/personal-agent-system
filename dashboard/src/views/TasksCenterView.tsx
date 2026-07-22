@@ -14,12 +14,12 @@ import {
   FilterGrid,
   FormField,
   InfoPill,
-  MetricCard,
-  MetricGrid,
   PageHero,
   PageShell,
   PanelCard,
 } from "../components/ui";
+
+const TASKS_CENTER_PAGE_SIZE = 10;
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -29,7 +29,7 @@ function formatDateTime(value?: string | null) {
   return new Date(value).toLocaleString();
 }
 
-function truncateText(value?: string | null, maxLength = 180) {
+function truncateText(value?: string | null, maxLength = 120) {
   if (!value) {
     return "-";
   }
@@ -65,16 +65,6 @@ function uniqueSorted(values: string[]) {
   );
 }
 
-function getRuntimeLabel(task: TaskSnapshot) {
-  if (!task.runtimeProviderName && !task.runtimeModel) {
-    return "No runtime metadata";
-  }
-
-  return `${task.runtimeProviderName || task.runtimeProviderType || "Runtime"} / ${
-    task.runtimeModel || "auto"
-  }`;
-}
-
 function boolLabel(value?: boolean | null) {
   if (typeof value !== "boolean") {
     return "-";
@@ -83,7 +73,53 @@ function boolLabel(value?: boolean | null) {
   return value ? "Yes" : "No";
 }
 
-function TaskMetric({
+function statusTone(status: string) {
+  if (status === "done") {
+    return "done";
+  }
+
+  if (status === "error") {
+    return "error";
+  }
+
+  if (status === "in_progress") {
+    return "in_progress";
+  }
+
+  return "default";
+}
+
+function governanceLabel(task: TaskSnapshot) {
+  if (typeof task.governanceAllowed !== "boolean") {
+    return "Unknown";
+  }
+
+  return task.governanceAllowed ? "Allowed" : "Denied";
+}
+
+function runtimeLabel(task: TaskSnapshot) {
+  if (!task.runtimeProviderName && !task.runtimeModel) {
+    return "No runtime";
+  }
+
+  return `${task.runtimeProviderName || task.runtimeProviderType || "Runtime"} / ${
+    task.runtimeModel || "auto"
+  }`;
+}
+
+function contextLabel(task: TaskSnapshot) {
+  const memory = task.runtimeMemoryInjected
+    ? `Memory ${task.runtimeMemoryItemCount ?? 0}`
+    : "Memory none";
+
+  const rag = task.runtimeRagRetrieved
+    ? `RAG ${task.runtimeRagItemCount ?? 0}`
+    : "RAG none";
+
+  return `${memory} · ${rag}`;
+}
+
+function DetailsMetric({
   label,
   value,
 }: {
@@ -91,145 +127,128 @@ function TaskMetric({
   value: string | number;
 }) {
   return (
-    <div className="tasks-center-metric">
+    <div className="tasks-detail-metric">
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
   );
 }
 
-function TaskPills({
+function PillList({
+  label,
   values,
-  emptyLabel = "none",
 }: {
+  label: string;
   values: string[];
-  emptyLabel?: string;
 }) {
-  if (values.length === 0) {
-    return (
-      <div className="tasks-center-pills">
-        <span>{emptyLabel}</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="tasks-center-pills">
-      {values.slice(0, 6).map((value) => (
-        <span key={value}>{value}</span>
-      ))}
+    <div className="tasks-detail-pill-block">
+      <small>{label}</small>
 
-      {values.length > 6 && <span>+{values.length - 6}</span>}
+      <div className="tasks-detail-pills">
+        {values.length === 0 ? (
+          <span>none</span>
+        ) : (
+          values.slice(0, 8).map((value) => <span key={value}>{value}</span>)
+        )}
+
+        {values.length > 8 && <span>+{values.length - 8}</span>}
+      </div>
     </div>
   );
 }
 
-function TaskDetailPanel({
+function TaskDetailsModal({
   task,
   onClose,
 }: {
-  task: TaskSnapshot | null;
+  task: TaskSnapshot;
   onClose: () => void;
 }) {
-  if (!task) {
-    return (
-      <aside className="tasks-detail-panel empty">
-        <strong>No task selected</strong>
-        <p>Select a task from the list to inspect runtime metadata.</p>
-      </aside>
-    );
-  }
-
   const matchedAllowed = parseJsonArray(task.governanceMatchedAllowedJson);
   const matchedDenied = parseJsonArray(task.governanceMatchedDeniedJson);
   const matchedSoft = parseJsonArray(task.governanceMatchedSoftJson);
   const suggested = parseJsonArray(task.governanceSuggestedAgentsJson);
 
   return (
-    <aside className="tasks-detail-panel">
-      <div className="tasks-detail-header">
-        <div>
-          <span>Task Detail</span>
-          <h3>@{task.agentName}</h3>
-          <p>{truncateText(task.inputText, 220)}</p>
+    <div className="tasks-center-modal-backdrop">
+      <section className="tasks-center-modal">
+        <header>
+          <div>
+            <span>Task Detail</span>
+            <h2>@{task.agentName}</h2>
+            <p>{truncateText(task.inputText, 260)}</p>
+          </div>
+
+          <button type="button" onClick={onClose} aria-label="Close task detail">
+            ×
+          </button>
+        </header>
+
+        <div className="tasks-detail-section">
+          <span>Output preview</span>
+          <p>{task.outputText || "No output yet."}</p>
         </div>
 
-        <button type="button" onClick={onClose}>
-          ×
-        </button>
-      </div>
-
-      <div className="tasks-detail-section">
-        <span>Output</span>
-        <p>{task.outputText || "No output yet."}</p>
-      </div>
-
-      <div className="tasks-detail-grid">
-        <TaskMetric label="Status" value={task.status} />
-        <TaskMetric label="Source" value={task.source} />
-        <TaskMetric label="Created" value={formatDateTime(task.createdAt)} />
-        <TaskMetric label="Updated" value={formatDateTime(task.updatedAt)} />
-      </div>
-
-      <div className="tasks-detail-section">
-        <span>Runtime Provider</span>
         <div className="tasks-detail-grid">
-          <TaskMetric label="Provider" value={task.runtimeProviderName || "-"} />
-          <TaskMetric label="Type" value={task.runtimeProviderType || "-"} />
-          <TaskMetric label="Model" value={task.runtimeModel || "-"} />
-          <TaskMetric label="Mode" value={task.runtimeMode || "-"} />
-          <TaskMetric label="Resolved" value={task.runtimeResolvedFrom || "-"} />
-        </div>
-      </div>
-
-      <div className="tasks-detail-section">
-        <span>Governance Boundary</span>
-        <div className="tasks-detail-grid">
-          <TaskMetric label="Allowed" value={boolLabel(task.governanceAllowed)} />
-          <TaskMetric
-            label="Confidence"
-            value={task.governanceConfidence || "-"}
-          />
-          <TaskMetric label="Reason" value={task.governanceReason || "-"} />
+          <DetailsMetric label="Status" value={task.status} />
+          <DetailsMetric label="Source" value={task.source} />
+          <DetailsMetric label="Created" value={formatDateTime(task.createdAt)} />
+          <DetailsMetric label="Updated" value={formatDateTime(task.updatedAt)} />
         </div>
 
-        <div className="tasks-center-pill-block">
-          <small>Allowed signals</small>
-          <TaskPills values={matchedAllowed} />
+        <div className="tasks-detail-section">
+          <span>Runtime Provider</span>
+
+          <div className="tasks-detail-grid">
+            <DetailsMetric label="Provider" value={task.runtimeProviderName || "-"} />
+            <DetailsMetric label="Type" value={task.runtimeProviderType || "-"} />
+            <DetailsMetric label="Model" value={task.runtimeModel || "-"} />
+            <DetailsMetric label="Mode" value={task.runtimeMode || "-"} />
+            <DetailsMetric label="Resolved" value={task.runtimeResolvedFrom || "-"} />
+          </div>
         </div>
 
-        <div className="tasks-center-pill-block">
-          <small>Denied signals</small>
-          <TaskPills values={matchedDenied} />
+        <div className="tasks-detail-section">
+          <span>Governance Boundary</span>
+
+          <div className="tasks-detail-grid">
+            <DetailsMetric
+              label="Allowed"
+              value={boolLabel(task.governanceAllowed)}
+            />
+            <DetailsMetric
+              label="Confidence"
+              value={task.governanceConfidence || "-"}
+            />
+            <DetailsMetric label="Reason" value={task.governanceReason || "-"} />
+          </div>
+
+          <PillList label="Allowed signals" values={matchedAllowed} />
+          <PillList label="Denied signals" values={matchedDenied} />
+          <PillList label="Soft / skill signals" values={matchedSoft} />
+          <PillList label="Suggested agents / skills" values={suggested} />
         </div>
 
-        <div className="tasks-center-pill-block">
-          <small>Soft / skill signals</small>
-          <TaskPills values={matchedSoft} />
+        <div className="tasks-detail-section">
+          <span>Runtime Memory</span>
+          <RuntimeMemoryTaskMetadata task={task} />
         </div>
 
-        <div className="tasks-center-pill-block">
-          <small>Suggested agents / skills</small>
-          <TaskPills values={suggested} />
+        <div className="tasks-detail-section">
+          <span>Runtime RAG</span>
+          <RuntimeRagTaskMetadata task={task} />
         </div>
-      </div>
-
-      <div className="tasks-detail-section">
-        <span>Runtime Memory</span>
-        <RuntimeMemoryTaskMetadata task={task} />
-      </div>
-
-      <div className="tasks-detail-section">
-        <span>Runtime RAG</span>
-        <RuntimeRagTaskMetadata task={task} />
-      </div>
-    </aside>
+      </section>
+    </div>
   );
 }
 
 export function TasksCenterView() {
   const [data, setData] = useState<TasksCenterResponse | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const [search, setSearch] = useState("");
   const [agentName, setAgentName] = useState("all");
   const [source, setSource] = useState("all");
@@ -241,11 +260,29 @@ export function TasksCenterView() {
   const [runtimeRagRetrieved, setRuntimeRagRetrieved] =
     useState<"all" | "true" | "false">("all");
   const [limit, setLimit] = useState(80);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const tasks = data?.tasks || [];
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(tasks.length / TASKS_CENTER_PAGE_SIZE)
+  );
+
+  const normalizedCurrentPage = Math.min(currentPage, totalPages);
+
+  const pageStartIndex =
+    (normalizedCurrentPage - 1) * TASKS_CENTER_PAGE_SIZE;
+
+  const pageEndIndex = Math.min(
+    pageStartIndex + TASKS_CENTER_PAGE_SIZE,
+    tasks.length
+  );
+
+  const paginatedTasks = tasks.slice(pageStartIndex, pageEndIndex);
 
   const agentOptions = useMemo(
     () => uniqueSorted(tasks.map((task) => task.agentName)),
@@ -253,15 +290,26 @@ export function TasksCenterView() {
   );
 
   const selectedTask = useMemo(() => {
-    if (tasks.length === 0) {
+    if (!selectedTaskId) {
       return null;
     }
 
-    return tasks.find((task) => task.id === selectedTaskId) || tasks[0];
+    return tasks.find((task) => task.id === selectedTaskId) || null;
   }, [selectedTaskId, tasks]);
 
   const sourceCounts = data?.summary.bySource || {};
   const statusCounts = data?.summary.byStatus || {};
+
+  const doneCount = statusCounts.done ?? 0;
+  const errorCount = statusCounts.error ?? 0;
+  const manualCount = sourceCounts.manual ?? 0;
+  const whatsappCount = sourceCounts.whatsapp ?? 0;
+  const deniedCount = tasks.filter(
+    (task) => task.governanceAllowed === false
+  ).length;
+  const ragRetrievedCount = tasks.filter(
+    (task) => task.runtimeRagRetrieved === true
+  ).length;
 
   async function loadTasks(isSilent = false) {
     try {
@@ -285,7 +333,6 @@ export function TasksCenterView() {
       };
 
       const nextData = await fetchTasksCenter(filters);
-
       setData(nextData);
 
       setSelectedTaskId((currentSelectedTaskId) => {
@@ -296,7 +343,7 @@ export function TasksCenterView() {
           return currentSelectedTaskId;
         }
 
-        return nextData.tasks[0]?.id || null;
+        return null;
       });
     } catch (error) {
       const message =
@@ -318,11 +365,18 @@ export function TasksCenterView() {
     setRuntimeMemoryInjected("all");
     setRuntimeRagRetrieved("all");
     setLimit(80);
+    setCurrentPage(1);
   }
 
   useEffect(() => {
     loadTasks();
   }, []);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   return (
     <PageShell full className="tasks-center-page">
@@ -353,15 +407,43 @@ export function TasksCenterView() {
         <ErrorState title="Tasks Center error" message={errorMessage} />
       )}
 
-      <PanelCard accent="blue" compact className="tasks-center-standard-panel">
-        <MetricGrid>
-          <MetricCard label="Loaded" value={tasks.length} />
-          <MetricCard label="Total matched" value={data?.totalCount ?? 0} />
-          <MetricCard label="Manual" value={sourceCounts.manual ?? 0} />
-          <MetricCard label="WhatsApp" value={sourceCounts.whatsapp ?? 0} />
-          <MetricCard label="Done" value={statusCounts.done ?? 0} />
-          <MetricCard label="Error" value={statusCounts.error ?? 0} />
-        </MetricGrid>
+      <PanelCard accent="blue" compact className="tasks-center-compact-summary">
+        <div className="tasks-center-summary-table">
+          <div>
+            <span>Total</span>
+            <strong>{data?.totalCount ?? 0}</strong>
+          </div>
+
+          <div>
+            <span>Done</span>
+            <strong>{doneCount}</strong>
+          </div>
+
+          <div>
+            <span>Error</span>
+            <strong>{errorCount}</strong>
+          </div>
+
+          <div>
+            <span>Manual</span>
+            <strong>{manualCount}</strong>
+          </div>
+
+          <div>
+            <span>WhatsApp</span>
+            <strong>{whatsappCount}</strong>
+          </div>
+
+          <div>
+            <span>Denied</span>
+            <strong>{deniedCount}</strong>
+          </div>
+
+          <div>
+            <span>RAG</span>
+            <strong>{ragRetrievedCount}</strong>
+          </div>
+        </div>
       </PanelCard>
 
       <PanelCard accent="blue" compact className="tasks-center-standard-panel">
@@ -469,7 +551,15 @@ export function TasksCenterView() {
         </FilterGrid>
 
         <div className="tasks-center-filter-actions">
-          <ActionButton onClick={() => loadTasks(true)}>Apply Filters</ActionButton>
+          <ActionButton
+            onClick={() => {
+              setCurrentPage(1);
+              loadTasks(true);
+            }}
+          >
+            Apply Filters
+          </ActionButton>
+
           <ActionButton tone="ghost" onClick={clearFilters}>
             Clear Filters
           </ActionButton>
@@ -484,71 +574,99 @@ export function TasksCenterView() {
           description="Try clearing filters or sending a task from Manual Widget or WhatsApp."
         />
       ) : (
-        <div className="tasks-center-layout">
-          <main className="tasks-center-list">
-            {tasks.map((task) => {
-              const isActive = selectedTask?.id === task.id;
+        <PanelCard accent="blue" compact className="tasks-table-panel">
+          <div className="tasks-table">
+            <div className="tasks-table-row header">
+              <span>Time</span>
+              <span>Agent</span>
+              <span>Source</span>
+              <span>Request</span>
+              <span>Output Preview</span>
+              <span>Status</span>
+              <span>Governance</span>
+              <span>Runtime</span>
+              <span>Context</span>
+              <span>Action</span>
+            </div>
 
-              return (
-                <button
-                  type="button"
-                  key={task.id}
-                  className={`tasks-center-item ${isActive ? "active" : ""}`}
-                  onClick={() => setSelectedTaskId(task.id)}
-                >
-                  <div className="tasks-center-item-header">
-                    <div>
-                      <span>@{task.agentName}</span>
-                      <strong>{truncateText(task.inputText, 150)}</strong>
-                    </div>
+            {paginatedTasks.map((task) => (
+              <button
+                type="button"
+                key={task.id}
+                className="tasks-table-row"
+                onClick={() => setSelectedTaskId(task.id)}
+              >
+                <span>{formatDateTime(task.updatedAt)}</span>
 
-                    <div className={`tasks-status-pill ${task.status}`}>
-                      {task.status}
-                    </div>
-                  </div>
+                <span className="agent">@{task.agentName}</span>
 
-                  <p>{truncateText(task.outputText, 220)}</p>
+                <span className="source">{task.source}</span>
 
-                  <div className="tasks-center-item-meta">
-                    <span>{task.source}</span>
-                    <span>{formatDateTime(task.updatedAt)}</span>
-                    <span>{getRuntimeLabel(task)}</span>
-                    <span>
-                      Governance:{" "}
-                      {typeof task.governanceAllowed === "boolean"
-                        ? task.governanceAllowed
-                          ? "allowed"
-                          : "denied"
-                        : "unknown"}
-                    </span>
-                    <span>
-                      Memory:{" "}
-                      {task.runtimeMemoryInjected
-                        ? `${task.runtimeMemoryItemCount ?? 0} items`
-                        : "none"}
-                    </span>
-                    <span>
-                      RAG:{" "}
-                      {task.runtimeRagRetrieved
-                        ? `${task.runtimeRagItemCount ?? 0} chunks`
-                        : "none"}
-                    </span>
-                  </div>
+                <span className="request">{truncateText(task.inputText, 100)}</span>
 
-                  <div className="tasks-center-inline-metadata">
-                    <RuntimeMemoryTaskMetadata task={task} compact />
-                    <RuntimeRagTaskMetadata task={task} compact />
-                  </div>
-                </button>
-              );
-            })}
-          </main>
+                <span className="reply">{truncateText(task.outputText, 130)}</span>
 
-          <TaskDetailPanel
-            task={selectedTask}
-            onClose={() => setSelectedTaskId(null)}
-          />
-        </div>
+                <span>
+                  <strong className={`tasks-table-status ${statusTone(task.status)}`}>
+                    {task.status}
+                  </strong>
+                </span>
+
+                <span>{governanceLabel(task)}</span>
+
+                <span>{runtimeLabel(task)}</span>
+
+                <span>{contextLabel(task)}</span>
+
+                <span>
+                  <strong className="tasks-table-details">Details</strong>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="tasks-table-pagination">
+            <div>
+              Showing{" "}
+              <strong>{tasks.length === 0 ? 0 : pageStartIndex + 1}</strong> to{" "}
+              <strong>{pageEndIndex}</strong> of <strong>{tasks.length}</strong>{" "}
+              tasks
+            </div>
+
+            <div className="tasks-table-pagination-actions">
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((current) => Math.max(1, current - 1))
+                }
+                disabled={normalizedCurrentPage <= 1}
+              >
+                Previous
+              </button>
+
+              <span>
+                Page {normalizedCurrentPage} / {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((current) => Math.min(totalPages, current + 1))
+                }
+                disabled={normalizedCurrentPage >= totalPages}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </PanelCard>
+      )}
+
+      {selectedTask && (
+        <TaskDetailsModal
+          task={selectedTask}
+          onClose={() => setSelectedTaskId(null)}
+        />
       )}
     </PageShell>
   );

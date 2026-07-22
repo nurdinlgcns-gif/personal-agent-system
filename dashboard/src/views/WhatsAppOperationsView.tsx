@@ -15,12 +15,12 @@ import {
   FilterGrid,
   FormField,
   InfoPill,
-  MetricCard,
-  MetricGrid,
   PageHero,
   PageShell,
   PanelCard,
 } from "../components/ui";
+
+const WHATSAPP_TASKS_PAGE_SIZE = 10;
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -30,7 +30,7 @@ function formatDateTime(value?: string | null) {
   return new Date(value).toLocaleString();
 }
 
-function truncateText(value?: string | null, maxLength = 180) {
+function truncateText(value?: string | null, maxLength = 120) {
   if (!value) {
     return "-";
   }
@@ -68,17 +68,43 @@ function boolLabel(value?: boolean | null) {
   return value ? "Yes" : "No";
 }
 
-function getRuntimeLabel(task: TaskSnapshot) {
-  if (!task.runtimeProviderName && !task.runtimeModel) {
-    return "No runtime metadata";
+function statusTone(status: string) {
+  if (status === "done") {
+    return "done";
   }
 
-  return `${task.runtimeProviderName || task.runtimeProviderType || "Runtime"} / ${
-    task.runtimeModel || "auto"
-  }`;
+  if (status === "error") {
+    return "error";
+  }
+
+  if (status === "in_progress") {
+    return "in_progress";
+  }
+
+  return "default";
 }
 
-function WhatsAppMetric({
+function governanceLabel(task: TaskSnapshot) {
+  if (typeof task.governanceAllowed !== "boolean") {
+    return "Unknown";
+  }
+
+  return task.governanceAllowed ? "Allowed" : "Denied";
+}
+
+function contextLabel(task: TaskSnapshot) {
+  const memory = task.runtimeMemoryInjected
+    ? `Memory ${task.runtimeMemoryItemCount ?? 0}`
+    : "Memory none";
+
+  const rag = task.runtimeRagRetrieved
+    ? `RAG ${task.runtimeRagItemCount ?? 0}`
+    : "RAG none";
+
+  return `${memory} · ${rag}`;
+}
+
+function DetailsMetric({
   label,
   value,
 }: {
@@ -86,150 +112,127 @@ function WhatsAppMetric({
   value: string | number;
 }) {
   return (
-    <div className="whatsapp-ops-metric">
+    <div className="whatsapp-detail-metric">
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
   );
 }
 
-function WhatsAppPills({
+function PillList({
+  label,
   values,
-  emptyLabel = "none",
 }: {
+  label: string;
   values: string[];
-  emptyLabel?: string;
 }) {
-  if (values.length === 0) {
-    return (
-      <div className="whatsapp-ops-pills">
-        <span>{emptyLabel}</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="whatsapp-ops-pills">
-      {values.slice(0, 6).map((value) => (
-        <span key={value}>{value}</span>
-      ))}
+    <div className="whatsapp-detail-pill-block">
+      <small>{label}</small>
 
-      {values.length > 6 && <span>+{values.length - 6}</span>}
+      <div className="whatsapp-detail-pills">
+        {values.length === 0 ? (
+          <span>none</span>
+        ) : (
+          values.slice(0, 8).map((value) => <span key={value}>{value}</span>)
+        )}
+
+        {values.length > 8 && <span>+{values.length - 8}</span>}
+      </div>
     </div>
   );
 }
 
-function WhatsAppTaskDetailPanel({
+function WhatsAppTaskDetailsModal({
   task,
   onClose,
 }: {
-  task: TaskSnapshot | null;
+  task: TaskSnapshot;
   onClose: () => void;
 }) {
-  if (!task) {
-    return (
-      <aside className="whatsapp-ops-detail-panel empty">
-        <strong>No WhatsApp task selected</strong>
-        <p>Select a WhatsApp task to inspect runtime and RAG metadata.</p>
-      </aside>
-    );
-  }
-
   const matchedAllowed = parseJsonArray(task.governanceMatchedAllowedJson);
   const matchedDenied = parseJsonArray(task.governanceMatchedDeniedJson);
   const matchedSoft = parseJsonArray(task.governanceMatchedSoftJson);
   const suggested = parseJsonArray(task.governanceSuggestedAgentsJson);
 
   return (
-    <aside className="whatsapp-ops-detail-panel">
-      <div className="whatsapp-ops-detail-header">
-        <div>
-          <span>WhatsApp Task Detail</span>
-          <h3>@{task.agentName}</h3>
-          <p>{truncateText(task.inputText, 220)}</p>
+    <div className="whatsapp-task-modal-backdrop">
+      <section className="whatsapp-task-modal">
+        <header>
+          <div>
+            <span>WhatsApp Task Detail</span>
+            <h2>@{task.agentName}</h2>
+            <p>{truncateText(task.inputText, 240)}</p>
+          </div>
+
+          <button type="button" onClick={onClose} aria-label="Close task detail">
+            ×
+          </button>
+        </header>
+
+        <div className="whatsapp-detail-section">
+          <span>Clean reply preview</span>
+          <p>{task.outputText || "No reply output yet."}</p>
         </div>
 
-        <button type="button" onClick={onClose}>
-          ×
-        </button>
-      </div>
-
-      <div className="whatsapp-ops-detail-section">
-        <span>Clean reply preview</span>
-        <p>{task.outputText || "No reply output yet."}</p>
-      </div>
-
-      <div className="whatsapp-ops-detail-grid">
-        <WhatsAppMetric label="Status" value={task.status} />
-        <WhatsAppMetric label="Source" value={task.source} />
-        <WhatsAppMetric label="Created" value={formatDateTime(task.createdAt)} />
-        <WhatsAppMetric label="Updated" value={formatDateTime(task.updatedAt)} />
-      </div>
-
-      <div className="whatsapp-ops-detail-section">
-        <span>Runtime Provider</span>
-
-        <div className="whatsapp-ops-detail-grid">
-          <WhatsAppMetric label="Provider" value={task.runtimeProviderName || "-"} />
-          <WhatsAppMetric label="Type" value={task.runtimeProviderType || "-"} />
-          <WhatsAppMetric label="Model" value={task.runtimeModel || "-"} />
-          <WhatsAppMetric label="Mode" value={task.runtimeMode || "-"} />
-          <WhatsAppMetric label="Resolved" value={task.runtimeResolvedFrom || "-"} />
-        </div>
-      </div>
-
-      <div className="whatsapp-ops-detail-section">
-        <span>Governance Boundary</span>
-
-        <div className="whatsapp-ops-detail-grid">
-          <WhatsAppMetric
-            label="Allowed"
-            value={boolLabel(task.governanceAllowed)}
-          />
-          <WhatsAppMetric
-            label="Confidence"
-            value={task.governanceConfidence || "-"}
-          />
-          <WhatsAppMetric label="Reason" value={task.governanceReason || "-"} />
+        <div className="whatsapp-detail-grid">
+          <DetailsMetric label="Status" value={task.status} />
+          <DetailsMetric label="Source" value={task.source} />
+          <DetailsMetric label="Created" value={formatDateTime(task.createdAt)} />
+          <DetailsMetric label="Updated" value={formatDateTime(task.updatedAt)} />
         </div>
 
-        <div className="whatsapp-ops-pill-block">
-          <small>Allowed signals</small>
-          <WhatsAppPills values={matchedAllowed} />
+        <div className="whatsapp-detail-section">
+          <span>Runtime Provider</span>
+
+          <div className="whatsapp-detail-grid">
+            <DetailsMetric label="Provider" value={task.runtimeProviderName || "-"} />
+            <DetailsMetric label="Type" value={task.runtimeProviderType || "-"} />
+            <DetailsMetric label="Model" value={task.runtimeModel || "-"} />
+            <DetailsMetric label="Mode" value={task.runtimeMode || "-"} />
+            <DetailsMetric label="Resolved" value={task.runtimeResolvedFrom || "-"} />
+          </div>
         </div>
 
-        <div className="whatsapp-ops-pill-block">
-          <small>Denied signals</small>
-          <WhatsAppPills values={matchedDenied} />
+        <div className="whatsapp-detail-section">
+          <span>Governance Boundary</span>
+
+          <div className="whatsapp-detail-grid">
+            <DetailsMetric
+              label="Allowed"
+              value={boolLabel(task.governanceAllowed)}
+            />
+            <DetailsMetric
+              label="Confidence"
+              value={task.governanceConfidence || "-"}
+            />
+            <DetailsMetric label="Reason" value={task.governanceReason || "-"} />
+          </div>
+
+          <PillList label="Allowed signals" values={matchedAllowed} />
+          <PillList label="Denied signals" values={matchedDenied} />
+          <PillList label="Soft / skill signals" values={matchedSoft} />
+          <PillList label="Suggested agents / skills" values={suggested} />
         </div>
 
-        <div className="whatsapp-ops-pill-block">
-          <small>Soft / skill signals</small>
-          <WhatsAppPills values={matchedSoft} />
+        <div className="whatsapp-detail-section">
+          <span>Runtime Memory</span>
+          <RuntimeMemoryTaskMetadata task={task} />
         </div>
 
-        <div className="whatsapp-ops-pill-block">
-          <small>Suggested agents / skills</small>
-          <WhatsAppPills values={suggested} />
+        <div className="whatsapp-detail-section">
+          <span>Runtime RAG</span>
+          <RuntimeRagTaskMetadata task={task} />
         </div>
-      </div>
-
-      <div className="whatsapp-ops-detail-section">
-        <span>Runtime Memory</span>
-        <RuntimeMemoryTaskMetadata task={task} />
-      </div>
-
-      <div className="whatsapp-ops-detail-section">
-        <span>Runtime RAG</span>
-        <RuntimeRagTaskMetadata task={task} />
-      </div>
-    </aside>
+      </section>
+    </div>
   );
 }
 
 export function WhatsAppOperationsView() {
   const [data, setData] = useState<WhatsAppOperationsResponse | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -247,30 +250,39 @@ export function WhatsAppOperationsView() {
 
   const tasks = data?.tasks || [];
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(tasks.length / WHATSAPP_TASKS_PAGE_SIZE)
+  );
+
+  const normalizedCurrentPage = Math.min(currentPage, totalPages);
+
+  const pageStartIndex =
+    (normalizedCurrentPage - 1) * WHATSAPP_TASKS_PAGE_SIZE;
+
+  const pageEndIndex = Math.min(
+    pageStartIndex + WHATSAPP_TASKS_PAGE_SIZE,
+    tasks.length
+  );
+
+  const paginatedTasks = tasks.slice(pageStartIndex, pageEndIndex);
+
   const selectedTask = useMemo(() => {
-    if (tasks.length === 0) {
+    if (!selectedTaskId) {
       return null;
     }
 
-    return tasks.find((task) => task.id === selectedTaskId) || tasks[0];
+    return tasks.find((task) => task.id === selectedTaskId) || null;
   }, [selectedTaskId, tasks]);
 
   const doneCount = tasks.filter((task) => task.status === "done").length;
   const errorCount = tasks.filter((task) => task.status === "error").length;
-  const allowedCount = tasks.filter(
-    (task) => task.governanceAllowed === true
-  ).length;
   const deniedCount = tasks.filter(
     (task) => task.governanceAllowed === false
-  ).length;
-  const memoryInjectedCount = tasks.filter(
-    (task) => task.runtimeMemoryInjected === true
   ).length;
   const ragRetrievedCount = tasks.filter(
     (task) => task.runtimeRagRetrieved === true
   ).length;
-
-  const latestWhatsAppTask = tasks[0] || null;
 
   async function loadWhatsAppOperations(isSilent = false) {
     try {
@@ -292,7 +304,6 @@ export function WhatsAppOperationsView() {
       };
 
       const nextData = await fetchWhatsAppOperations(filters);
-
       setData(nextData);
 
       setSelectedTaskId((currentSelectedTaskId) => {
@@ -303,7 +314,7 @@ export function WhatsAppOperationsView() {
           return currentSelectedTaskId;
         }
 
-        return nextData.tasks[0]?.id || null;
+        return null;
       });
     } catch (error) {
       const message =
@@ -325,11 +336,18 @@ export function WhatsAppOperationsView() {
     setRuntimeMemoryInjected("all");
     setRuntimeRagRetrieved("all");
     setLimit(80);
+    setCurrentPage(1);
   }
 
   useEffect(() => {
     loadWhatsAppOperations();
   }, []);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   return (
     <PageShell full className="whatsapp-ops-page">
@@ -363,40 +381,34 @@ export function WhatsAppOperationsView() {
 
       <WhatsAppConnectionCard />
 
-      <PanelCard accent="green" compact className="whatsapp-ops-standard-panel">
-        <MetricGrid>
-          <MetricCard label="Loaded" value={tasks.length} />
-          <MetricCard label="Total matched" value={data?.totalCount ?? 0} />
-          <MetricCard label="Done" value={doneCount} />
-          <MetricCard label="Error" value={errorCount} />
-          <MetricCard label="Allowed" value={allowedCount} />
-          <MetricCard label="Denied" value={deniedCount} />
-          <MetricCard label="Memory" value={memoryInjectedCount} />
-          <MetricCard label="RAG" value={ragRetrievedCount} />
-        </MetricGrid>
-      </PanelCard>
-
-      {latestWhatsAppTask && (
-        <section className="whatsapp-ops-latest-card">
+      <PanelCard accent="green" compact className="whatsapp-ops-compact-summary">
+        <div className="whatsapp-ops-summary-table">
           <div>
-            <span>Latest WhatsApp Task</span>
-            <h3>@{latestWhatsAppTask.agentName}</h3>
-            <p>{truncateText(latestWhatsAppTask.inputText, 220)}</p>
+            <span>Total</span>
+            <strong>{data?.totalCount ?? 0}</strong>
           </div>
 
-          <div className="whatsapp-ops-latest-meta">
-            <span>{latestWhatsAppTask.status}</span>
-            <span>{formatDateTime(latestWhatsAppTask.updatedAt)}</span>
-            <span>{getRuntimeLabel(latestWhatsAppTask)}</span>
-            <span>
-              RAG:{" "}
-              {latestWhatsAppTask.runtimeRagRetrieved
-                ? `${latestWhatsAppTask.runtimeRagItemCount ?? 0} chunks`
-                : "none"}
-            </span>
+          <div>
+            <span>Done</span>
+            <strong>{doneCount}</strong>
           </div>
-        </section>
-      )}
+
+          <div>
+            <span>Error</span>
+            <strong>{errorCount}</strong>
+          </div>
+
+          <div>
+            <span>Denied</span>
+            <strong>{deniedCount}</strong>
+          </div>
+
+          <div>
+            <span>RAG</span>
+            <strong>{ragRetrievedCount}</strong>
+          </div>
+        </div>
+      </PanelCard>
 
       <PanelCard accent="green" compact className="whatsapp-ops-standard-panel">
         <FilterGrid>
@@ -475,7 +487,13 @@ export function WhatsAppOperationsView() {
         </FilterGrid>
 
         <div className="whatsapp-ops-filter-actions">
-          <ActionButton tone="green" onClick={() => loadWhatsAppOperations(true)}>
+          <ActionButton
+            tone="green"
+            onClick={() => {
+              setCurrentPage(1);
+              loadWhatsAppOperations(true);
+            }}
+          >
             Apply Filters
           </ActionButton>
 
@@ -493,70 +511,93 @@ export function WhatsAppOperationsView() {
           description="Send a WhatsApp task or clear filters to inspect channel activity."
         />
       ) : (
-        <div className="whatsapp-ops-layout">
-          <main className="whatsapp-ops-list">
-            {tasks.map((task) => {
-              const isActive = selectedTask?.id === task.id;
+        <PanelCard accent="green" compact className="whatsapp-task-table-panel">
+          <div className="whatsapp-task-table">
+            <div className="whatsapp-task-row header">
+              <span>Time</span>
+              <span>Agent</span>
+              <span>Request</span>
+              <span>Reply Preview</span>
+              <span>Status</span>
+              <span>Governance</span>
+              <span>Context</span>
+              <span>Action</span>
+            </div>
 
-              return (
-                <button
-                  type="button"
-                  key={task.id}
-                  className={`whatsapp-ops-item ${isActive ? "active" : ""}`}
-                  onClick={() => setSelectedTaskId(task.id)}
-                >
-                  <div className="whatsapp-ops-item-header">
-                    <div>
-                      <span>@{task.agentName}</span>
-                      <strong>{truncateText(task.inputText, 150)}</strong>
-                    </div>
+            {paginatedTasks.map((task) => (
+              <button
+                type="button"
+                key={task.id}
+                className="whatsapp-task-row"
+                onClick={() => setSelectedTaskId(task.id)}
+              >
+                <span>{formatDateTime(task.updatedAt)}</span>
 
-                    <div className={`whatsapp-status-pill ${task.status}`}>
-                      {task.status}
-                    </div>
-                  </div>
+                <span className="agent">@{task.agentName}</span>
 
-                  <p>{truncateText(task.outputText, 220)}</p>
+                <span className="request">{truncateText(task.inputText, 100)}</span>
 
-                  <div className="whatsapp-ops-item-meta">
-                    <span>{formatDateTime(task.updatedAt)}</span>
-                    <span>{getRuntimeLabel(task)}</span>
-                    <span>
-                      Governance:{" "}
-                      {typeof task.governanceAllowed === "boolean"
-                        ? task.governanceAllowed
-                          ? "allowed"
-                          : "denied"
-                        : "unknown"}
-                    </span>
-                    <span>
-                      Memory:{" "}
-                      {task.runtimeMemoryInjected
-                        ? `${task.runtimeMemoryItemCount ?? 0} items`
-                        : "none"}
-                    </span>
-                    <span>
-                      RAG:{" "}
-                      {task.runtimeRagRetrieved
-                        ? `${task.runtimeRagItemCount ?? 0} chunks`
-                        : "none"}
-                    </span>
-                  </div>
+                <span className="reply">{truncateText(task.outputText, 130)}</span>
 
-                  <div className="whatsapp-ops-inline-metadata">
-                    <RuntimeMemoryTaskMetadata task={task} compact />
-                    <RuntimeRagTaskMetadata task={task} compact />
-                  </div>
-                </button>
-              );
-            })}
-          </main>
+                <span>
+                  <strong className={`whatsapp-table-status ${statusTone(task.status)}`}>
+                    {task.status}
+                  </strong>
+                </span>
 
-          <WhatsAppTaskDetailPanel
-            task={selectedTask}
-            onClose={() => setSelectedTaskId(null)}
-          />
-        </div>
+                <span>{governanceLabel(task)}</span>
+
+                <span>{contextLabel(task)}</span>
+
+                <span>
+                  <strong className="whatsapp-table-details">Details</strong>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="whatsapp-task-pagination">
+            <div>
+              Showing{" "}
+              <strong>{tasks.length === 0 ? 0 : pageStartIndex + 1}</strong> to{" "}
+              <strong>{pageEndIndex}</strong> of <strong>{tasks.length}</strong>{" "}
+              WhatsApp tasks
+            </div>
+
+            <div className="whatsapp-task-pagination-actions">
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((current) => Math.max(1, current - 1))
+                }
+                disabled={normalizedCurrentPage <= 1}
+              >
+                Previous
+              </button>
+
+              <span>
+                Page {normalizedCurrentPage} / {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((current) => Math.min(totalPages, current + 1))
+                }
+                disabled={normalizedCurrentPage >= totalPages}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </PanelCard>
+      )}
+
+      {selectedTask && (
+        <WhatsAppTaskDetailsModal
+          task={selectedTask}
+          onClose={() => setSelectedTaskId(null)}
+        />
       )}
     </PageShell>
   );

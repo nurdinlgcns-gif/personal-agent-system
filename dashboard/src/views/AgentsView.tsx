@@ -8,6 +8,19 @@ import {
   type AgentUnknownIntentPolicy,
   type AgentRefusalStyle,
 } from "../services/agentGovernanceApi";
+import {
+  ActionButton,
+  EmptyState,
+  ErrorState,
+  FilterGrid,
+  FormField,
+  InfoPill,
+  PageHero,
+  PageShell,
+  PanelCard,
+} from "../components/ui";
+
+const AGENTS_PAGE_SIZE = 10;
 
 function getBoundaryLabel(contract: AgentCapabilityContract) {
   if (!contract.strictBoundary) {
@@ -29,6 +42,18 @@ function getConfidenceLabel(value?: string) {
   return value;
 }
 
+function truncateText(value?: string | null, maxLength = 130) {
+  if (!value) {
+    return "-";
+  }
+
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength).trim()}...`;
+}
+
 function uniqueCleanList(items: string[]) {
   return Array.from(
     new Set(
@@ -37,6 +62,12 @@ function uniqueCleanList(items: string[]) {
         .filter(Boolean)
         .map((item) => item.replace(/\s+/g, " "))
     )
+  );
+}
+
+function uniqueSorted(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean))).sort((left, right) =>
+    left.localeCompare(right)
   );
 }
 
@@ -62,6 +93,37 @@ function areStringListsEqual(left: string[], right: string[]) {
   }
 
   return leftClean.every((item, index) => item === rightClean[index]);
+}
+
+function getBoundaryTone(contract: AgentCapabilityContract) {
+  const label = getBoundaryLabel(contract);
+
+  if (label === "Strict") {
+    return "strict";
+  }
+
+  if (label === "Flexible") {
+    return "flexible";
+  }
+
+  return "managed";
+}
+
+function getPolicyLabel(policy: AgentUnknownIntentPolicy) {
+  if (policy === "clarify_or_refuse") {
+    return "Clarify/refuse";
+  }
+
+  return "Allow";
+}
+
+function keywordTotal(contract: AgentCapabilityContract) {
+  return (
+    contract.allowedKeywords.length +
+    contract.deniedKeywords.length +
+    contract.softAllowedKeywords.length +
+    contract.safeSmallTalkKeywords.length
+  );
 }
 
 function KeywordGroup({
@@ -90,38 +152,6 @@ function KeywordGroup({
         </div>
       )}
     </div>
-  );
-}
-
-function ContractSummaryCard({
-  contract,
-  isActive,
-  hasUnsavedChanges,
-  onClick,
-}: {
-  contract: AgentCapabilityContract;
-  isActive: boolean;
-  hasUnsavedChanges: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={`agent-contract-card ${isActive ? "active" : ""}`}
-      onClick={onClick}
-    >
-      <div>
-        <span className="agent-contract-eyebrow">{contract.agentName}</span>
-        <strong>{contract.displayName}</strong>
-        <p>{contract.role}</p>
-      </div>
-
-      <div className="agent-contract-meta-row">
-        <span>{getBoundaryLabel(contract)}</span>
-        <span>{contract.fallbackAgents.length} fallback</span>
-        {isActive && hasUnsavedChanges && <span>Unsaved</span>}
-      </div>
-    </button>
   );
 }
 
@@ -309,7 +339,6 @@ function EditableKeywordsPanel({
       </div>
 
       {saveMessage && <div className="agent-editor-success">{saveMessage}</div>}
-
       {saveError && <div className="agent-governance-error">{saveError}</div>}
     </section>
   );
@@ -527,7 +556,6 @@ function BoundaryMessagesEditorPanel({
       </div>
 
       {saveMessage && <div className="agent-editor-success">{saveMessage}</div>}
-
       {saveError && <div className="agent-governance-error">{saveError}</div>}
     </section>
   );
@@ -669,91 +697,227 @@ function GovernanceCheckPanel({
 
           <div className="agent-check-matches">
             <KeywordGroup
-            title="Matched allowed"
-            items={checkResult.matchedAllowedKeywords}
-            variant="allowed"
+              title="Matched allowed"
+              items={checkResult.matchedAllowedKeywords}
+              variant="allowed"
             />
 
             <KeywordGroup
-            title="Matched denied"
-            items={checkResult.matchedDeniedKeywords}
-            variant="denied"
+              title="Matched denied"
+              items={checkResult.matchedDeniedKeywords}
+              variant="denied"
             />
 
             <KeywordGroup
-            title="Matched soft"
-            items={checkResult.matchedSoftAllowedKeywords}
-            variant="soft"
+              title="Matched soft"
+              items={checkResult.matchedSoftAllowedKeywords}
+              variant="soft"
             />
 
             <KeywordGroup
-            title="Matched skills"
-            items={checkResult.matchedSkillNames}
-            variant="allowed"
+              title="Matched skills"
+              items={checkResult.matchedSkillNames}
+              variant="allowed"
             />
 
             <KeywordGroup
-            title="Skill signals"
-            items={checkResult.matchedSkillSignals}
-            variant="soft"
+              title="Skill signals"
+              items={checkResult.matchedSkillSignals}
+              variant="soft"
             />
 
             <KeywordGroup
-            title="Suggested agents"
-            items={checkResult.suggestedAgents}
-            variant="default"
+              title="Suggested agents"
+              items={checkResult.suggestedAgents}
+              variant="default"
             />
           </div>
+
           {checkResult.memoryContext && (
             <div className="agent-memory-preview">
-                <div className="agent-memory-preview-header">
+              <div className="agent-memory-preview-header">
                 <div>
-                    <span>Memory resolver preview</span>
-                    <strong>
+                  <span>Memory resolver preview</span>
+                  <strong>
                     {checkResult.memoryContext.returnedCount} /{" "}
                     {checkResult.memoryContext.eligibleCount} eligible memories
-                    </strong>
+                  </strong>
                 </div>
 
                 <span>{checkResult.memoryContext.source}</span>
-                </div>
+              </div>
 
-                {checkResult.memoryContext.memories.length === 0 ? (
+              {checkResult.memoryContext.memories.length === 0 ? (
                 <p className="agent-memory-preview-empty">
-                    No runtime-eligible memory found for this request.
+                  No runtime-eligible memory found for this request.
                 </p>
-                ) : (
+              ) : (
                 <div className="agent-memory-preview-list">
-                    {checkResult.memoryContext.memories.map((memory) => (
+                  {checkResult.memoryContext.memories.map((memory) => (
                     <div key={memory.id} className="agent-memory-preview-item">
-                        <div className="agent-memory-preview-item-header">
+                      <div className="agent-memory-preview-item-header">
                         <strong>
-                            @{memory.agentName} · {memory.type}
+                          @{memory.agentName} · {memory.type}
                         </strong>
                         <span>score {memory.score}</span>
-                        </div>
+                      </div>
 
-                        <p>{memory.content}</p>
+                      <p>{memory.content}</p>
 
-                        <div className="agent-memory-preview-pills">
+                      <div className="agent-memory-preview-pills">
                         <span>{memory.scope}</span>
                         <span>{memory.sensitivityLevel}</span>
                         {memory.runtimeInjectable && <span>runtime</span>}
                         {memory.ragEnabled && <span>rag</span>}
                         {memory.matchReasons.map((reason) => (
-                            <span key={`${memory.id}-${reason}`}>{reason}</span>
+                          <span key={`${memory.id}-${reason}`}>{reason}</span>
                         ))}
-                        </div>
+                      </div>
                     </div>
-                    ))}
+                  ))}
                 </div>
-                )}
+              )}
             </div>
-            )}
-
+          )}
         </div>
       )}
     </section>
+  );
+}
+
+function AgentDetailsModal({
+  contract,
+  onClose,
+  onSaved,
+  onDirtyChange,
+}: {
+  contract: AgentCapabilityContract;
+  onClose: () => void;
+  onSaved: (contract: AgentCapabilityContract) => void;
+  onDirtyChange: (type: "keyword" | "boundary", value: boolean) => void;
+}) {
+  return (
+    <div className="agents-modal-backdrop">
+      <section className="agents-modal">
+        <header>
+          <div>
+            <span>Agent Detail</span>
+            <h2>{contract.displayName}</h2>
+            <p>{contract.description}</p>
+          </div>
+
+          <button type="button" onClick={onClose} aria-label="Close agent details">
+            ×
+          </button>
+        </header>
+
+        <div className="agents-detail-grid">
+          <div>
+            <span>Agent</span>
+            <strong>@{contract.agentName}</strong>
+          </div>
+
+          <div>
+            <span>Role</span>
+            <strong>{contract.role}</strong>
+          </div>
+
+          <div>
+            <span>Boundary</span>
+            <strong>{getBoundaryLabel(contract)}</strong>
+          </div>
+
+          <div>
+            <span>Unknown Intent</span>
+            <strong>{contract.unknownIntentPolicy}</strong>
+          </div>
+
+          <div>
+            <span>Refusal Style</span>
+            <strong>{contract.refusalStyle}</strong>
+          </div>
+
+          <div>
+            <span>Primary Skills</span>
+            <strong>
+              {contract.primarySkills.length > 0
+                ? contract.primarySkills.join(", ")
+                : "-"}
+            </strong>
+          </div>
+        </div>
+
+        <div className="agents-message-preview-grid">
+          <div>
+            <span>Refusal message</span>
+            <p>{contract.refusalMessage}</p>
+          </div>
+
+          <div>
+            <span>Unknown intent message</span>
+            <p>{contract.unknownIntentMessage}</p>
+          </div>
+        </div>
+
+        <EditableKeywordsPanel
+          selectedContract={contract}
+          onSaved={onSaved}
+          onDirtyChange={(value) => onDirtyChange("keyword", value)}
+        />
+
+        <BoundaryMessagesEditorPanel
+          selectedContract={contract}
+          onSaved={onSaved}
+          onDirtyChange={(value) => onDirtyChange("boundary", value)}
+        />
+
+        <section className="agent-keyword-section">
+          <KeywordGroup
+            title="Allowed Domains"
+            items={contract.allowedDomains}
+            variant="allowed"
+          />
+
+          <KeywordGroup
+            title="Denied Domains"
+            items={contract.deniedDomains}
+            variant="denied"
+          />
+
+          <KeywordGroup
+            title="Allowed Keywords"
+            items={contract.allowedKeywords}
+            variant="allowed"
+          />
+
+          <KeywordGroup
+            title="Denied Keywords"
+            items={contract.deniedKeywords}
+            variant="denied"
+          />
+
+          <KeywordGroup
+            title="Soft Allowed Keywords"
+            items={contract.softAllowedKeywords}
+            variant="soft"
+          />
+
+          <KeywordGroup
+            title="Small Talk Keywords"
+            items={contract.safeSmallTalkKeywords}
+            variant="smalltalk"
+          />
+
+          <KeywordGroup
+            title="Fallback Agents"
+            items={contract.fallbackAgents}
+            variant="default"
+          />
+        </section>
+
+        <GovernanceCheckPanel selectedContract={contract} />
+      </section>
+    </div>
   );
 }
 
@@ -762,6 +926,11 @@ export function AgentsView() {
   const [selectedAgentName, setSelectedAgentName] = useState<string | null>(
     null
   );
+  const [search, setSearch] = useState("");
+  const [boundaryFilter, setBoundaryFilter] = useState("all");
+  const [policyFilter, setPolicyFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -771,15 +940,72 @@ export function AgentsView() {
   const hasUnsavedChanges = keywordEditorDirty || boundaryEditorDirty;
 
   const selectedContract = useMemo(() => {
-    if (contracts.length === 0) {
+    if (!selectedAgentName) {
       return null;
     }
 
     return (
       contracts.find((contract) => contract.agentName === selectedAgentName) ||
-      contracts[0]
+      null
     );
   }, [contracts, selectedAgentName]);
+
+  const filteredContracts = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return contracts.filter((contract) => {
+      const boundary = getBoundaryLabel(contract);
+
+      const matchesSearch =
+        !normalizedSearch ||
+        contract.agentName.toLowerCase().includes(normalizedSearch) ||
+        contract.displayName.toLowerCase().includes(normalizedSearch) ||
+        contract.role.toLowerCase().includes(normalizedSearch) ||
+        contract.description.toLowerCase().includes(normalizedSearch) ||
+        contract.primarySkills.join(" ").toLowerCase().includes(normalizedSearch);
+
+      const matchesBoundary =
+        boundaryFilter === "all" || boundary === boundaryFilter;
+
+      const matchesPolicy =
+        policyFilter === "all" || contract.unknownIntentPolicy === policyFilter;
+
+      return matchesSearch && matchesBoundary && matchesPolicy;
+    });
+  }, [contracts, search, boundaryFilter, policyFilter]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredContracts.length / AGENTS_PAGE_SIZE)
+  );
+
+  const normalizedCurrentPage = Math.min(currentPage, totalPages);
+  const pageStartIndex = (normalizedCurrentPage - 1) * AGENTS_PAGE_SIZE;
+  const pageEndIndex = Math.min(
+    pageStartIndex + AGENTS_PAGE_SIZE,
+    filteredContracts.length
+  );
+  const paginatedContracts = filteredContracts.slice(pageStartIndex, pageEndIndex);
+
+  const boundaryOptions = useMemo(() => {
+    return uniqueSorted(contracts.map((contract) => getBoundaryLabel(contract)));
+  }, [contracts]);
+
+  const strictCount = contracts.filter(
+    (contract) => getBoundaryLabel(contract) === "Strict"
+  ).length;
+
+  const managedCount = contracts.filter(
+    (contract) => getBoundaryLabel(contract) === "Managed"
+  ).length;
+
+  const flexibleCount = contracts.filter(
+    (contract) => getBoundaryLabel(contract) === "Flexible"
+  ).length;
+
+  const clarifyPolicyCount = contracts.filter(
+    (contract) => contract.unknownIntentPolicy === "clarify_or_refuse"
+  ).length;
 
   useEffect(() => {
     function handleBeforeUnload(event: BeforeUnloadEvent) {
@@ -819,15 +1045,17 @@ export function AgentsView() {
       setErrorMessage(null);
 
       const data = await fetchAgentCapabilityContracts();
-
       setContracts(data);
 
       setSelectedAgentName((currentSelectedAgentName) => {
-        if (currentSelectedAgentName) {
+        if (
+          currentSelectedAgentName &&
+          data.some((contract) => contract.agentName === currentSelectedAgentName)
+        ) {
           return currentSelectedAgentName;
         }
 
-        return data[0]?.agentName || null;
+        return null;
       });
 
       setKeywordEditorDirty(false);
@@ -858,13 +1086,13 @@ export function AgentsView() {
   }
 
   function handleSelectContract(agentName: string) {
-    if (agentName === selectedAgentName) {
-      return;
-    }
+    setSelectedAgentName(agentName);
+  }
 
+  function handleCloseModal() {
     if (hasUnsavedChanges) {
       const shouldContinue = window.confirm(
-        "There are unsaved governance changes. Switching agents will discard them. Continue?"
+        "There are unsaved governance changes. Closing will discard unsaved local edits. Continue?"
       );
 
       if (!shouldContinue) {
@@ -874,7 +1102,23 @@ export function AgentsView() {
 
     setKeywordEditorDirty(false);
     setBoundaryEditorDirty(false);
-    setSelectedAgentName(agentName);
+    setSelectedAgentName(null);
+  }
+
+  function handleModalDirtyChange(type: "keyword" | "boundary", value: boolean) {
+    if (type === "keyword") {
+      setKeywordEditorDirty(value);
+      return;
+    }
+
+    setBoundaryEditorDirty(value);
+  }
+
+  function clearFilters() {
+    setSearch("");
+    setBoundaryFilter("all");
+    setPolicyFilter("all");
+    setCurrentPage(1);
   }
 
   useEffect(() => {
@@ -882,185 +1126,249 @@ export function AgentsView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   return (
-    <section className="agents-governance-view">
-      <div className="agents-governance-hero">
-        <div>
-          <span className="agents-governance-eyebrow">Agent Governance</span>
-          <h1>Agents Capability Control Center</h1>
-          <p>
-            Monitor and tune agent capability rules. Saved rules are enforced by
-            the backend for Floating Assistant, WhatsApp, and direct API
-            requests.
-          </p>
-
-          <div className="agent-enforcement-badge-row hero-badges">
-            <span className="agent-enforcement-badge">Backend enforced</span>
-            <span className="agent-enforcement-badge">Widget protected</span>
-            <span className="agent-enforcement-badge">WhatsApp protected</span>
-            {hasUnsavedChanges && (
-              <span className="agent-unsaved-badge">Unsaved changes</span>
-            )}
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => loadContracts(true)}
-          disabled={isLoading || isRefreshing}
-        >
-          {isRefreshing ? "Refreshing..." : "Refresh"}
-        </button>
-      </div>
+    <PageShell full className="agents-governance-view agents-polish-page">
+      <PageHero
+        eyebrow="Agent Governance"
+        title="Agents Capability Control Center"
+        description="Monitor and tune agent capability rules. Saved rules are enforced by the backend for Floating Assistant, WhatsApp, and direct API requests."
+        badges={
+          <>
+            <InfoPill>Backend enforced</InfoPill>
+            <InfoPill tone="green">Widget protected</InfoPill>
+            <InfoPill tone="purple">WhatsApp protected</InfoPill>
+            {hasUnsavedChanges && <InfoPill tone="yellow">Unsaved changes</InfoPill>}
+          </>
+        }
+        actions={
+          <ActionButton
+            onClick={() => loadContracts(true)}
+            disabled={isLoading || isRefreshing}
+          >
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </ActionButton>
+        }
+      />
 
       {errorMessage && (
-        <div className="agent-governance-error">
-          <strong>Agents governance error</strong>
-          <span>{errorMessage}</span>
-        </div>
+        <ErrorState title="Agents governance error" message={errorMessage} />
       )}
+
+      <PanelCard accent="blue" compact className="agents-summary-panel">
+        <div className="agents-summary-table">
+          <div>
+            <span>Total</span>
+            <strong>{contracts.length}</strong>
+          </div>
+
+          <div>
+            <span>Filtered</span>
+            <strong>{filteredContracts.length}</strong>
+          </div>
+
+          <div>
+            <span>Strict</span>
+            <strong>{strictCount}</strong>
+          </div>
+
+          <div>
+            <span>Managed</span>
+            <strong>{managedCount}</strong>
+          </div>
+
+          <div>
+            <span>Flexible</span>
+            <strong>{flexibleCount}</strong>
+          </div>
+
+          <div>
+            <span>Clarify/refuse</span>
+            <strong>{clarifyPolicyCount}</strong>
+          </div>
+        </div>
+      </PanelCard>
+
+      <PanelCard accent="blue" compact className="agents-filter-panel">
+        <FilterGrid>
+          <FormField label="Search" wide>
+            <input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search agent, role, description, or skill..."
+            />
+          </FormField>
+
+          <FormField label="Boundary">
+            <select
+              value={boundaryFilter}
+              onChange={(event) => {
+                setBoundaryFilter(event.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="all">All boundaries</option>
+              {boundaryOptions.map((boundary) => (
+                <option key={boundary} value={boundary}>
+                  {boundary}
+                </option>
+              ))}
+            </select>
+          </FormField>
+
+          <FormField label="Policy">
+            <select
+              value={policyFilter}
+              onChange={(event) => {
+                setPolicyFilter(event.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="all">All policies</option>
+              <option value="clarify_or_refuse">Clarify/refuse</option>
+              <option value="allow">Allow</option>
+            </select>
+          </FormField>
+        </FilterGrid>
+
+        <div className="agents-filter-actions">
+          <ActionButton
+            onClick={() => {
+              setCurrentPage(1);
+              loadContracts(true);
+            }}
+          >
+            Apply Filters
+          </ActionButton>
+
+          <ActionButton tone="ghost" onClick={clearFilters}>
+            Clear Filters
+          </ActionButton>
+        </div>
+      </PanelCard>
 
       {isLoading ? (
         <div className="agent-governance-loading">
           Loading agent capability contracts...
         </div>
       ) : contracts.length === 0 ? (
-        <div className="agent-governance-empty">
-          <strong>No agent capability contract found.</strong>
-          <p>Run the backend seed script for agent capability contracts.</p>
-        </div>
+        <EmptyState
+          title="No agent capability contract found."
+          description="Run the backend seed script for agent capability contracts."
+        />
+      ) : filteredContracts.length === 0 ? (
+        <EmptyState
+          title="No agents matched your filters."
+          description="Try clearing filters or searching with different terms."
+        />
       ) : (
-        <div className="agents-governance-layout">
-          <aside className="agent-contract-list">
-            {contracts.map((contract) => (
-              <ContractSummaryCard
+        <PanelCard accent="blue" compact className="agents-table-panel">
+          <div className="agents-table">
+            <div className="agents-table-row header">
+              <span>Agent</span>
+              <span>Role</span>
+              <span>Boundary</span>
+              <span>Policy</span>
+              <span>Skills</span>
+              <span>Keywords</span>
+              <span>Fallback</span>
+              <span>Action</span>
+            </div>
+
+            {paginatedContracts.map((contract) => (
+              <button
+                type="button"
                 key={contract.agentName}
-                contract={contract}
-                isActive={selectedContract?.agentName === contract.agentName}
-                hasUnsavedChanges={
-                  selectedContract?.agentName === contract.agentName &&
-                  hasUnsavedChanges
-                }
+                className="agents-table-row"
                 onClick={() => handleSelectContract(contract.agentName)}
-              />
+              >
+                <span className="agent-name">
+                  <strong>{contract.displayName}</strong>
+                  <small>@{contract.agentName}</small>
+                </span>
+
+                <span className="role">{truncateText(contract.role, 90)}</span>
+
+                <span>
+                  <strong className={`agents-boundary-status ${getBoundaryTone(contract)}`}>
+                    {getBoundaryLabel(contract)}
+                  </strong>
+                </span>
+
+                <span>{getPolicyLabel(contract.unknownIntentPolicy)}</span>
+
+                <span>
+                  {contract.primarySkills.length > 0
+                    ? truncateText(contract.primarySkills.join(", "), 110)
+                    : "-"}
+                </span>
+
+                <span>{keywordTotal(contract)} keywords</span>
+
+                <span>{contract.fallbackAgents.length} fallback</span>
+
+                <span>
+                  <strong className="agents-table-details">Details</strong>
+                </span>
+              </button>
             ))}
-          </aside>
+          </div>
 
-          {selectedContract && (
-            <main className="agent-contract-detail">
-              <section className="agent-contract-main-card">
-                <div className="agent-contract-detail-header">
-                  <div>
-                    <span>{selectedContract.agentName}</span>
-                    <h2>{selectedContract.displayName}</h2>
-                    <p>{selectedContract.description}</p>
-                  </div>
+          <div className="agents-table-pagination">
+            <div>
+              Showing{" "}
+              <strong>
+                {filteredContracts.length === 0 ? 0 : pageStartIndex + 1}
+              </strong>{" "}
+              to <strong>{pageEndIndex}</strong> of{" "}
+              <strong>{filteredContracts.length}</strong> agents
+            </div>
 
-                  <div className="agent-boundary-badge">
-                    {getBoundaryLabel(selectedContract)}
-                  </div>
-                </div>
+            <div className="agents-table-pagination-actions">
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((current) => Math.max(1, current - 1))
+                }
+                disabled={normalizedCurrentPage <= 1}
+              >
+                Previous
+              </button>
 
-                <div className="agent-contract-info-grid">
-                  <div>
-                    <span>Role</span>
-                    <strong>{selectedContract.role}</strong>
-                  </div>
+              <span>
+                Page {normalizedCurrentPage} / {totalPages}
+              </span>
 
-                  <div>
-                    <span>Unknown Intent</span>
-                    <strong>{selectedContract.unknownIntentPolicy}</strong>
-                  </div>
-
-                  <div>
-                    <span>Refusal Style</span>
-                    <strong>{selectedContract.refusalStyle}</strong>
-                  </div>
-
-                  <div>
-                    <span>Primary Skills</span>
-                    <strong>
-                      {selectedContract.primarySkills.length > 0
-                        ? selectedContract.primarySkills.join(", ")
-                        : "-"}
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="agent-message-preview-grid">
-                  <div>
-                    <span>Refusal message</span>
-                    <p>{selectedContract.refusalMessage}</p>
-                  </div>
-
-                  <div>
-                    <span>Unknown intent message</span>
-                    <p>{selectedContract.unknownIntentMessage}</p>
-                  </div>
-                </div>
-              </section>
-
-              <EditableKeywordsPanel
-                selectedContract={selectedContract}
-                onSaved={handleContractSaved}
-                onDirtyChange={setKeywordEditorDirty}
-              />
-
-              <BoundaryMessagesEditorPanel
-                selectedContract={selectedContract}
-                onSaved={handleContractSaved}
-                onDirtyChange={setBoundaryEditorDirty}
-              />
-
-              <section className="agent-keyword-section">
-                <KeywordGroup
-                  title="Allowed Domains"
-                  items={selectedContract.allowedDomains}
-                  variant="allowed"
-                />
-
-                <KeywordGroup
-                  title="Denied Domains"
-                  items={selectedContract.deniedDomains}
-                  variant="denied"
-                />
-
-                <KeywordGroup
-                  title="Allowed Keywords"
-                  items={selectedContract.allowedKeywords}
-                  variant="allowed"
-                />
-
-                <KeywordGroup
-                  title="Denied Keywords"
-                  items={selectedContract.deniedKeywords}
-                  variant="denied"
-                />
-
-                <KeywordGroup
-                  title="Soft Allowed Keywords"
-                  items={selectedContract.softAllowedKeywords}
-                  variant="soft"
-                />
-
-                <KeywordGroup
-                  title="Small Talk Keywords"
-                  items={selectedContract.safeSmallTalkKeywords}
-                  variant="smalltalk"
-                />
-
-                <KeywordGroup
-                  title="Fallback Agents"
-                  items={selectedContract.fallbackAgents}
-                  variant="default"
-                />
-              </section>
-
-              <GovernanceCheckPanel selectedContract={selectedContract} />
-            </main>
-          )}
-        </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((current) => Math.min(totalPages, current + 1))
+                }
+                disabled={normalizedCurrentPage >= totalPages}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </PanelCard>
       )}
-    </section>
+
+      {selectedContract && (
+        <AgentDetailsModal
+          contract={selectedContract}
+          onClose={handleCloseModal}
+          onSaved={handleContractSaved}
+          onDirtyChange={handleModalDirtyChange}
+        />
+      )}
+    </PageShell>
   );
 }
