@@ -14,8 +14,6 @@ type AgentViewModel = {
   updatedAt: string;
 };
 
-const MAX_VISIBLE_AGENTS = 4;
-
 const fallbackAgents: AgentViewModel[] = [
   {
     id: "design-agent-placeholder",
@@ -59,28 +57,20 @@ function getAgentRole(agentName: string) {
   return "AI task assistant";
 }
 
-function getAgentInitial(agentName: string) {
-  return agentName
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase())
-    .slice(0, 2)
-    .join("");
-}
-
 function getStatusLabel(status: string) {
   if (status === "working") {
     return "Processing task";
   }
 
   if (status === "idle") {
-    return "Ready for command";
+    return "Ready";
   }
 
   if (status === "error") {
     return "Needs attention";
   }
 
-  return "Status unknown";
+  return "Unknown";
 }
 
 function formatUpdatedAt(updatedAt: string) {
@@ -98,59 +88,60 @@ export function AgentStatusPanel({
   const sourceAgents: AgentViewModel[] =
     agents.length > 0 ? agents : fallbackAgents;
 
-  const visibleAgents = sourceAgents.slice(0, MAX_VISIBLE_AGENTS);
-  const hiddenAgentCount = Math.max(sourceAgents.length - MAX_VISIBLE_AGENTS, 0);
+  const workingCount = sourceAgents.filter(
+    (agent) => (agentStatuses[agent.name] || agent.status || "idle") === "working"
+  ).length;
+
+  const idleCount = sourceAgents.filter(
+    (agent) => (agentStatuses[agent.name] || agent.status || "idle") === "idle"
+  ).length;
+
+  const errorCount = sourceAgents.filter(
+    (agent) => (agentStatuses[agent.name] || agent.status || "idle") === "error"
+  ).length;
 
   return (
-    <section className="panel agent-panel">
+    <section className="panel agent-panel dashboard-table-panel">
       <div className="panel-header">
         <div>
           <h2>Agent Status</h2>
-          <p className="panel-subtitle">
-            Realtime lifecycle monitor
-            {hiddenAgentCount > 0 ? ` • ${hiddenAgentCount} more hidden` : ""}
-          </p>
+          <p className="panel-subtitle">Realtime lifecycle monitor</p>
         </div>
 
-        <button>View All Agents</button>
+        <div className="dashboard-mini-summary">
+          <span>{sourceAgents.length} agents</span>
+          <span>{workingCount} working</span>
+          <span>{idleCount} idle</span>
+          <span>{errorCount} error</span>
+        </div>
       </div>
 
-      <div className="agent-grid">
-        {visibleAgents.map((agent) => {
+      <div className="dashboard-agent-table">
+        <div className="dashboard-agent-row header">
+          <span>Agent</span>
+          <span>Role</span>
+          <span>Status</span>
+          <span>State</span>
+          <span>Updated</span>
+          <span>Source</span>
+        </div>
+
+        {sourceAgents.map((agent) => {
           const status = agentStatuses[agent.name] || agent.status || "idle";
 
           return (
-            <article key={agent.id} className={`agent-card ${status}`}>
-              <div className="agent-card-top-row">
-                <div className={`agent-avatar agent-avatar-${status}`}>
-                  <span>{getAgentInitial(agent.name)}</span>
-                </div>
-
-                <span className={`agent-status-badge ${status}`}>
-                  <span className="agent-status-dot" />
+            <div key={agent.id} className="dashboard-agent-row">
+              <span className="dashboard-agent-name">@{agent.name}</span>
+              <span>{getAgentRole(agent.name)}</span>
+              <span>
+                <strong className={`dashboard-status-pill ${status}`}>
                   {status}
-                </span>
-              </div>
-
-              <div className="agent-main-info">
-                <strong>{agent.name}</strong>
-                <p>{getAgentRole(agent.name)}</p>
-              </div>
-
-              <div className="agent-state-row">
-                <span>{getStatusLabel(status)}</span>
-                <small>Updated {formatUpdatedAt(agent.updatedAt)}</small>
-              </div>
-
-              <div className="agent-activity-track">
-                <div className={`agent-activity-fill ${status}`} />
-              </div>
-
-              <div className="agent-meta-row">
-                <span>Source</span>
-                <strong>WebSocket</strong>
-              </div>
-            </article>
+                </strong>
+              </span>
+              <span>{getStatusLabel(status)}</span>
+              <span>{formatUpdatedAt(agent.updatedAt)}</span>
+              <span>WebSocket</span>
+            </div>
           );
         })}
       </div>

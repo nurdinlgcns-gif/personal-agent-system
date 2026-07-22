@@ -6,13 +6,33 @@ type WhatsAppPanelProps = {
   isProcessing: boolean;
 };
 
+function truncateText(value?: string | null, maxLength = 120) {
+  if (!value) {
+    return "No data recorded yet.";
+  }
+
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength).trim()}...`;
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Date(value).toLocaleString();
+}
+
 export function WhatsAppPanel({
   lastWhatsAppTask,
   whatsappTaskCount,
   isProcessing,
 }: WhatsAppPanelProps) {
   return (
-    <section className="panel whatsapp-panel">
+    <section className="panel whatsapp-panel dashboard-whatsapp-polish">
       <div className="panel-header">
         <div>
           <h2>WhatsApp Integration</h2>
@@ -24,29 +44,39 @@ export function WhatsAppPanel({
         </span>
       </div>
 
-      <div className="info-list whatsapp-info-list">
+      <div className="dashboard-whatsapp-summary-grid">
         <div>
-          <small>Connection State</small>
-          <strong>{isProcessing ? "Agent is processing" : "Ready"}</strong>
+          <span>State</span>
+          <strong>{isProcessing ? "Processing" : "Ready"}</strong>
         </div>
 
         <div>
-          <small>WhatsApp Requests</small>
-          <strong>{whatsappTaskCount} total requests</strong>
+          <span>Requests</span>
+          <strong>{whatsappTaskCount}</strong>
         </div>
 
         <div>
-          <small>Last Incoming Message</small>
-          <p>{lastWhatsAppTask?.inputText || "No WhatsApp task yet."}</p>
+          <span>Last Agent</span>
+          <strong>
+            {lastWhatsAppTask?.agentName ? `@${lastWhatsAppTask.agentName}` : "-"}
+          </strong>
         </div>
 
         <div>
-          <small>Last Reply Sent</small>
-          <p>
-            {lastWhatsAppTask?.outputText
-              ? lastWhatsAppTask.outputText.slice(0, 140) + "..."
-              : "No reply recorded yet."}
-          </p>
+          <span>Last Updated</span>
+          <strong>{formatDateTime(lastWhatsAppTask?.updatedAt)}</strong>
+        </div>
+      </div>
+
+      <div className="dashboard-whatsapp-preview-grid">
+        <div>
+          <span>Last Incoming Message</span>
+          <p>{truncateText(lastWhatsAppTask?.inputText, 180)}</p>
+        </div>
+
+        <div>
+          <span>Last Reply Sent</span>
+          <p>{truncateText(lastWhatsAppTask?.outputText, 180)}</p>
         </div>
       </div>
     </section>

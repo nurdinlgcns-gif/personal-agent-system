@@ -2164,3 +2164,836 @@ button {
   color: #2563eb;
 }
 
+/* =========================
+   PHASE 8.61.13
+   DASHBOARD OVERVIEW PANEL TABLE POLISH
+========================= */
+
+.dashboard-table-panel {
+  overflow: hidden;
+}
+
+.panel-subtitle {
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.dashboard-mini-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.dashboard-mini-summary span {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #bfdbfe;
+  background: rgba(37, 99, 235, 0.14);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Agent table */
+.dashboard-agent-table,
+.dashboard-skill-table {
+  display: grid;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dashboard-agent-table::-webkit-scrollbar,
+.dashboard-skill-table::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.dashboard-agent-row {
+  display: grid;
+  grid-template-columns:
+    minmax(140px, 0.8fr)
+    minmax(180px, 1fr)
+    minmax(90px, 0.5fr)
+    minmax(120px, 0.65fr)
+    minmax(90px, 0.45fr)
+    minmax(90px, 0.45fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 760px;
+  width: 100%;
+  padding: 10px 11px;
+  border-radius: 14px;
+  color: #cbd5e1;
+  background: rgba(2, 6, 23, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  font-size: 11.5px;
+}
+
+.dashboard-skill-row {
+  display: grid;
+  grid-template-columns:
+    minmax(160px, 0.9fr)
+    minmax(120px, 0.65fr)
+    minmax(90px, 0.45fr)
+    minmax(240px, 1.3fr)
+    minmax(100px, 0.55fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 850px;
+  width: 100%;
+  padding: 10px 11px;
+  border-radius: 14px;
+  color: #cbd5e1;
+  background: rgba(2, 6, 23, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  font-size: 11.5px;
+}
+
+.dashboard-agent-row.header,
+.dashboard-skill-row.header {
+  padding: 8px 11px;
+  color: #94a3b8;
+  background: rgba(8, 15, 32, 0.92);
+  border-color: rgba(148, 163, 184, 0.14);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.28px;
+}
+
+.dashboard-agent-name,
+.dashboard-skill-name {
+  color: #93c5fd;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-status-pill {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 9.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dashboard-status-pill.idle,
+.dashboard-status-pill.loaded {
+  color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.13);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+}
+
+.dashboard-status-pill.working {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.13);
+  border: 1px solid rgba(245, 158, 11, 0.22);
+}
+
+.dashboard-status-pill.error {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.13);
+  border: 1px solid rgba(239, 68, 68, 0.22);
+}
+
+.dashboard-status-pill.linked {
+  color: #bfdbfe;
+  background: rgba(37, 99, 235, 0.13);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+}
+
+.dashboard-status-pill.registered {
+  color: #ddd6fe;
+  background: rgba(124, 58, 237, 0.14);
+  border: 1px solid rgba(167, 139, 250, 0.22);
+}
+
+/* Override old card grids inside dashboard overview panels */
+.agent-panel .agent-grid,
+.skill-panel .skill-list {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-mini-summary {
+    justify-content: flex-start;
+  }
+
+  .dashboard-agent-table,
+  .dashboard-skill-table {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-agent-row,
+  .dashboard-skill-row {
+    grid-template-columns: 1fr;
+    min-width: 0;
+  }
+
+  .dashboard-agent-row.header,
+  .dashboard-skill-row.header {
+    display: none;
+  }
+}
+/* =========================
+   PHASE 8.61.13B
+   DASHBOARD OVERVIEW TASKS EVENTS WHATSAPP POLISH
+========================= */
+
+.dashboard-recent-tasks-polish,
+.dashboard-events-polish,
+.dashboard-whatsapp-polish {
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.section-header > div:first-child span {
+  color: #93c5fd;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.32px;
+}
+
+.section-header h2 {
+  margin: 5px 0 0;
+  color: #f8fafc;
+  font-size: 16px;
+}
+
+.section-header button,
+.panel-header-actions button {
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #bfdbfe;
+  background: rgba(37, 99, 235, 0.16);
+  border: 1px solid rgba(96, 165, 250, 0.26);
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.section-header button:disabled,
+.panel-header-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.panel-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Shared dashboard polished tables */
+.dashboard-recent-task-table,
+.dashboard-event-table {
+  display: grid;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dashboard-recent-task-table::-webkit-scrollbar,
+.dashboard-event-table::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.dashboard-recent-task-row {
+  display: grid;
+  grid-template-columns:
+    minmax(150px, 0.75fr)
+    minmax(120px, 0.6fr)
+    minmax(90px, 0.45fr)
+    minmax(100px, 0.5fr)
+    minmax(280px, 1.35fr)
+    minmax(170px, 0.85fr)
+    minmax(80px, 0.4fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 1080px;
+  width: 100%;
+  padding: 10px 11px;
+  border-radius: 14px;
+  color: #cbd5e1;
+  background: rgba(2, 6, 23, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  font-size: 11.5px;
+  text-align: left;
+}
+
+.dashboard-event-row {
+  display: grid;
+  grid-template-columns:
+    minmax(90px, 0.45fr)
+    minmax(130px, 0.65fr)
+    minmax(130px, 0.65fr)
+    minmax(100px, 0.5fr)
+    minmax(110px, 0.55fr)
+    minmax(80px, 0.4fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 740px;
+  width: 100%;
+  padding: 10px 11px;
+  border-radius: 14px;
+  color: #cbd5e1;
+  background: rgba(2, 6, 23, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  font-size: 11.5px;
+  text-align: left;
+}
+
+button.dashboard-recent-task-row,
+button.dashboard-event-row {
+  cursor: pointer;
+}
+
+button.dashboard-recent-task-row:hover,
+button.dashboard-event-row:hover {
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.11), transparent 32%),
+    rgba(15, 23, 42, 0.86);
+  border-color: rgba(96, 165, 250, 0.34);
+}
+
+.dashboard-recent-task-row.header,
+.dashboard-event-row.header {
+  padding: 8px 11px;
+  color: #94a3b8;
+  background: rgba(8, 15, 32, 0.92);
+  border-color: rgba(148, 163, 184, 0.14);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.28px;
+}
+
+.dashboard-recent-task-row .agent,
+.dashboard-event-row .agent {
+  color: #93c5fd;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dashboard-recent-task-row .request {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.dashboard-table-details {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: #bfdbfe;
+  background: rgba(37, 99, 235, 0.14);
+  border: 1px solid rgba(96, 165, 250, 0.23);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* Pagination shared */
+.dashboard-table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.dashboard-table-pagination strong {
+  color: #f8fafc;
+}
+
+.dashboard-table-pagination-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-table-pagination-actions button {
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 0 12px;
+  color: #bfdbfe;
+  background: rgba(37, 99, 235, 0.14);
+  border: 1px solid rgba(96, 165, 250, 0.24);
+  font-size: 10.5px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.dashboard-table-pagination-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dashboard-table-pagination-actions span {
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+/* Dashboard modal */
+.dashboard-task-modal-backdrop,
+.dashboard-event-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 540;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.dashboard-task-modal,
+.dashboard-event-modal {
+  width: min(980px, 100%);
+  max-height: min(840px, calc(100vh - 44px));
+  overflow: auto;
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.14), transparent 34%),
+    rgba(8, 15, 32, 0.96);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+}
+
+.dashboard-task-modal > header,
+.dashboard-event-modal > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.dashboard-task-modal > header span,
+.dashboard-event-modal > header span,
+.dashboard-task-modal-section > span {
+  color: #93c5fd;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.32px;
+}
+
+.dashboard-task-modal > header h2,
+.dashboard-event-modal > header h2 {
+  margin: 5px 0;
+  color: #f8fafc;
+  font-size: 22px;
+}
+
+.dashboard-task-modal > header p,
+.dashboard-event-modal > header p,
+.dashboard-task-modal-section p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.dashboard-task-modal > header button,
+.dashboard-event-modal > header button {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  color: #bfdbfe;
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.dashboard-task-modal-section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(2, 6, 23, 0.42);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.dashboard-task-detail-grid,
+.dashboard-event-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dashboard-task-detail-metric,
+.dashboard-event-detail-grid div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.42);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.dashboard-task-detail-metric span,
+.dashboard-event-detail-grid span,
+.dashboard-task-pill-block small {
+  color: #94a3b8;
+  font-size: 9.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dashboard-task-detail-metric strong,
+.dashboard-event-detail-grid strong {
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-task-pill-block {
+  display: grid;
+  gap: 6px;
+}
+
+.dashboard-task-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dashboard-task-pills span {
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #bfdbfe;
+  background: rgba(37, 99, 235, 0.14);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  font-size: 9.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* WhatsApp compact */
+.dashboard-whatsapp-summary-grid,
+.dashboard-whatsapp-preview-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.dashboard-whatsapp-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-whatsapp-preview-grid {
+  margin-top: 12px;
+}
+
+.dashboard-whatsapp-summary-grid div,
+.dashboard-whatsapp-preview-grid div {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.13);
+}
+
+.dashboard-whatsapp-summary-grid span,
+.dashboard-whatsapp-preview-grid span {
+  color: #94a3b8;
+  font-size: 9.5px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dashboard-whatsapp-summary-grid strong {
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.dashboard-whatsapp-preview-grid p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* Override old RecentTasks visual list */
+.dashboard-recent-tasks-polish .recent-tasks-list {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .dashboard-task-detail-grid,
+  .dashboard-event-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .section-header,
+  .dashboard-table-pagination,
+  .dashboard-task-modal > header,
+  .dashboard-event-modal > header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-table-pagination-actions {
+    justify-content: space-between;
+  }
+
+  .dashboard-table-pagination-actions button {
+    flex: 1;
+  }
+
+  .dashboard-task-modal,
+  .dashboard-event-modal {
+    max-height: calc(100vh - 28px);
+  }
+
+  .dashboard-task-modal-backdrop,
+  .dashboard-event-modal-backdrop {
+    padding: 14px;
+  }
+
+  .dashboard-whatsapp-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   PHASE 8.61.13C
+   DASHBOARD BOTTOM TWO-COLUMN POLISH
+   WhatsApp Integration + Skill Library side-by-side
+========================= */
+
+@media (min-width: 901px) {
+  .dashboard-grid-bottom {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .dashboard-grid-bottom .side-stack {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    align-items: stretch;
+  }
+
+  .dashboard-grid-bottom .side-stack .whatsapp-panel,
+  .dashboard-grid-bottom .side-stack .skill-panel {
+    min-height: 260px;
+    height: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid-bottom .side-stack {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================
+   PHASE 8.61.13D
+   DASHBOARD TOP GRID BALANCE
+   Agent Status no horizontal scroll + Timeline equal height
+========================= */
+
+/* Make top-row panels stretch evenly */
+.dashboard-grid-main {
+  align-items: stretch !important;
+}
+
+.dashboard-grid-main > .panel,
+.dashboard-grid-main > .agent-panel,
+.dashboard-grid-main > .timeline-panel,
+.dashboard-grid-main > .preview-panel {
+  height: 100%;
+}
+
+/* Keep Timeline and 3D Preview visually balanced */
+.timeline-panel,
+.preview-panel {
+  min-height: 432px !important;
+  height: 100%;
+}
+
+.timeline-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.dashboard-events-polish .empty-state,
+.timeline-panel .empty-state {
+  min-height: 280px;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+}
+
+.dashboard-events-polish .dashboard-event-table {
+  min-height: 280px;
+}
+
+/* =========================
+   Agent Status table no horizontal scroll
+========================= */
+
+.agent-panel {
+  overflow: hidden;
+}
+
+.agent-panel .dashboard-agent-table {
+  overflow-x: hidden !important;
+  overflow-y: visible;
+  width: 100%;
+  min-width: 0;
+}
+
+.agent-panel .dashboard-agent-row {
+  width: 100%;
+  min-width: 0 !important;
+  grid-template-columns:
+    minmax(96px, 0.9fr)
+    minmax(118px, 1.05fr)
+    minmax(62px, 0.5fr)
+    minmax(64px, 0.5fr)
+    minmax(76px, 0.55fr)
+    minmax(76px, 0.55fr) !important;
+  gap: 8px;
+  padding: 10px 10px;
+}
+
+.agent-panel .dashboard-agent-row > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-panel .dashboard-agent-row.header {
+  padding: 8px 10px;
+}
+
+.agent-panel .dashboard-agent-row.header span {
+  font-size: 9.5px;
+}
+
+.agent-panel .dashboard-agent-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-panel .dashboard-status-pill {
+  padding: 4px 7px;
+  font-size: 9px;
+}
+
+/* If the panel gets narrower, hide the Source column first */
+@media (max-width: 1380px) {
+  .agent-panel .dashboard-agent-row {
+    grid-template-columns:
+      minmax(110px, 1fr)
+      minmax(130px, 1.1fr)
+      minmax(66px, 0.5fr)
+      minmax(70px, 0.5fr)
+      minmax(82px, 0.55fr) !important;
+  }
+
+  .agent-panel .dashboard-agent-row > span:nth-child(6) {
+    display: none;
+  }
+}
+
+/* If still tight, hide Updated too and keep core info clean */
+@media (max-width: 1180px) {
+  .agent-panel .dashboard-agent-row {
+    grid-template-columns:
+      minmax(120px, 1fr)
+      minmax(150px, 1.2fr)
+      minmax(66px, 0.5fr)
+      minmax(80px, 0.55fr) !important;
+  }
+
+  .agent-panel .dashboard-agent-row > span:nth-child(5),
+  .agent-panel .dashboard-agent-row > span:nth-child(6) {
+    display: none;
+  }
+}
+
+/* Mobile: card-like rows */
+@media (max-width: 700px) {
+  .timeline-panel,
+  .preview-panel {
+    min-height: auto !important;
+  }
+
+  .agent-panel .dashboard-agent-row {
+    grid-template-columns: 1fr !important;
+    gap: 6px;
+  }
+
+  .agent-panel .dashboard-agent-row.header {
+    display: none;
+  }
+
+  .agent-panel .dashboard-agent-row > span:nth-child(5),
+  .agent-panel .dashboard-agent-row > span:nth-child(6) {
+    display: block;
+  }
+
+  .agent-panel .dashboard-agent-row > span {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+}
