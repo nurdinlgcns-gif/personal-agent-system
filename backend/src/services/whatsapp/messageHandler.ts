@@ -12,6 +12,7 @@ import {
   storeLatestTaskRuntimeResult,
 } from "../llm/taskRuntimeMetadataService";
 import {
+  ensureWhatsAppSendableText,
   formatWhatsAppBoundaryReply,
   formatWhatsAppRuntimeReply,
 } from "./whatsappRuntimeGuardrails";
@@ -79,40 +80,43 @@ function buildWhatsAppSystemPrompt(input: {
     "Do not include metadata, runtime details, provider details, model details, governance details, memory details, RAG details, chunk IDs, scores, embeddings, vector search, or source references.",
     "Do not include labels such as Topic, Language, Constraint, Format, Analysis, Reasoning, Final, Output, Answer, Style, Tone, Target audience, Platform, Direct answer, or Content.",
     "Do not mention Memory Vault, retrieval, semantic search, chunks, embeddings, vectors, memory IDs, memory score, sourceRef, runtimeInjectable, or RAG.",
+    "Do not include provider limitation messages, conversation limit messages, new topic requests, unresolved placeholders, draft labels, or template placeholders.",
+    "Never output unresolved placeholders such as [Link Order/WhatsApp], [CTA], [Product Name], [Nama Produk], or {{variable}}.",
     "If the user asks for a short answer, keep it short.",
     "If the user asks for one sentence, return exactly one sentence and nothing else.",
     "If runtime memory context is provided, use it silently only when it improves relevance.",
     "If runtime RAG context is provided, use it silently only when it improves relevance.",
     "If any context is unrelated to the user's request, ignore that context.",
+    "Make sure the final answer is complete and does not stop mid-sentence.",
     input.memoryContextBlock
       ? [
-        "",
-        "Scoped runtime memory:",
-        input.memoryContextBlock,
-        "",
-        "Important memory handling rules:",
-        "1. Use memory only as background context.",
-        "2. Do not quote memory metadata.",
-        "3. Do not say that memory was retrieved.",
-        "4. Do not reveal Memory Vault internals.",
-        "5. If memory is unrelated, ignore it.",
-        "6. The WhatsApp reply must remain short and user-facing only.",
-      ].join("\n")
+          "",
+          "Scoped runtime memory:",
+          input.memoryContextBlock,
+          "",
+          "Important memory handling rules:",
+          "1. Use memory only as background context.",
+          "2. Do not quote memory metadata.",
+          "3. Do not say that memory was retrieved.",
+          "4. Do not reveal Memory Vault internals.",
+          "5. If memory is unrelated, ignore it.",
+          "6. The WhatsApp reply must remain short and user-facing only.",
+        ].join("\n")
       : "",
     input.ragContextBlock
       ? [
-        "",
-        "Scoped runtime RAG context:",
-        input.ragContextBlock,
-        "",
-        "Important RAG handling rules:",
-        "1. Use RAG chunks only as background context.",
-        "2. Do not mention chunk IDs, scores, embeddings, vector search, retrieval, semantic search, or RAG internals.",
-        "3. Do not quote RAG metadata.",
-        "4. Do not say that chunks were retrieved.",
-        "5. If RAG context is unrelated, ignore it.",
-        "6. The WhatsApp reply must remain short and user-facing only.",
-      ].join("\n")
+          "",
+          "Scoped runtime RAG context:",
+          input.ragContextBlock,
+          "",
+          "Important RAG handling rules:",
+          "1. Use RAG chunks only as background context.",
+          "2. Do not mention chunk IDs, scores, embeddings, vector search, retrieval, semantic search, or RAG internals.",
+          "3. Do not quote RAG metadata.",
+          "4. Do not say that chunks were retrieved.",
+          "5. If RAG context is unrelated, ignore it.",
+          "6. The WhatsApp reply must remain short and user-facing only.",
+        ].join("\n")
       : "",
   ]
     .filter(Boolean)
@@ -127,6 +131,18 @@ function buildCapabilityBoundaryResponse(input: {
     input.refusalMessage ||
     `Maaf, @${input.agentName} belum punya capability yang sesuai untuk request ini. Coba arahkan ke agent yang lebih tepat.`
   );
+}
+
+function buildSafeReply(inputText: string, outputText: string) {
+  const formattedReply = formatWhatsAppRuntimeReply(inputText, outputText);
+
+  return ensureWhatsAppSendableText(formattedReply, inputText);
+}
+
+function buildSafeBoundaryReply(inputText: string, outputText: string) {
+  const formattedBoundaryReply = formatWhatsAppBoundaryReply(outputText);
+
+  return ensureWhatsAppSendableText(formattedBoundaryReply, inputText);
 }
 
 export async function handleIncomingWhatsAppMessage(
@@ -213,7 +229,7 @@ export async function handleIncomingWhatsAppMessage(
         refusalMessage: capabilityCheck.refusalMessage,
       });
 
-      const finalBoundaryReply = formatWhatsAppBoundaryReply(boundaryResponse);
+      const finalBoundaryReply = buildSafeBoundaryReply(text, boundaryResponse);
 
       await storeGovernanceBlockedTask({
         inputText: text,
@@ -228,11 +244,14 @@ export async function handleIncomingWhatsAppMessage(
       );
 
       logger.wa(
-        `WhatsApp capability guard denied keywords: ${capabilityCheck.matchedDeniedKeywords.length > 0
-          ? capabilityCheck.matchedDeniedKeywords.join(", ")
-          : "-"
+        `WhatsApp capability guard denied keywords: ${
+          capabilityCheck.matchedDeniedKeywords.length > 0
+            ? capabilityCheck.matchedDeniedKeywords.join(", ")
+            : "-"
         }`
       );
+
+      logger.wa(`WhatsApp boundary reply length: ${finalBoundaryReply.length}`);
 
       return {
         shouldReply: true,
@@ -342,7 +361,7 @@ export async function handleIncomingWhatsAppMessage(
       ? fallbackResult
       : runtimeResult.outputText;
 
-    const finalReply = formatWhatsAppRuntimeReply(text, rawFinalReply);
+    const finalReply = buildSafeReply(text, rawFinalReply);
 
     await storeLatestTaskRuntimeResult({
       inputText: text,
@@ -356,7 +375,8 @@ export async function handleIncomingWhatsAppMessage(
     });
 
     logger.wa(
-      `WhatsApp runtime provider: ${runtimeResult.providerName || runtimeResult.provider
+      `WhatsApp runtime provider: ${
+        runtimeResult.providerName || runtimeResult.provider
       } / ${runtimeResult.model} / mock=${runtimeResult.isMock}`
     );
 
@@ -374,10 +394,15 @@ export async function handleIncomingWhatsAppMessage(
   } catch (error) {
     logger.error("Failed to process WhatsApp message", error);
 
+    const errorReply = ensureWhatsAppSendableText(
+      "Terjadi error saat memproses request WhatsApp.",
+      text
+    );
+
     return {
       shouldReply: true,
       chatId,
-      text: "Terjadi error saat memproses request WhatsApp.",
+      text: errorReply,
     };
   }
 }

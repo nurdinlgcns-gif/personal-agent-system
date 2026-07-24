@@ -1,0 +1,93 @@
+Bro, lanjutkan konteks project gue sebelumnya.
+
+Project gue adalah Personal Multi-Agent System / Personal Multi-Agent Orchestration System.
+
+Gue sedang menjalankan roadmap fase 0 sampai 8.x. Progress terakhir sudah sampai Fase 8.61.x dengan banyak fitur sudah stabil dan QA green.
+
+Stack utama:
+- Backend: Node.js, TypeScript, Prisma
+- Frontend: React + Vite
+- WhatsApp runtime pakai Baileys
+- LLM Provider Registry
+- Agent Governance dan Capability Guardrails
+- Skills Library
+- Memory Vault
+- Runtime Memory Injection
+- Runtime RAG dengan chunking, embedding, semantic retrieval
+- Task audit center
+- Knowledge Source import, audit, versioning, diff, rollback
+- QA scripts untuk runtime RAG, retrieval evaluation, dan final stable release
+
+Progress penting yang sudah selesai:
+- Agent Office
+- Floating Assistant
+- Provider Registry
+- Runtime adapter manual/WhatsApp
+- Capability guardrails
+- Skills
+- Memory Vault
+- Chunking dan embedding foundation
+- Semantic retrieval
+- Runtime memory injection
+- Runtime RAG
+- Knowledge Source import/audit/versioning/diff/rollback
+- Tasks Center
+- WhatsApp Operations
+- WhatsApp QR pairing UI dan reconnect lifecycle hardening
+- Settings Provider Registry UI polish
+- WhatsApp Operations UI polish + pagination
+- Tasks Center table UI polish
+- Skills Library UI polish
+- Agents Page UI polish
+- Memory Vault Workspace Tabs Foundation
+- Overview dashboard cleanup
+
+QA terakhir yang sering gue jaga:
+- runtime-rag-regression-qa
+- rag-retrieval-evaluation-qa
+- final-stable-release-qa
+
+Preferensi gue:
+- Kasih full code siap copas kalau gue minta patch file.
+- Jangan kasih potongan pendek kalau gue minta full file.
+- Jangan ubah logic stabil tanpa alasan.
+- Jangan bikin patch tambalan yang merusak UI/logic lama.
+- Kalau butuh file current, minta gue kirim dulu sebelum kasih full replacement.
+- Jaga supaya tidak ada regression.
+- Setelah patch, kasih command test/QA dan commit message.
+
+Kondisi terakhir:
+Gue lagi troubleshoot WhatsApp final answer guard karena kadang output provider/model bocor ke customer seperti:
+"Thanks for this conversation! I've reached my limit, will you hit “New topic,” please?"
+
+Sebelumnya ditemukan flow:
+LLM Adapter -> runtimeResult.outputText -> messageHandler.ts -> finalReply -> store task outputText -> webhook/whatsapp.ts sendMessage -> customer WhatsApp.
+
+File terkait:
+- backend/src/services/whatsapp/messageHandler.ts
+- backend/src/services/whatsapp/whatsappRuntimeGuardrails.ts
+- backend/src/webhook/whatsapp.ts
+- backend/src/services/llm/runtimeOutputGuardrails.ts
+- backend/src/services/llm/manualRuntimeOutputGuardrails.ts
+
+Tolong lanjutkan dari sini dengan gaya santai seperti biasa, tapi tetap rapi dan hati-hati.
+
+Current issue terakhir:
+Setelah mencoba conversation dari WA atau manual chat dari widget sepertinya jawaban hasil akhir ada yang tidak benar. 
+misal contoh conversation testing sebelumnya : 
+1. Normal 
+<- @design-agent buat caption promosi kopi susu dengan gaya santai
+-> Lagi butuh mood booster? Segerin hari kamu pake kopi susu creamy kita. Manisnya pas, bikin santai makin maksimal! ✨☕️
+2. tidak normal 
+<- @code-agent error TS1005: 'x' expected
+-> Draft 3 (Direct/Actionable): Periksa apakah ada tanda kurung (), kurung kur
+3. tidak normal 
+<- @design-agent buatkan saya caption jualan untuk product Kopi HLI
+-> [Link Order/WhatsApp]
+
+dan banyak lagi yang lainnya. 
+saya bingung kenapa ini tidak konsistent dan hanya beberapa agent saja yang jawabannya benar, terkadang agent yang jawabannya benar pun bisa tidak sesuai.
+
+
+Baru setelah case ini rapi dan kita bisa lanjut lagi ke fase :
+8.62 — 3D Agent Office / GLB Workspace Foundation

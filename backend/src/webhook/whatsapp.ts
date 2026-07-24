@@ -20,6 +20,7 @@ import {
   setWhatsAppQrRequired,
   setWhatsAppReconnecting,
 } from "../services/whatsapp/whatsappConnectionState";
+import { ensureWhatsAppSendableText } from "../services/whatsapp/whatsappRuntimeGuardrails";
 
 let socket: WASocket | null = null;
 let isStarting = false;
@@ -227,8 +228,15 @@ export async function startWhatsApp() {
             continue;
           }
 
+          const safeReplyText = ensureWhatsAppSendableText(result.text);
+
+          if (!safeReplyText) {
+            logger.wa("Reply skipped because final WhatsApp text is empty.");
+            continue;
+          }
+
           await nextSocket.sendMessage(result.chatId, {
-            text: result.text,
+            text: safeReplyText,
           });
         } catch (error) {
           logger.error("Failed to handle WhatsApp message", error);
