@@ -1,0 +1,33 @@
+# Node
+node_modules/
+dist/
+
+# Env
+.env
+
+# Python
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+
+*.pyc
+*.pyo
+*.pyd
+
+# Doc converter output
+tools/doc-to-md-converter/output/
+
+# Doc converter local input
+tools/doc-to-md-converter/input/local/
+tools/doc-to-md-converter/input/private/
+
+# DB
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+
+# Auth
+backend/auth_info/
+
+# Document ingestion runtime
+backend/storage/document-ingestion/*
+!backend/storage/document-ingestion/.gitkeep
