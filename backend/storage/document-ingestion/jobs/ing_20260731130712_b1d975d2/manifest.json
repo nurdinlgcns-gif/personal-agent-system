@@ -1,0 +1,20 @@
+{
+  "jobId": "ing_20260731130712_b1d975d2",
+  "sourceRef": "document-ingestion://ing_20260731130712_b1d975d2/sample_pdf.pdf",
+  "sourceFile": "sample_pdf.pdf",
+  "sourceStem": "sample_pdf",
+  "originalInputPath": "D:\\Belajar Agentic Ai\\personal-agent-system\\tools\\doc-to-md-converter\\input\\samples\\sample_pdf.pdf",
+  "copiedInputPath": "D:\\Belajar Agentic Ai\\personal-agent-system\\backend\\storage\\document-ingestion\\jobs\\ing_20260731130712_b1d975d2\\input\\sample_pdf.pdf",
+  "markdownPath": "D:\\Belajar Agentic Ai\\personal-agent-system\\backend\\storage\\document-ingestion\\jobs\\ing_20260731130712_b1d975d2\\converted\\sample_pdf\\sample_pdf.md",
+  "outputDir": "D:\\Belajar Agentic Ai\\personal-agent-system\\backend\\storage\\document-ingestion\\jobs\\ing_20260731130712_b1d975d2\\converted\\sample_pdf",
+  "imagesDir": "D:\\Belajar Agentic Ai\\personal-agent-system\\backend\\storage\\document-ingestion\\jobs\\ing_20260731130712_b1d975d2\\converted\\sample_pdf\\images",
+  "status": "needs_review",
+  "imageCount": 1,
+  "markdownChars": 731,
+  "warnings": [
+    "PDF heading detection uses heuristic rules and requires manual review.",
+    "Scanned PDFs are not supported in this MVP because OCR is not enabled.",
+    "Complex PDF tables, merged cells, and multi-column layout may require manual review."
+  ],
+  "createdAt": "2026-07-31T06:07:13.685Z"
+}

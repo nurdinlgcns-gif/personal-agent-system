@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config();
 
@@ -36,6 +37,25 @@ function optionalNumberEnv(key: string, defaultValue: number): number {
   return value;
 }
 
+function getDefaultDocToMdProjectRoot() {
+  return path.resolve(process.cwd(), "..", "tools", "doc-to-md-converter");
+}
+
+function getDefaultPythonExe(projectRoot: string) {
+  if (process.platform === "win32") {
+    return path.resolve(projectRoot, ".venv", "Scripts", "python.exe");
+  }
+
+  return path.resolve(projectRoot, ".venv", "bin", "python");
+}
+
+const defaultDocToMdProjectRoot = getDefaultDocToMdProjectRoot();
+
+const docToMdProjectRoot = optionalEnv(
+  "DOC_TO_MD_PROJECT_ROOT",
+  defaultDocToMdProjectRoot
+);
+
 export const env = {
   PORT: optionalEnv("PORT", "3000"),
 
@@ -63,6 +83,27 @@ export const env = {
     "WHATSAPP_RECONNECT_DELAY_MS",
     3000
   ),
+
+  DOC_TO_MD_ENABLED: optionalBooleanEnv("DOC_TO_MD_ENABLED", true),
+
+  DOC_TO_MD_PROJECT_ROOT: docToMdProjectRoot,
+
+  DOC_TO_MD_PYTHON_EXE: optionalEnv(
+    "DOC_TO_MD_PYTHON_EXE",
+    getDefaultPythonExe(docToMdProjectRoot)
+  ),
+
+  DOC_TO_MD_OUTPUT_ROOT: optionalEnv(
+    "DOC_TO_MD_OUTPUT_ROOT",
+    path.resolve(process.cwd(), "storage", "document-ingestion", "legacy-converted")
+  ),
+
+  DOC_TO_MD_TIMEOUT_MS: optionalNumberEnv("DOC_TO_MD_TIMEOUT_MS", 120000),
+
+  DOCUMENT_INGESTION_STORAGE_ROOT: optionalEnv(
+    "DOCUMENT_INGESTION_STORAGE_ROOT",
+    path.resolve(process.cwd(), "storage", "document-ingestion")
+  ),
 };
 
 export function validateEnv() {
@@ -78,5 +119,16 @@ export function validateEnv() {
 
   if (!env.WHATSAPP_ENABLED) {
     console.log("[ENV] WhatsApp disabled by WHATSAPP_ENABLED=false");
+  }
+
+  if (!env.DOC_TO_MD_ENABLED) {
+    console.log("[ENV] Document ingestion disabled by DOC_TO_MD_ENABLED=false");
+  } else {
+    console.log(`[ENV] DOC_TO_MD_PROJECT_ROOT: ${env.DOC_TO_MD_PROJECT_ROOT}`);
+    console.log(`[ENV] DOC_TO_MD_PYTHON_EXE: ${env.DOC_TO_MD_PYTHON_EXE}`);
+    console.log(`[ENV] DOC_TO_MD_OUTPUT_ROOT: ${env.DOC_TO_MD_OUTPUT_ROOT}`);
+    console.log(
+      `[ENV] DOCUMENT_INGESTION_STORAGE_ROOT: ${env.DOCUMENT_INGESTION_STORAGE_ROOT}`
+    );
   }
 }

@@ -33,6 +33,7 @@ import { formatManualRuntimeOutput } from "./services/llm/manualRuntimeOutputGua
 import { knowledgeSourceHistoryRoutes } from "./routes/knowledgeSourceHistoryRoutes";
 import { tasksRoutes } from "./routes/tasksRoutes";
 import { whatsappRoutes } from "./routes/whatsappRoutes";
+import { documentIngestionRoutes } from "./routes/documentIngestionRoutes";
 
 validateEnv();
 
@@ -48,6 +49,7 @@ app.use("/api/memory-vault", memoryVaultRoutes);
 app.use("/api/memory-vault/knowledge-sources", knowledgeSourceHistoryRoutes);
 app.use("/api/tasks", tasksRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
+app.use("/api/document-ingestion", documentIngestionRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({
