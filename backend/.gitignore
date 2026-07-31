@@ -6,3 +6,20 @@ prisma/dev.db
 prisma/dev.db-journal
 
 auth_info/
+
+# Python
+tools/doc-to-md-converter/.venv/
+tools/doc-to-md-converter/__pycache__/
+tools/doc-to-md-converter/**/__pycache__/
+tools/doc-to-md-converter/.pytest_cache/
+
+# Converter output
+tools/doc-to-md-converter/output/
+
+# Converter local files
+tools/doc-to-md-converter/input/local/
+tools/doc-to-md-converter/input/private/
+
+# Document ingestion runtime
+backend/storage/document-ingestion/*
+!backend/storage/document-ingestion/.gitkeep
